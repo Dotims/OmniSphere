@@ -1,6 +1,6 @@
 // main home screen — 3D globe with IOTA validator visualization
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -14,8 +14,34 @@ export default function HomeScreen() {
   const { data, isLoading, error } = useValidators();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const validators = data?.systemState?.activeValidators ?? [];
-  const apys = data?.apys?.apys ?? [];
+  // extract validators — the API route now unwraps V2
+  const validators = useMemo(() => {
+    if (!data?.systemState) return [];
+    const state = data.systemState;
+    // handle both direct and V2-wrapped shapes for safety
+    const raw = (state as unknown as Record<string, unknown>);
+    const activeValidators = raw.activeValidators
+      ?? (raw.V2 as Record<string, unknown> | undefined)?.activeValidators;
+    return Array.isArray(activeValidators) ? activeValidators : [];
+  }, [data]);
+
+  const apys = useMemo(() => {
+    if (!data?.apys) return [];
+    return Array.isArray(data.apys.apys) ? data.apys.apys : [];
+  }, [data]);
+
+  // debug logging
+  useEffect(() => {
+    if (data) {
+      console.log('[Globe] validators count:', validators.length);
+      if (validators.length > 0) {
+        console.log('[Globe] first validator:', validators[0].name, validators[0].iotaAddress?.slice(0, 16));
+      }
+    }
+    if (error) {
+      console.log('[Globe] error:', error.message);
+    }
+  }, [data, error, validators]);
 
   // find the selected validator + its APY
   const selectedValidator = useMemo(

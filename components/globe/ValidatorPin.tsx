@@ -1,7 +1,7 @@
 // individual validator pin — glowing sphere with pulse animation
 // uses useFrame for smooth per-frame animation
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber/native';
 import * as THREE from 'three';
 
@@ -15,8 +15,10 @@ interface ValidatorPinProps {
   isSelected: boolean;
 }
 
-const PIN_RADIUS = 0.018;
-const GLOW_RADIUS = 0.035;
+// slightly larger for mobile touch targets
+const PIN_RADIUS = 0.022;
+const GLOW_RADIUS = 0.045;
+const HIT_RADIUS = 0.06; // invisible hit target for easier tapping
 
 export default function ValidatorPin({
   position,
@@ -27,26 +29,27 @@ export default function ValidatorPin({
   onSelect,
   isSelected,
 }: ValidatorPinProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const coreRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
-  const [hovered, setHovered] = useState(false);
 
   // stagger animation start based on index for wave effect
-  const phaseOffset = index * 0.3;
+  const phaseOffset = index * 0.37;
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime() + phaseOffset;
 
     // pulse scale animation
-    const pulse = 1 + Math.sin(t * 2) * 0.15;
-    if (meshRef.current) {
-      meshRef.current.scale.setScalar(isSelected || hovered ? 1.6 : pulse);
+    const pulse = 1 + Math.sin(t * 2.2) * 0.2;
+    if (coreRef.current) {
+      coreRef.current.scale.setScalar(isSelected ? 1.8 : pulse);
     }
 
     // glow opacity breathing
     if (glowRef.current) {
       const mat = glowRef.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = 0.2 + Math.sin(t * 1.5) * 0.1;
+      mat.opacity = isSelected
+        ? 0.45 + Math.sin(t * 3) * 0.1
+        : 0.18 + Math.sin(t * 1.5) * 0.08;
     }
   });
 
@@ -58,33 +61,34 @@ export default function ValidatorPin({
     <group position={position}>
       {/* outer glow sphere */}
       <mesh ref={glowRef}>
-        <sphereGeometry args={[GLOW_RADIUS, 8, 8]} />
+        <sphereGeometry args={[GLOW_RADIUS, 10, 10]} />
         <meshBasicMaterial
-          color="#00E0CA"
+          color={isSelected ? '#33FFE8' : '#00E0CA'}
           transparent
-          opacity={0.25}
+          opacity={0.2}
           depthWrite={false}
         />
       </mesh>
 
       {/* core pin */}
-      <mesh
-        ref={meshRef}
-        onPointerDown={handlePress}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-      >
-        <sphereGeometry args={[PIN_RADIUS, 8, 8]} />
+      <mesh ref={coreRef}>
+        <sphereGeometry args={[PIN_RADIUS, 10, 10]} />
         <meshBasicMaterial
           color={isSelected ? '#33FFE8' : '#00E0CA'}
           toneMapped={false}
         />
       </mesh>
 
+      {/* invisible hit target — larger for easier mobile tapping */}
+      <mesh onPointerDown={handlePress} visible={false}>
+        <sphereGeometry args={[HIT_RADIUS, 6, 6]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+
       {/* selection ring */}
       {isSelected && (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.03, 0.038, 24]} />
+          <ringGeometry args={[0.04, 0.05, 24]} />
           <meshBasicMaterial
             color="#33FFE8"
             transparent

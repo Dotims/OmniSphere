@@ -16,10 +16,18 @@ interface ValidatorOverlayProps {
 }
 
 export default function ValidatorOverlay({ validator, apy, onClose }: ValidatorOverlayProps) {
-  const truncatedAddress = `${validator.iotaAddress.slice(0, 8)}...${validator.iotaAddress.slice(-6)}`;
+  const addr = validator.iotaAddress || '';
+  const truncatedAddress = addr.length > 14
+    ? `${addr.slice(0, 8)}...${addr.slice(-6)}`
+    : addr;
   const stake = formatStake(validator.stakingPoolIotaBalance);
   const apyPercent = apy ? `${(apy.apy * 100).toFixed(2)}%` : '—';
-  const commission = `${(validator.commissionRate / 100).toFixed(0)}%`;
+  const commission = validator.commissionRate != null
+    ? `${(validator.commissionRate / 100).toFixed(0)}%`
+    : '—';
+  const votingPower = validator.votingPower != null
+    ? `${(Number(validator.votingPower) / 100).toFixed(2)}%`
+    : '—';
 
   return (
     <Animated.View
@@ -61,9 +69,7 @@ export default function ValidatorOverlay({ validator, apy, onClose }: ValidatorO
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Voting Power</Text>
-            <Text style={styles.statValue}>
-              {(Number(validator.votingPower) / 100).toFixed(2)}%
-            </Text>
+            <Text style={styles.statValue}>{votingPower}</Text>
           </View>
         </View>
       </View>

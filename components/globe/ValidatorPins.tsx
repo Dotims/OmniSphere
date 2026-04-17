@@ -13,29 +13,40 @@ interface ValidatorPinsProps {
 }
 
 // format IOTA balance from raw string (nanos) to readable
-function formatStake(raw: string): string {
-  const nano = BigInt(raw);
-  const iota = Number(nano) / 1_000_000_000;
+function formatStake(raw: string | undefined | null): string {
+  if (!raw || raw === '0') return '0 IOTA';
 
-  if (iota >= 1_000_000) {
-    return `${(iota / 1_000_000).toFixed(1)}M IOTA`;
+  try {
+    const nano = BigInt(raw);
+    const iota = Number(nano) / 1_000_000_000;
+
+    if (iota >= 1_000_000) {
+      return `${(iota / 1_000_000).toFixed(1)}M IOTA`;
+    }
+    if (iota >= 1_000) {
+      return `${(iota / 1_000).toFixed(1)}K IOTA`;
+    }
+    return `${iota.toFixed(0)} IOTA`;
+  } catch {
+    return '— IOTA';
   }
-  if (iota >= 1_000) {
-    return `${(iota / 1_000).toFixed(1)}K IOTA`;
-  }
-  return `${iota.toFixed(0)} IOTA`;
 }
 
 export default function ValidatorPins({ validators, selectedId, onSelect }: ValidatorPinsProps) {
   // memoize positions so they don't recompute every frame
   const pinData = useMemo(
     () =>
-      validators.map((v) => ({
-        id: v.iotaAddress,
-        name: v.name || v.iotaAddress.slice(0, 12),
-        stake: formatStake(v.stakingPoolIotaBalance),
-        position: hashToSphereArray(v.iotaAddress, 1.02),
-      })),
+      validators
+        .filter((v) => v.iotaAddress) // skip any validators without an address
+        .map((v) => {
+          const id = v.iotaAddress;
+          return {
+            id,
+            name: v.name || id.slice(0, 12),
+            stake: formatStake(v.stakingPoolIotaBalance),
+            position: hashToSphereArray(id, 1.025),
+          };
+        }),
     [validators],
   );
 
