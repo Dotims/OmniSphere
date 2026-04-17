@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 function getBaseUrl(): string {
@@ -5,7 +6,13 @@ function getBaseUrl(): string {
     return '';
   }
 
-  return 'http://localhost:8081';
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    return `http://${hostUri}`;
+  }
+
+  // Fallback
+  return Platform.OS === 'android' ? 'http://10.0.2.2:8081' : 'http://localhost:8081';
 }
 
 const BASE_URL = getBaseUrl();

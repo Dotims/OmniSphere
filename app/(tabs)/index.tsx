@@ -1,107 +1,172 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+// main home screen — COBE globe with IOTA validator visualization
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useValidators } from '@/hooks/use-validators';
-
+import { GlobeView, GlobeLoader, ValidatorOverlay } from '@/components/globe';
+import { Palette, FontSize, FontWeight, Spacing } from '@/constants/theme';
+import type { ValidatorApy } from '@/services/validators';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useValidators();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  console.log('data from iota:', data);
-  console.log('err:', error);
-  console.log('loading:', isLoading);
+  // extract validators — the API route unwraps V2
+  const validators = useMemo(() => {
+    if (!data?.systemState) return [];
+    const state = data.systemState;
+    const raw = state as unknown as Record<string, unknown>;
+    const activeValidators = raw.activeValidators
+      ?? (raw.V2 as Record<string, unknown> | undefined)?.activeValidators;
+    return Array.isArray(activeValidators) ? activeValidators : [];
+  }, [data]);
+
+  const apys = useMemo(() => {
+    if (!data?.apys) return [];
+    return Array.isArray(data.apys.apys) ? data.apys.apys : [];
+  }, [data]);
+
+  // debug logging
+  useEffect(() => {
+    if (data) {
+      console.log('[Globe] validators count:', validators.length);
+    }
+    if (error) {
+      console.log('[Globe] error:', error.message);
+    }
+  }, [data, error, validators]);
+
+  // find the selected validator + its APY
+  const selectedValidator = useMemo(
+    () => validators.find((v) => v.iotaAddress === selectedId) ?? null,
+    [validators, selectedId],
+  );
+
+  const selectedApy = useMemo(
+    () => apys.find((a: ValidatorApy) => a.address === selectedId),
+    [apys, selectedId],
+  );
+
+  const handleSelect = useCallback((id: string | null) => {
+    setSelectedId(id);
+  }, []);
+
+  // loading state
+  if (isLoading) {
+    return <GlobeLoader />;
+  }
+
+  // error state
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorIcon}>⚠</Text>
+        <Text style={styles.errorTitle}>Connection Failed</Text>
+        <Text style={styles.errorMessage}>
+          {error.message || 'Unable to fetch validator data'}
+        </Text>
+      </View>
+    );
+  }
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>OmniSphere</Text>
+        <View style={styles.badge}>
+          <View style={styles.badgeDot} />
+          <Text style={styles.badgeText}>
+            {validators.length} validators
+          </Text>
+        </View>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      {/* COBE globe */}
+      <View style={styles.canvasWrapper}>
+        <GlobeView
+          validators={validators}
+          onSelectValidator={handleSelect}
+        />
+      </View>
+
+      {/* validator info overlay */}
+      {selectedValidator && (
+        <ValidatorOverlay
+          validator={selectedValidator}
+          apy={selectedApy}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: Palette.void,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  title: {
+    color: Palette.snow,
+    fontSize: FontSize.xl,
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.5,
+  },
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: Palette.white08,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 100,
+    gap: 6,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Palette.cyan,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  badgeText: {
+    color: Palette.silver,
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
+  },
+  canvasWrapper: {
+    flex: 1,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Palette.void,
+    padding: Spacing['2xl'],
+  },
+  errorIcon: {
+    fontSize: 40,
+    marginBottom: Spacing.base,
+  },
+  errorTitle: {
+    color: Palette.snow,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.semibold,
+    marginBottom: Spacing.sm,
+  },
+  errorMessage: {
+    color: Palette.steel,
+    fontSize: FontSize.base,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
