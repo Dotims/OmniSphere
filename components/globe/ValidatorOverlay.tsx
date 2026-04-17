@@ -7,6 +7,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { Palette, FontSize, FontWeight, Spacing, Radius } from '@/constants/theme';
 import type { ValidatorSummary, ValidatorApy } from '@/services/validators';
+<<<<<<< HEAD
 
 // format IOTA balance from raw string (nanos) to readable
 function formatStake(raw: string | undefined | null): string {
@@ -21,6 +22,9 @@ function formatStake(raw: string | undefined | null): string {
     return '— IOTA';
   }
 }
+=======
+import { formatStake } from './ValidatorPins';
+>>>>>>> 6d8623953224c284c4e9b3952036c4769ed21a89
 
 interface ValidatorOverlayProps {
   validator: ValidatorSummary;
