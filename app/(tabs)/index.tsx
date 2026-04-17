@@ -7,7 +7,16 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 
+import { useValidators } from '@/hooks/use-validators';
+
+
 export default function HomeScreen() {
+  const { data, isLoading, error } = useValidators();
+
+  console.log('data from iota:', data);
+  console.log('err:', error);
+  console.log('loading:', isLoading);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
