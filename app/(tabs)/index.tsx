@@ -1,19 +1,11 @@
-<<<<<<< HEAD
 // main home screen — COBE globe with IOTA validator visualization
-=======
-// main home screen — 3D globe with IOTA validator visualization
->>>>>>> 6d8623953224c284c4e9b3952036c4769ed21a89
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useValidators } from '@/hooks/use-validators';
-<<<<<<< HEAD
 import { GlobeView, GlobeLoader, ValidatorOverlay } from '@/components/globe';
-=======
-import { GlobeScene, GlobeLoader, ValidatorOverlay } from '@/components/globe';
->>>>>>> 6d8623953224c284c4e9b3952036c4769ed21a89
 import { Palette, FontSize, FontWeight, Spacing } from '@/constants/theme';
 import type { ValidatorApy } from '@/services/validators';
 
@@ -22,20 +14,11 @@ export default function HomeScreen() {
   const { data, isLoading, error } = useValidators();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-<<<<<<< HEAD
   // extract validators — the API route unwraps V2
   const validators = useMemo(() => {
     if (!data?.systemState) return [];
     const state = data.systemState;
     const raw = state as unknown as Record<string, unknown>;
-=======
-  // extract validators — the API route now unwraps V2
-  const validators = useMemo(() => {
-    if (!data?.systemState) return [];
-    const state = data.systemState;
-    // handle both direct and V2-wrapped shapes for safety
-    const raw = (state as unknown as Record<string, unknown>);
->>>>>>> 6d8623953224c284c4e9b3952036c4769ed21a89
     const activeValidators = raw.activeValidators
       ?? (raw.V2 as Record<string, unknown> | undefined)?.activeValidators;
     return Array.isArray(activeValidators) ? activeValidators : [];
@@ -46,23 +29,15 @@ export default function HomeScreen() {
     return Array.isArray(data.apys.apys) ? data.apys.apys : [];
   }, [data]);
 
-  // debug logging
   useEffect(() => {
     if (data) {
       console.log('[Globe] validators count:', validators.length);
-<<<<<<< HEAD
-=======
-      if (validators.length > 0) {
-        console.log('[Globe] first validator:', validators[0].name, validators[0].iotaAddress?.slice(0, 16));
-      }
->>>>>>> 6d8623953224c284c4e9b3952036c4769ed21a89
     }
     if (error) {
       console.log('[Globe] error:', error.message);
     }
   }, [data, error, validators]);
 
-  // find the selected validator + its APY
   const selectedValidator = useMemo(
     () => validators.find((v) => v.iotaAddress === selectedId) ?? null,
     [validators, selectedId],
@@ -77,12 +52,10 @@ export default function HomeScreen() {
     setSelectedId(id);
   }, []);
 
-  // loading state
   if (isLoading) {
     return <GlobeLoader />;
   }
 
-  // error state
   if (error) {
     return (
       <View style={styles.errorContainer}>
@@ -108,20 +81,11 @@ export default function HomeScreen() {
         </View>
       </View>
 
-<<<<<<< HEAD
       {/* COBE globe */}
       <View style={styles.canvasWrapper}>
         <GlobeView
           validators={validators}
           onSelectValidator={handleSelect}
-=======
-      {/* 3D globe */}
-      <View style={styles.canvasWrapper}>
-        <GlobeScene
-          validators={validators}
-          selectedId={selectedId}
-          onSelect={handleSelect}
->>>>>>> 6d8623953224c284c4e9b3952036c4769ed21a89
         />
       </View>
 
