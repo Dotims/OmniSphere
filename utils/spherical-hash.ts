@@ -1,7 +1,3 @@
-// deterministic spherical mapping
-// hashes a string (validator address/name) into fixed lat/lon coordinates
-// same input always produces exact same position on the globe.
-
 // simple deterministic hash (djb2)
 function hashString(str: string): number {
   let hash = 5381;
