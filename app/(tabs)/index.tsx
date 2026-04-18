@@ -1,12 +1,12 @@
 // main home screen — COBE globe with IOTA validator visualization
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GlobeLoader, GlobeView, ValidatorOverlay } from '@/components/globe';
+import { FontSize, FontWeight, Palette, Spacing } from '@/constants/theme';
 import { useValidators } from '@/hooks/use-validators';
-import { GlobeView, GlobeLoader, ValidatorOverlay } from '@/components/globe';
-import { Palette, FontSize, FontWeight, Spacing } from '@/constants/theme';
 import type { ValidatorApy } from '@/services/validators';
 
 export default function HomeScreen() {
@@ -73,12 +73,6 @@ export default function HomeScreen() {
       {/* header */}
       <View style={styles.header}>
         <Text style={styles.title}>OmniSphere</Text>
-        <View style={styles.badge}>
-          <View style={styles.badgeDot} />
-          <Text style={styles.badgeText}>
-            {validators.length} validators
-          </Text>
-        </View>
       </View>
 
       {/* COBE globe */}
@@ -118,26 +112,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: FontWeight.bold,
     letterSpacing: -0.5,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Palette.white08,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 100,
-    gap: 6,
-  },
-  badgeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Palette.cyan,
-  },
-  badgeText: {
-    color: Palette.silver,
-    fontSize: FontSize.xs,
-    fontWeight: FontWeight.medium,
   },
   canvasWrapper: {
     flex: 1,

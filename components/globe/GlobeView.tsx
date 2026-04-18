@@ -45,6 +45,8 @@ function buildGlobeHTML(cobeSource: string): string {
         cursor: grab;
         position: relative;
         z-index: 1;
+        -webkit-mask-image: radial-gradient(closest-side at center, black 80%, transparent 100%);
+        mask-image: radial-gradient(closest-side at center, black 80%, transparent 100%);
       }
       canvas:active { cursor: grabbing; }
 
@@ -63,41 +65,12 @@ function buildGlobeHTML(cobeSource: string): string {
         pointer-events: none;
         z-index: 0;
       }
-
-      .badge {
-        position: absolute;
-        bottom: 16px; left: 50%;
-        transform: translateX(-50%);
-        background: rgba(10, 14, 23, 0.80);
-        border: 1px solid rgba(0, 224, 202, 0.20);
-        border-radius: 100px;
-        padding: 6px 16px;
-        font-family: system-ui, -apple-system, sans-serif;
-        font-size: 11px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: rgba(148, 163, 184, 0.9);
-        z-index: 10;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        white-space: nowrap;
-      }
-      .badge .dot {
-        display: inline-block;
-        width: 6px; height: 6px;
-        border-radius: 50%;
-        background: #00E0CA;
-        margin-right: 6px;
-        box-shadow: 0 0 6px rgba(0, 224, 202, 0.6);
-        vertical-align: middle;
-      }
     </style>
   </head>
   <body>
     <div id="globe-container">
       <div class="glow"></div>
       <canvas id="cobe-canvas"></canvas>
-      <div class="badge"><span class="dot"></span><span id="count">0</span> validators</div>
     </div>
 
     <script>
@@ -109,12 +82,21 @@ function buildGlobeHTML(cobeSource: string): string {
     <script>
       (function() {
         var canvas = document.getElementById('cobe-canvas');
-        var countEl = document.getElementById('count');
         var container = document.getElementById('globe-container');
+
+        var postParentMessage = function(data) {
+          try {
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(data);
+            } else if (window.parent) {
+              window.parent.postMessage(data, '*');
+            }
+          } catch(e) {}
+        };
 
         if (!canvas || !container || typeof createGlobe !== 'function') {
           document.body.innerHTML = '<p style="color:#EF4444;text-align:center;padding-top:40vh;font-family:system-ui">COBE init failed</p>';
-          try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'error', msg: 'createGlobe not a function' })); } catch(e) {}
+          postParentMessage(JSON.stringify({ type: 'error', msg: 'createGlobe not a function' }));
           return;
         }
 
@@ -134,8 +116,8 @@ function buildGlobeHTML(cobeSource: string): string {
         // ── Tap detection state ─────────────────────────────────────
         var tapStartPos = null;
         var tapStartTime = 0;
-        var TAP_THRESHOLD_PX = 10;   // max movement to still count as tap
-        var TAP_THRESHOLD_MS = 300;  // max duration to still count as tap
+        var TAP_THRESHOLD_PX = 25;   // max movement to still count as tap
+        var TAP_THRESHOLD_MS = 500;  // max duration to still count as tap
 
         // ── Pinch-to-zoom state ─────────────────────────────────────
         var pinchStartDist = 0;
@@ -292,7 +274,7 @@ function buildGlobeHTML(cobeSource: string): string {
           var tapX = clientX - rect.left;
           var tapY = clientY - rect.top;
 
-          var hitRadius = 24 * scale; // px threshold, scales with zoom
+          var hitRadius = 80 * scale; // px threshold, scales with zoom
           var bestDist = Infinity;
           var bestValidator = null;
 
@@ -313,17 +295,15 @@ function buildGlobeHTML(cobeSource: string): string {
           }
 
           if (bestValidator) {
-            try {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'VALIDATOR_CLICKED',
-                payload: {
-                  id: bestValidator.id,
-                  name: bestValidator.name,
-                  lat: bestValidator.lat,
-                  lon: bestValidator.lon
-                }
-              }));
-            } catch(e) {}
+            postParentMessage(JSON.stringify({
+              type: 'VALIDATOR_CLICKED',
+              payload: {
+                id: bestValidator.id,
+                name: bestValidator.name,
+                lat: bestValidator.lat,
+                lon: bestValidator.lon
+              }
+            }));
           }
         }
 
@@ -363,14 +343,12 @@ function buildGlobeHTML(cobeSource: string): string {
           });
         } catch(err) {
           document.body.innerHTML = '<p style="color:#EF4444;text-align:center;padding-top:40vh;font-family:system-ui">GL error: ' + err.message + '</p>';
-          try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'error', msg: err.message })); } catch(e) {}
+          postParentMessage(JSON.stringify({ type: 'error', msg: err.message }));
           return;
         }
 
         // Signal to RN that the globe is ready
-        try {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
-        } catch(e) {}
+        postParentMessage(JSON.stringify({ type: 'ready' }));
 
         // ── Data bridge ────────────────────────────────────────────
         function handleMessage(event) {
@@ -382,12 +360,11 @@ function buildGlobeHTML(cobeSource: string): string {
             if (data.type === 'validators') {
               var validators = data.payload;
               validatorData = validators; // store for hit detection
-              countEl.textContent = validators.length;
 
               currentMarkers = validators.map(function(v) {
                 return {
                   location: [v.lat, v.lon],
-                  size: Math.max(0.02, Math.min(0.06, (v.stakeNorm || 0.5) * 0.06))
+                  size: Math.max(0.05, Math.min(0.12, (v.stakeNorm || 0.5) * 0.12))
                 };
               });
             }
@@ -405,6 +382,7 @@ function buildGlobeHTML(cobeSource: string): string {
 
 export default function GlobeView({ validators, onSelectValidator }: GlobeViewProps) {
   const webviewRef = useRef<WebView>(null);
+  const iframeRef = useRef<any>(null);
   const isReadyRef = useRef(false);
   const pendingDataRef = useRef(false);
 
@@ -415,7 +393,7 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
 
   // bridge validator data to the WebView
   const bridgeData = useCallback(() => {
-    if (!webviewRef.current || !isReadyRef.current || validators.length === 0) return;
+    if ((Platform.OS !== 'web' && !webviewRef.current) || (Platform.OS === 'web' && !iframeRef.current) || !isReadyRef.current || validators.length === 0) return;
 
     const stakes = validators.map((v) => {
       try { return Number(BigInt(v.stakingPoolIotaBalance || '0')); }
@@ -435,7 +413,11 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
     });
 
     const message = JSON.stringify({ type: 'validators', payload });
-    webviewRef.current.postMessage(message);
+    if (Platform.OS === 'web') {
+      iframeRef.current?.contentWindow?.postMessage(message, '*');
+    } else {
+      webviewRef.current?.postMessage(message);
+    }
     pendingDataRef.current = false;
   }, [validators]);
 
@@ -446,6 +428,38 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
       pendingDataRef.current = true;
     }
   }, [bridgeData]);
+
+  // Hook up web messages
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const handleWebMessage = (event: MessageEvent) => {
+      try {
+        if (typeof event.data !== 'string') return;
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'ready') {
+          isReadyRef.current = true;
+          if (pendingDataRef.current || validators.length > 0) {
+            setTimeout(bridgeData, 100);
+          }
+        }
+
+        if (data.type === 'error') {
+          console.warn('[GlobeView] WebView error:', data.msg);
+        }
+
+        if (data.type === 'VALIDATOR_CLICKED' && onSelectValidator) {
+          onSelectValidator(data.payload?.id || null);
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener('message', handleWebMessage as EventListener);
+    return () => window.removeEventListener('message', handleWebMessage as EventListener);
+  }, [onSelectValidator, bridgeData, validators.length]);
 
   const handleMessage = useCallback((event: WebViewMessageEvent) => {
     try {
@@ -470,6 +484,18 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
       // ignore
     }
   }, [onSelectValidator, bridgeData, validators.length]);
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.container}>
+        <iframe
+          ref={iframeRef}
+          srcDoc={htmlSource.html}
+          style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
