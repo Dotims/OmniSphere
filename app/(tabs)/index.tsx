@@ -81,6 +81,10 @@ export default function HomeScreen() {
           validators={validators}
           onSelectValidator={handleSelect}
         />
+        <View style={styles.overlayBadge}>
+          <View style={styles.badgeDot} />
+          <Text style={styles.badgeText}>{validators.length} validators</Text>
+        </View>
       </View>
 
       {/* validator info overlay */}
@@ -115,6 +119,30 @@ const styles = StyleSheet.create({
   },
   canvasWrapper: {
     flex: 1,
+    position: 'relative',
+  },
+  overlayBadge: {
+    position: 'absolute',
+    bottom: Spacing.xl,
+    right: Spacing.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Palette.white08,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 100,
+    gap: 6,
+  },
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Palette.cyan,
+  },
+  badgeText: {
+    color: Palette.silver,
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
   },
   errorContainer: {
     flex: 1,

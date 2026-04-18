@@ -45,8 +45,8 @@ function buildGlobeHTML(cobeSource: string): string {
         cursor: grab;
         position: relative;
         z-index: 1;
-        -webkit-mask-image: radial-gradient(closest-side at center, black 80%, transparent 100%);
-        mask-image: radial-gradient(closest-side at center, black 80%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
       }
       canvas:active { cursor: grabbing; }
 

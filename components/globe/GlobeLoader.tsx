@@ -1,17 +1,17 @@
 // dark-themed loading state for the globe view
 // pulsing ring animation with status text
 
+import { FontSize, FontWeight, Palette } from '@/constants/theme';
 import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
   Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
   withSequence,
+  withTiming,
 } from 'react-native-reanimated';
-import { Palette, FontSize, FontWeight, Spacing } from '@/constants/theme';
 
 interface GlobeLoaderProps {
   message?: string;
@@ -22,6 +22,7 @@ export default function GlobeLoader({ message = 'Loading validators...' }: Globe
   const opacity = useSharedValue(0.3);
   const rotation = useSharedValue(0);
 
+  // animate the globe loader
   useEffect(() => {
     scale.value = withRepeat(
       withSequence(
@@ -45,6 +46,7 @@ export default function GlobeLoader({ message = 'Loading validators...' }: Globe
     );
   }, [scale, opacity, rotation]);
 
+  // animate the globe loader
   const ringStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: scale.value },
@@ -60,9 +62,7 @@ export default function GlobeLoader({ message = 'Loading validators...' }: Globe
 
   return (
     <View style={styles.container}>
-      {/* outer rotating ring */}
       <Animated.View style={[styles.ring, ringStyle]}>
-        {/* ring is rendered via border */}
       </Animated.View>
 
       {/* center glow dot */}
