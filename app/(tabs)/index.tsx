@@ -139,6 +139,7 @@ export default function HomeScreen() {
       {selectedValidators.length > 1 && (
         <ValidatorClusterOverlay
           validators={selectedValidators}
+          apys={apys}
           onClose={() => setSelectedIds([])}
         />
       )}

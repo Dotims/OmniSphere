@@ -90,62 +90,66 @@ canvas:active { cursor: grabbing; }
 }
 @keyframes markerSelectionPulse {
   0% {
-    opacity: 0.32;
-    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.85);
   }
   70% {
-    opacity: 0.16;
-    transform: translate(-50%, -50%) scale(1.28);
+    opacity: 0.12;
+    transform: translate(-50%, -50%) scale(1.35);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(1.42);
+    transform: translate(-50%, -50%) scale(1.5);
   }
 }
+/* ── Flat, stake-driven markers ──────────────────────────────
+ * --cobe-stake-hue   : hue (200–280) driven by stakeNorm
+ * --cobe-stake-light  : lightness (42%–78%) driven by stakeNorm
+ * --cobe-stake-opacity: base opacity (0.45–1.0) driven by stakeNorm
+ *
+ * Low  stake → dim, small, cool blue   (hue 200, light 42%, opacity 0.45)
+ * High stake → bright, full, warm cyan  (hue 280, light 78%, opacity 1.0)
+ */
 .validator-marker {
   position: absolute;
   left: 0;
   top: 0;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 2px;
   transform: translate(-50%, -50%) translate(var(--cobe-marker-x, -9999px), var(--cobe-marker-y, -9999px));
-  opacity: var(--cobe-visible, 0);
-  background: linear-gradient(165deg, #66ccff 0%, #1ab3ff 62%, #008ccc 100%);
-  border: 1px solid rgba(232, 248, 255, 0.95);
-  box-shadow:
-    0 0 0 1px rgba(4, 10, 18, 0.72),
-    0 0 14px rgba(26, 179, 255, 0.28);
+  opacity: calc(var(--cobe-visible, 0) * var(--cobe-stake-opacity, 0.65));
+  background: hsl(var(--cobe-stake-hue, 210), 72%, var(--cobe-stake-light, 58%));
+  border: 1px solid hsla(var(--cobe-stake-hue, 210), 60%, 88%, 0.6);
+  box-shadow: none;
   will-change: transform, opacity;
 }
+/* Remove the heavy pseudo-element glow entirely in base state */
 .validator-marker::after {
   content: '';
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: radial-gradient(
     circle,
-    rgba(102, 204, 255, 0.42) 0%,
-    rgba(26, 179, 255, 0.20) 42%,
-    rgba(26, 179, 255, 0.06) 66%,
-    rgba(26, 179, 255, 0) 100%
+    hsla(var(--cobe-stake-hue, 210), 80%, 70%, 0.18) 0%,
+    transparent 70%
   );
   opacity: 0;
   pointer-events: none;
 }
 .validator-marker.is-selected {
-  transform: translate(-50%, -50%) translate(var(--cobe-marker-x, -9999px), var(--cobe-marker-y, -9999px)) scale(1.06);
-  box-shadow:
-    0 0 0 1px rgba(180, 228, 255, 0.84),
-    0 0 12px rgba(26, 179, 255, 0.34);
-  transition: box-shadow 120ms ease;
+  transform: translate(-50%, -50%) translate(var(--cobe-marker-x, -9999px), var(--cobe-marker-y, -9999px)) scale(1.1);
+  border-color: hsla(var(--cobe-stake-hue, 210), 80%, 90%, 0.9);
+  box-shadow: 0 0 8px hsla(var(--cobe-stake-hue, 210), 80%, 65%, 0.35);
+  transition: box-shadow 120ms ease, border-color 120ms ease;
 }
 .validator-marker.is-selected::after {
-  opacity: 0.26;
+  opacity: 0.3;
   animation: markerSelectionPulse 1.5s ease-out infinite;
 }
 .validator-marker.is-hidden,
