@@ -5,8 +5,12 @@
  * self-contained HTML page with the inlined COBE bundle.
  */
 
-import { GLOBE_SCRIPT } from "./globe-script";
+import { BRIDGE_SCRIPT } from "./bridge";
+import { DOM_RENDERER_SCRIPT } from "./dom-renderer";
+import { GLOBE_INIT_SCRIPT } from "./globe-init";
 import { INTERACTION_SCRIPT } from "./interaction-script";
+import { MATH_UTILS_SCRIPT } from "./math-utils";
+import { SHARED_STATE_SCRIPT } from "./shared-state";
 import { GLOBE_CSS } from "./styles";
 
 export function buildGlobeHTML(cobeSource: string): string {
@@ -54,8 +58,12 @@ export function buildGlobeHTML(cobeSource: string): string {
           return;
         }
 
+        ${SHARED_STATE_SCRIPT}
+        ${MATH_UTILS_SCRIPT}
+        ${DOM_RENDERER_SCRIPT}
         ${INTERACTION_SCRIPT}
-        ${GLOBE_SCRIPT}
+        ${GLOBE_INIT_SCRIPT}
+        ${BRIDGE_SCRIPT}
       })();
     </script>
   </body>
