@@ -5,9 +5,9 @@
  * self-contained HTML page with the inlined COBE bundle.
  */
 
-import { GLOBE_CSS } from "./styles";
-import { INTERACTION_SCRIPT } from "./interaction-script";
 import { GLOBE_SCRIPT } from "./globe-script";
+import { INTERACTION_SCRIPT } from "./interaction-script";
+import { GLOBE_CSS } from "./styles";
 
 export function buildGlobeHTML(cobeSource: string): string {
   return `<!DOCTYPE html>
@@ -22,6 +22,7 @@ export function buildGlobeHTML(cobeSource: string): string {
       <div class="space-bg"></div>
       <div class="glow"></div>
       <canvas id="cobe-canvas"></canvas>
+      <div id="marker-layer" aria-hidden="true"></div>
     </div>
 
     <script>

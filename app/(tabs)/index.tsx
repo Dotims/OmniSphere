@@ -4,7 +4,12 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { GlobeLoader, GlobeView, ValidatorOverlay } from "@/components/globe";
+import {
+    GlobeLoader,
+    GlobeView,
+    ValidatorClusterOverlay,
+    ValidatorOverlay,
+} from "@/components/globe";
 import { FontSize, FontWeight, Palette, Spacing } from "@/constants/theme";
 import { useValidatorLocations } from "@/hooks/use-validator-locations";
 import { useValidators } from "@/hooks/use-validators";
@@ -13,7 +18,7 @@ import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useValidators();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // extract validators — the API route unwraps V2
   const validators = useMemo<ValidatorSummary[]>(() => {
@@ -44,19 +49,46 @@ export default function HomeScreen() {
     }
   }, [data, error, validators]);
 
+  const validatorsById = useMemo(() => {
+    const map = new Map<string, ValidatorSummary>();
+    validators.forEach((validator) => {
+      map.set(validator.iotaAddress, validator);
+    });
+    return map;
+  }, [validators]);
+
+  const selectedValidators = useMemo(
+    () =>
+      selectedIds
+        .map((id) => validatorsById.get(id))
+        .filter((validator): validator is ValidatorSummary => !!validator),
+    [selectedIds, validatorsById],
+  );
+
   const selectedValidator = useMemo(
-    () => validators.find((v) => v.iotaAddress === selectedId) ?? null,
-    [validators, selectedId],
+    () => (selectedValidators.length === 1 ? selectedValidators[0] : null),
+    [selectedValidators],
   );
 
   const selectedApy = useMemo(
-    () => apys.find((a: ValidatorApy) => a.address === selectedId),
-    [apys, selectedId],
+    () =>
+      selectedValidator
+        ? apys.find(
+            (a: ValidatorApy) => a.address === selectedValidator.iotaAddress,
+          )
+        : undefined,
+    [apys, selectedValidator],
   );
 
-  const handleSelect = useCallback((id: string | null) => {
-    setSelectedId(id);
+  const handleSelect = useCallback((ids: string[]) => {
+    setSelectedIds(ids);
   }, []);
+
+  useEffect(() => {
+    setSelectedIds((previous) =>
+      previous.filter((validatorId) => validatorsById.has(validatorId)),
+    );
+  }, [validatorsById]);
 
   if (isLoading) {
     return <GlobeLoader />;
@@ -86,6 +118,7 @@ export default function HomeScreen() {
         <GlobeView
           validators={validators}
           coordinatesById={coordinatesById}
+          selectedValidatorIds={selectedIds}
           onSelectValidator={handleSelect}
         />
         <View style={styles.overlayBadge}>
@@ -99,7 +132,14 @@ export default function HomeScreen() {
         <ValidatorOverlay
           validator={selectedValidator}
           apy={selectedApy}
-          onClose={() => setSelectedId(null)}
+          onClose={() => setSelectedIds([])}
+        />
+      )}
+
+      {selectedValidators.length > 1 && (
+        <ValidatorClusterOverlay
+          validators={selectedValidators}
+          onClose={() => setSelectedIds([])}
         />
       )}
     </View>

@@ -5,7 +5,7 @@
  * Handles:
  *  - `ready`             → marks the bridge as ready, flushes pending data
  *  - `error`             → logs warnings
- *  - `VALIDATOR_CLICKED` → forwards to `onSelectValidator`
+ *  - `VALIDATOR_CLICKED` → forwards clustered selection IDs
  */
 
 import { useCallback, useEffect } from "react";
@@ -13,11 +13,10 @@ import { Platform } from "react-native";
 import type { WebViewMessageEvent } from "react-native-webview";
 
 interface UseGlobeMessagesOptions {
-  onSelectValidator?: (id: string | null) => void;
+  onSelectValidator?: (ids: string[]) => void;
   bridgeData: () => void;
   pendingDataRef: React.MutableRefObject<boolean>;
   isReadyRef: React.MutableRefObject<boolean>;
-  validatorCount: number;
 }
 
 /**
@@ -31,14 +30,12 @@ function processMessage(
     pendingDataRef,
     bridgeData,
     onSelectValidator,
-    validatorCount,
   }: UseGlobeMessagesOptions,
 ) {
   if (data.type === "ready") {
     isReadyRef.current = true;
-    if (pendingDataRef.current || validatorCount > 0) {
-      setTimeout(bridgeData, 100);
-    }
+    pendingDataRef.current = false;
+    setTimeout(bridgeData, 100);
   }
 
   if (data.type === "error") {
@@ -47,18 +44,23 @@ function processMessage(
 
   if (data.type === "VALIDATOR_CLICKED" && onSelectValidator) {
     const payload = data.payload as Record<string, unknown> | undefined;
-    onSelectValidator((payload?.id as string) || null);
+    const clusteredIds = Array.isArray(payload?.ids)
+      ? payload.ids.filter(
+          (value): value is string =>
+            typeof value === "string" && value.length > 0,
+        )
+      : [];
+    const fallbackId =
+      typeof payload?.id === "string" && payload.id.length > 0
+        ? [payload.id]
+        : [];
+
+    onSelectValidator(clusteredIds.length > 0 ? clusteredIds : fallbackId);
   }
 }
 
 export function useGlobeMessages(options: UseGlobeMessagesOptions) {
-  const {
-    onSelectValidator,
-    bridgeData,
-    pendingDataRef,
-    isReadyRef,
-    validatorCount,
-  } = options;
+  const { onSelectValidator, bridgeData, pendingDataRef, isReadyRef } = options;
 
   // Web: listen on window "message" events from the iframe
   useEffect(() => {
@@ -77,7 +79,7 @@ export function useGlobeMessages(options: UseGlobeMessagesOptions) {
     window.addEventListener("message", handleWebMessage as EventListener);
     return () =>
       window.removeEventListener("message", handleWebMessage as EventListener);
-  }, [onSelectValidator, bridgeData, validatorCount, pendingDataRef, isReadyRef, options]);
+  }, [onSelectValidator, bridgeData, pendingDataRef, isReadyRef, options]);
 
   // Native: WebView onMessage callback
   const handleNativeMessage = useCallback(
@@ -89,13 +91,12 @@ export function useGlobeMessages(options: UseGlobeMessagesOptions) {
           bridgeData,
           pendingDataRef,
           isReadyRef,
-          validatorCount,
         });
       } catch {
         // ignore
       }
     },
-    [onSelectValidator, bridgeData, validatorCount, pendingDataRef, isReadyRef],
+    [onSelectValidator, bridgeData, pendingDataRef, isReadyRef],
   );
 
   return { handleNativeMessage };

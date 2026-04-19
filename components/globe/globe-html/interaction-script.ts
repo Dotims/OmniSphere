@@ -82,6 +82,7 @@ function resize() {
   canvas.height = canvasHeight;
   canvas.style.width = cssSize + 'px';
   canvas.style.height = cssSize + 'px';
+  container.style.setProperty('--cobe-canvas-css-size', cssSize + 'px');
 }
 resize();
 window.addEventListener('resize', resize);
@@ -287,6 +288,13 @@ window.addEventListener('beforeunload', function() {
 });
 
 // ── Marker hit-detection ───────────────────────────────────
+//
+// The magnetic threshold is a FIXED screen-pixel radius (44px).
+// It does NOT scale with zoom so the user's thumb always has
+// a forgiving touch target on mobile even with compact visuals.
+//
+var HIT_MAGNETIC_RADIUS_PX = 44;
+
 // Projects [lat, lon] → 2D screen coordinates given current phi/theta/scale
 function latLonToScreen(lat, lon) {
   var latR = lat * Math.PI / 180;
@@ -314,21 +322,99 @@ function latLonToScreen(lat, lon) {
   var fy = ry * cosTheta - rz * sinTheta;
   var fz = ry * sinTheta + rz * cosTheta;
 
-  // behind the globe? (z < 0 means facing away)
-  if (fz < -0.05) return null;
+  // Deeply behind the globe
+  if (fz < -0.18) return null;
 
   // project to 2D (orthographic, globe radius = 0.8 of half-canvas)
   var r = cssSize * 0.4 * scale;
   var cx = cssSize / 2;
   var cy = cssSize / 2;
 
+  var sx = cx + fx * r;
+  var sy = cy - fy * r;
+  var radialDist = Math.sqrt(Math.pow(sx - cx, 2) + Math.pow(sy - cy, 2));
+
+  // Protect against numeric edge cases that can project outside the globe disk.
+  if (radialDist > r * 1.02) return null;
+
   return {
-    x: cx + fx * r,
-    y: cy - fy * r,
-    visible: fz > 0.05
+    x: sx,
+    y: sy,
+    visible: fz > -0.02,
+    frontness: fz
   };
 }
 
+// ── Pulse feedback overlay ─────────────────────────────────
+// Draws a brief expanding ring at the tapped marker's position
+// on a transparent overlay canvas to confirm the selection.
+var pulseOverlay = null;
+var pulseCtx = null;
+var pulseAnim = null;
+
+function ensurePulseOverlay() {
+  if (pulseOverlay) return;
+  pulseOverlay = document.createElement('canvas');
+  pulseOverlay.style.cssText =
+    'position:absolute;inset:0;width:100%;height:100%;' +
+    'pointer-events:none;z-index:10;';
+  container.appendChild(pulseOverlay);
+  pulseCtx = pulseOverlay.getContext('2d');
+}
+
+function showPulse(sx, sy) {
+  ensurePulseOverlay();
+  // Match overlay size to container
+  pulseOverlay.width  = container.clientWidth  * (window.devicePixelRatio || 2);
+  pulseOverlay.height = container.clientHeight * (window.devicePixelRatio || 2);
+  pulseOverlay.style.width  = container.clientWidth  + 'px';
+  pulseOverlay.style.height = container.clientHeight + 'px';
+
+  var dpr = window.devicePixelRatio || 2;
+  var cx = sx * dpr;
+  var cy = sy * dpr;
+  var startRadius = 6 * dpr;
+  var endRadius   = 28 * dpr;
+  var duration = 380; // ms
+  var startTime = Date.now();
+
+  if (pulseAnim) cancelAnimationFrame(pulseAnim);
+
+  function drawFrame() {
+    var elapsed = Date.now() - startTime;
+    var t = Math.min(elapsed / duration, 1);
+    // ease-out quad
+    var ease = 1 - (1 - t) * (1 - t);
+
+    pulseCtx.clearRect(0, 0, pulseOverlay.width, pulseOverlay.height);
+
+    var r = startRadius + (endRadius - startRadius) * ease;
+    var alpha = 0.55 * (1 - ease);
+
+    pulseCtx.beginPath();
+    pulseCtx.arc(cx, cy, r, 0, Math.PI * 2);
+    pulseCtx.strokeStyle = 'rgba(26, 178, 255, ' + alpha + ')';
+    pulseCtx.lineWidth = 2.5 * dpr;
+    pulseCtx.stroke();
+
+    // inner filled dot that fades
+    pulseCtx.beginPath();
+    pulseCtx.arc(cx, cy, 3 * dpr, 0, Math.PI * 2);
+    pulseCtx.fillStyle = 'rgba(26, 178, 255, ' + (0.7 * (1 - ease)) + ')';
+    pulseCtx.fill();
+
+    if (t < 1) {
+      pulseAnim = requestAnimationFrame(drawFrame);
+    } else {
+      pulseCtx.clearRect(0, 0, pulseOverlay.width, pulseOverlay.height);
+      pulseAnim = null;
+    }
+  }
+
+  drawFrame();
+}
+
+// ── Tap handler ────────────────────────────────────────────
 function handleTap(clientX, clientY) {
   if (validatorData.length === 0) return;
 
@@ -337,10 +423,8 @@ function handleTap(clientX, clientY) {
   var tapX = clientX - rect.left;
   var tapY = clientY - rect.top;
 
-  // Reduce tap footprint as zoom increases to improve selection in dense clusters.
-  var hitRadius = Math.max(12, Math.min(32, 26 / Math.max(scale, 0.8)));
-  var bestDist = Infinity;
-  var bestValidator = null;
+  // Fixed, forgiving magnetic radius for touch interaction.
+  var hits = [];
 
   for (var i = 0; i < validatorData.length; i++) {
     var v = validatorData[i];
@@ -352,22 +436,64 @@ function handleTap(clientX, clientY) {
       Math.pow(tapY - screen.y, 2)
     );
 
-    if (dist < hitRadius && dist < bestDist) {
-      bestDist = dist;
-      bestValidator = v;
+    if (dist <= HIT_MAGNETIC_RADIUS_PX) {
+      hits.push({
+        validator: v,
+        screen: screen,
+        dist: dist,
+      });
     }
   }
 
-  if (bestValidator) {
+  if (hits.length === 0) {
+    if (typeof setSelectedMarkerIds === 'function') {
+      setSelectedMarkerIds([]);
+    }
+
     postParentMessage(JSON.stringify({
       type: 'VALIDATOR_CLICKED',
       payload: {
-        id: bestValidator.id,
-        name: bestValidator.name,
-        lat: bestValidator.lat,
-        lon: bestValidator.lon
+        id: null,
+        ids: [],
+        count: 0,
       }
     }));
+    return;
   }
+
+  hits.sort(function(a, b) {
+    return a.dist - b.dist;
+  });
+
+  var seen = {};
+  var selectedIds = [];
+  for (var j = 0; j < hits.length; j++) {
+    var markerId = hits[j].validator.id;
+    if (!markerId || seen[markerId]) continue;
+    seen[markerId] = true;
+    selectedIds.push(markerId);
+  }
+
+  var primaryHit = hits[0];
+
+  if (typeof setSelectedMarkerIds === 'function') {
+    setSelectedMarkerIds(selectedIds);
+  }
+
+  // Visual pulse at the primary marker's projected position
+  showPulse(primaryHit.screen.x, primaryHit.screen.y);
+
+  // Fire bridge event immediately (synchronous postMessage)
+  postParentMessage(JSON.stringify({
+    type: 'VALIDATOR_CLICKED',
+    payload: {
+      id: selectedIds[0] || null,
+      ids: selectedIds,
+      count: selectedIds.length,
+      name: primaryHit.validator.name,
+      lat: primaryHit.validator.lat,
+      lon: primaryHit.validator.lon
+    }
+  }));
 }
 `;

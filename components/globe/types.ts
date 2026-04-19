@@ -4,7 +4,8 @@ import type { ValidatorSummary } from "@/services/validators";
 export interface GlobeViewProps {
   validators: ValidatorSummary[];
   coordinatesById?: ValidatorCoordinatesMap;
-  onSelectValidator?: (id: string | null) => void;
+  selectedValidatorIds?: string[];
+  onSelectValidator?: (ids: string[]) => void;
 }
 
 /** Payload shape sent to the WebView for each validator marker. */

@@ -16,6 +16,7 @@ import type { GlobeViewProps, ValidatorMarkerPayload } from "../types";
 interface UseGlobeBridgeOptions {
   validators: GlobeViewProps["validators"];
   coordinatesById: GlobeViewProps["coordinatesById"];
+  selectedValidatorIds?: GlobeViewProps["selectedValidatorIds"];
   webviewRef: React.RefObject<WebView | null>;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   isReadyRef: React.MutableRefObject<boolean>;
@@ -24,18 +25,29 @@ interface UseGlobeBridgeOptions {
 export function useGlobeBridge({
   validators,
   coordinatesById,
+  selectedValidatorIds,
   webviewRef,
   iframeRef,
   isReadyRef,
 }: UseGlobeBridgeOptions) {
   const pendingDataRef = useRef(false);
 
+  const sendBridgeMessage = useCallback(
+    (message: string) => {
+      if (Platform.OS === "web") {
+        iframeRef.current?.contentWindow?.postMessage(message, "*");
+      } else {
+        webviewRef.current?.postMessage(message);
+      }
+    },
+    [webviewRef, iframeRef],
+  );
+
   const bridgeData = useCallback(() => {
     if (
       (Platform.OS !== "web" && !webviewRef.current) ||
       (Platform.OS === "web" && !iframeRef.current) ||
-      !isReadyRef.current ||
-      validators.length === 0
+      !isReadyRef.current
     )
       return;
 
@@ -63,14 +75,32 @@ export function useGlobeBridge({
       };
     });
 
-    const message = JSON.stringify({ type: "validators", payload });
-    if (Platform.OS === "web") {
-      iframeRef.current?.contentWindow?.postMessage(message, "*");
-    } else {
-      webviewRef.current?.postMessage(message);
-    }
+    const uniqueSelectionIds = Array.from(
+      new Set(
+        (selectedValidatorIds ?? []).filter(
+          (id): id is string => typeof id === "string" && id.length > 0,
+        ),
+      ),
+    );
+
+    sendBridgeMessage(JSON.stringify({ type: "validators", payload }));
+    sendBridgeMessage(
+      JSON.stringify({
+        type: "selection",
+        payload: { ids: uniqueSelectionIds },
+      }),
+    );
+
     pendingDataRef.current = false;
-  }, [validators, coordinatesById, webviewRef, iframeRef, isReadyRef]);
+  }, [
+    validators,
+    coordinatesById,
+    selectedValidatorIds,
+    webviewRef,
+    iframeRef,
+    isReadyRef,
+    sendBridgeMessage,
+  ]);
 
   // Push new data whenever validators or coordinates change
   useEffect(() => {

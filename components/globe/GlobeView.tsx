@@ -20,6 +20,7 @@ import type { GlobeViewProps } from "./types";
 export default function GlobeView({
   validators,
   coordinatesById,
+  selectedValidatorIds,
   onSelectValidator,
 }: GlobeViewProps) {
   const webviewRef = useRef<WebView>(null);
@@ -35,6 +36,7 @@ export default function GlobeView({
   const { bridgeData, pendingDataRef } = useGlobeBridge({
     validators,
     coordinatesById,
+    selectedValidatorIds,
     webviewRef,
     iframeRef,
     isReadyRef,
@@ -46,7 +48,6 @@ export default function GlobeView({
     bridgeData,
     pendingDataRef,
     isReadyRef,
-    validatorCount: validators.length,
   });
 
   // ── Web: iframe renderer ─────────────────────────────────
