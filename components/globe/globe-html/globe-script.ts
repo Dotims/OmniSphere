@@ -18,8 +18,8 @@ var selectedMarkerIds = [];
 var markerLayer = document.getElementById('marker-layer');
 var markersDirty = true;
 var INTERNAL_MARKER_SIZE = 0.003;
-var MARKER_POSITION_EPSILON_PX = 0.16;
 var FRONTFACE_VISIBILITY_EPSILON = 0.02;
+var TWO_PI = Math.PI * 2;
 var lastProjectionFrame = {
   phi: Number.POSITIVE_INFINITY,
   theta: Number.POSITIVE_INFINITY,
@@ -294,7 +294,7 @@ function updateMarkerAnchors(force) {
     selectedLookup[selectedMarkerIds[s]] = true;
   }
 
-  var nextProjectedList = [];
+  var projectedIndex = 0;
 
   for (var i = 0; i < markerBlueprints.length; i++) {
     var marker = markerBlueprints[i];
@@ -313,121 +313,152 @@ function updateMarkerAnchors(force) {
     );
     var isValidAnchor = !!projection && projection.visible;
     var previous = markerRenderStateById[marker.id];
+    
+    if (!previous) {
+      previous = { x: 0, y: 0, visible: false, selected: false };
+      markerRenderStateById[marker.id] = previous;
+    }
+
     var shouldSelect = !!selectedLookup[marker.id] && isValidAnchor;
 
     if (!isValidAnchor) {
-      if (!previous || previous.visible) {
+      if (previous.visible) {
         markerEl.style.setProperty('--cobe-visible', '0');
         markerEl.classList.add('is-hidden');
       }
-      if (!previous || previous.selected) {
+      if (previous.selected) {
         markerEl.classList.remove('is-selected');
       }
 
-      markerRenderStateById[marker.id] = {
-        x: 0,
-        y: 0,
-        visible: false,
-        selected: false,
-      };
+      previous.x = 0;
+      previous.y = 0;
+      previous.visible = false;
+      previous.selected = false;
       continue;
     }
 
-    nextProjectedList.push({
-      id: marker.id,
-      x: projection.x,
-      y: projection.y,
-    });
-
-    var moved =
-      !previous ||
-      !previous.visible ||
-      Math.abs(previous.x - projection.x) > MARKER_POSITION_EPSILON_PX ||
-      Math.abs(previous.y - projection.y) > MARKER_POSITION_EPSILON_PX;
-
-    if (moved) {
-      markerEl.style.setProperty('--cobe-marker-x', projection.x.toFixed(2) + 'px');
-      markerEl.style.setProperty('--cobe-marker-y', projection.y.toFixed(2) + 'px');
+    var projObj = projectedMarkerList[projectedIndex];
+    if (projObj) {
+      projObj.id = marker.id;
+      projObj.x = projection.x;
+      projObj.y = projection.y;
+    } else {
+      projectedMarkerList.push({
+        id: marker.id,
+        x: projection.x,
+        y: projection.y,
+      });
     }
+    projectedIndex++;
 
-    if (!previous || !previous.visible) {
+    // Write directly to CSS vars without epsilon skipping to ensure strict
+    // synchronization with auto-rotation frames and prevent edge-snapping.
+    markerEl.style.setProperty('--cobe-marker-x', projection.x.toFixed(2) + 'px');
+    markerEl.style.setProperty('--cobe-marker-y', projection.y.toFixed(2) + 'px');
+
+    if (!previous.visible) {
       markerEl.style.setProperty('--cobe-visible', '1');
       markerEl.classList.remove('is-hidden');
     }
 
-    if (!previous || previous.selected !== shouldSelect) {
+    if (previous.selected !== shouldSelect) {
       markerEl.classList.toggle('is-selected', shouldSelect);
     }
 
-    markerRenderStateById[marker.id] = {
-      x: projection.x,
-      y: projection.y,
-      visible: true,
-      selected: shouldSelect,
-    };
+    previous.x = projection.x;
+    previous.y = projection.y;
+    previous.visible = true;
+    previous.selected = shouldSelect;
   }
 
-  projectedMarkerList = nextProjectedList;
+  projectedMarkerList.length = projectedIndex;
 }
 
 // ── Create Globe ───────────────────────────────────────────
-try {
-  materializeMarkers(true);
+var globe = null;
 
-  var globe = createGlobe(canvas, {
-    devicePixelRatio: Math.min(window.devicePixelRatio || 2, 2),
-    width: canvasWidth,
-    height: canvasHeight,
-    phi: phi,
-    theta: theta,
-    dark: 1,
-    diffuse: 1.4,
-    scale: scale,
-    mapSamples: 16000,
-    mapBrightness: 3.2,
-    baseColor: [0.1, 0.1, 0.15],
-    markerColor: [0.0, 0.0, 0.0],
-    glowColor: [0.05, 0.1, 0.2],
-    markers: currentMarkers,
-    onRender: function(state) {
-      if (isAutoRotationEnabled && !pointerDown && !isPinching) {
-        var rampProgress = 1;
-        if (autoRotationRampStartTs > 0) {
-          var elapsed = Date.now() - autoRotationRampStartTs;
-          rampProgress = clamp(elapsed / AUTO_ROTATION_ACCELERATION_MS, 0, 1);
+function initGlobe() {
+  if (globe) {
+    try { globe.destroy(); } catch(e) {}
+    globe = null;
+  }
+  
+  try {
+    materializeMarkers(true);
 
-          if (rampProgress >= 1) {
-            autoRotationRampStartTs = 0;
+    globe = createGlobe(canvas, {
+      devicePixelRatio: Math.min(window.devicePixelRatio || 2, 2),
+      width: canvasWidth,
+      height: canvasHeight,
+      phi: phi,
+      theta: theta,
+      dark: 1,
+      diffuse: 1.4,
+      scale: scale,
+      mapSamples: 16000,
+      mapBrightness: 3.2,
+      baseColor: [0.1, 0.1, 0.15],
+      markerColor: [0.0, 0.0, 0.0],
+      glowColor: [0.05, 0.1, 0.2],
+      markers: currentMarkers,
+      onRender: function(state) {
+        if (isAutoRotationEnabled && !pointerDown && !isPinching) {
+          var rampProgress = 1;
+          if (autoRotationRampStartTs > 0) {
+            var elapsed = Date.now() - autoRotationRampStartTs;
+            rampProgress = clamp(elapsed / AUTO_ROTATION_ACCELERATION_MS, 0, 1);
+
+            if (rampProgress >= 1) {
+              autoRotationRampStartTs = 0;
+            }
           }
+
+          // Smoothstep ease-in so restart feels like gaining momentum.
+          var easedRamp = rampProgress * rampProgress * (3 - 2 * rampProgress);
+
+          phi += 0.003 * easedRamp;
+          phi += velocity[0];
+          theta += velocity[1];
+          velocity[0] *= 0.92;
+          velocity[1] *= 0.92;
+          theta = Math.max(-1.4, Math.min(1.4, theta));
+          
+          // Apply appropriate mathematical constraints to phi to ensure
+          // infinite seamless looping without float precision degradation
+          phi = phi % TWO_PI;
+          if (phi < 0) phi += TWO_PI;
         }
 
-        // Smoothstep ease-in so restart feels like gaining momentum.
-        var easedRamp = rampProgress * rampProgress * (3 - 2 * rampProgress);
+        materializeMarkers(false);
+        updateMarkerAnchors(false);
 
-        phi += 0.003 * easedRamp;
-        phi += velocity[0];
-        theta += velocity[1];
-        velocity[0] *= 0.92;
-        velocity[1] *= 0.92;
-        theta = Math.max(-1.4, Math.min(1.4, theta));
+        state.phi = phi;
+        state.theta = theta;
+        state.scale = scale;
+        state.markers = currentMarkers;
+        state.width = canvasWidth;
+        state.height = canvasHeight;
       }
-
-      materializeMarkers(false);
-      updateMarkerAnchors(false);
-
-      state.phi = phi;
-      state.theta = theta;
-      state.scale = scale;
-      state.markers = currentMarkers;
-      state.width = canvasWidth;
-      state.height = canvasHeight;
-    }
-  });
-} catch(err) {
-  document.body.innerHTML = '<p style="color:#EF4444;text-align:center;padding-top:40vh;font-family:system-ui">GL error: ' + err.message + '</p>';
-  postParentMessage(JSON.stringify({ type: 'error', msg: err.message }));
-  return;
+    });
+  } catch(err) {
+    document.body.innerHTML = '<p style="color:#EF4444;text-align:center;padding-top:40vh;font-family:system-ui">GL error: ' + err.message + '</p>';
+    postParentMessage(JSON.stringify({ type: 'error', msg: err.message }));
+  }
 }
+
+initGlobe();
+
+// WebGL context handling
+canvas.addEventListener('webglcontextlost', function(e) {
+  e.preventDefault();
+  if (globe && typeof globe.toggle === 'function') {
+    globe.toggle(false); // Pause render loop
+  }
+}, false);
+
+canvas.addEventListener('webglcontextrestored', function(e) {
+  initGlobe(); // Re-initialize the globe gracefully
+}, false);
 
 // Signal to RN that the globe is ready
 postParentMessage(JSON.stringify({ type: 'ready' }));
@@ -464,6 +495,13 @@ function handleMessage(event) {
           ? data.payload.ids
           : [];
       setSelectedMarkerIds(ids);
+    }
+    
+    if (data.type === 'app_state') {
+      var isActive = data.payload && data.payload.active;
+      if (globe && typeof globe.toggle === 'function') {
+        globe.toggle(isActive);
+      }
     }
   } catch(e) {}
 }

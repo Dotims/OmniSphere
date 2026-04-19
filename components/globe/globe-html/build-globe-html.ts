@@ -21,8 +21,10 @@ export function buildGlobeHTML(cobeSource: string): string {
     <div id="globe-container">
       <div class="space-bg"></div>
       <div class="glow"></div>
-      <canvas id="cobe-canvas"></canvas>
-      <div id="marker-layer" aria-hidden="true"></div>
+      <div id="globe-viewport">
+        <canvas id="cobe-canvas"></canvas>
+        <div id="marker-layer" aria-hidden="true"></div>
+      </div>
     </div>
 
     <script>

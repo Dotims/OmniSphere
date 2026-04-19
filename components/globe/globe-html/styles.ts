@@ -39,13 +39,27 @@ html, body {
   background-size: 180px 180px, 240px 240px, 300px 300px;
   opacity: 0.22;
 }
+#globe-viewport {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--cobe-canvas-css-size, 0px);
+  height: var(--cobe-canvas-css-size, 0px);
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  z-index: 2;
+}
 canvas {
   display: block;
   cursor: grab;
-  position: relative;
-  z-index: 2;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 canvas:active { cursor: grabbing; }
 .glow {
@@ -65,13 +79,12 @@ canvas:active { cursor: grabbing; }
 }
 #marker-layer {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--cobe-canvas-css-size, 0px);
-  height: var(--cobe-canvas-css-size, 0px);
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  z-index: 3;
+  z-index: 2;
   overflow: visible;
   contain: layout style;
 }

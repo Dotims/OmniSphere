@@ -8,8 +8,8 @@
  *  - `types.ts`     — shared interfaces
  */
 
-import React, { useMemo, useRef } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import React, { useMemo, useRef, useEffect, useState, useCallback } from "react";
+import { AppState, AppStateStatus, Platform, StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { COBE_BUNDLE_JS } from "./cobe-source";
@@ -26,6 +26,13 @@ export default function GlobeView({
   const webviewRef = useRef<WebView>(null);
   const iframeRef = useRef<any>(null);
   const isReadyRef = useRef(false);
+  const [webViewKey, setWebViewKey] = useState(0);
+
+  const handleCrash = useCallback(() => {
+    console.warn("[GlobeView] WebView process terminated. Remounting...");
+    isReadyRef.current = false;
+    setWebViewKey((k) => k + 1);
+  }, []);
 
   const htmlSource = useMemo(
     () => ({ html: buildGlobeHTML(COBE_BUNDLE_JS) }),
@@ -50,6 +57,31 @@ export default function GlobeView({
     isReadyRef,
   });
 
+  // Pause globe rendering when app goes to background
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      const isAppActive = nextAppState === "active";
+      const message = JSON.stringify({
+        type: "app_state",
+        payload: { active: isAppActive },
+      });
+      if (Platform.OS === "web") {
+        iframeRef.current?.contentWindow?.postMessage(message, "*");
+      } else {
+        webviewRef.current?.postMessage(message);
+      }
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange,
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
   // ── Web: iframe renderer ─────────────────────────────────
   if (Platform.OS === "web") {
     return (
@@ -67,10 +99,14 @@ export default function GlobeView({
   return (
     <View style={styles.container}>
       <WebView
+        key={webViewKey}
         ref={webviewRef}
         source={htmlSource}
-        style={styles.webview}
+        style={[styles.webview, { backgroundColor: "#05060A" }]}
+        containerStyle={{ backgroundColor: "#05060A" }}
         onMessage={handleNativeMessage}
+        onContentProcessDidTerminate={handleCrash}
+        onRenderProcessGone={handleCrash}
         javaScriptEnabled={true}
         domStorageEnabled={true}
         originWhitelist={["*"]}
@@ -102,6 +138,6 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: "#05060A",
   },
 });
