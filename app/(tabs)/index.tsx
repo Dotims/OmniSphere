@@ -1,9 +1,10 @@
-// main home screen — COBE globe with IOTA validator visualization
+// main home screen — COBE globe (top 50%) + Network Dashboard (bottom 50%)
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { NetworkDashboard } from "@/components/dashboard";
 import {
     GlobeLoader,
     GlobeView,
@@ -113,8 +114,8 @@ export default function HomeScreen() {
         <Text style={styles.title}>OmniSphere</Text>
       </View>
 
-      {/* COBE globe */}
-      <View style={styles.canvasWrapper}>
+      {/* ── Top half: Globe ──────────────────────────────── */}
+      <View style={styles.globeSection}>
         <GlobeView
           validators={validators}
           coordinatesById={coordinatesById}
@@ -125,6 +126,18 @@ export default function HomeScreen() {
           <View style={styles.badgeDot} />
           <Text style={styles.badgeText}>{validators.length} validators</Text>
         </View>
+      </View>
+
+      {/* ── Bottom half: Dashboard ───────────────────────── */}
+      <View style={styles.dashboardSection}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.dashboardContent}
+        >
+          {data?.systemState && (
+            <NetworkDashboard systemState={data.systemState} apys={apys} />
+          )}
+        </ScrollView>
       </View>
 
       {/* validator info overlay */}
@@ -157,7 +170,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   title: {
     color: Palette.snow,
@@ -165,14 +178,29 @@ const styles = StyleSheet.create({
     fontWeight: FontWeight.bold,
     letterSpacing: -0.5,
   },
-  canvasWrapper: {
+
+  // Globe: top ~50% — strictly edge-to-edge
+  globeSection: {
     flex: 1,
     position: "relative",
+    marginHorizontal: 0,
+    paddingHorizontal: 0,
   },
+
+  // Dashboard: bottom ~50%
+  dashboardSection: {
+    flex: 1,
+    borderTopWidth: 1,
+    borderTopColor: Palette.white08,
+  },
+  dashboardContent: {
+    paddingBottom: Spacing.base,
+  },
+
   overlayBadge: {
     position: "absolute",
-    bottom: Spacing.xl,
-    right: Spacing.xl,
+    bottom: Spacing.sm,
+    right: Spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Palette.white08,

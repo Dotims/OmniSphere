@@ -8,7 +8,7 @@
  *  - `types.ts`     — shared interfaces
  */
 
-import React, { useMemo, useRef, useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, AppStateStatus, Platform, StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 
