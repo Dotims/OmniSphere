@@ -10,7 +10,8 @@
  * It expects the following variables to already be declared in the enclosing
  * scope: canvas, container, postParentMessage.
  *
- * NOTE: Auto-rotation resume delay is set to 1750 ms (1.75 s).
+ * NOTE: Auto-rotation resume delay is set to 1750 ms (1.75 s),
+ * followed by a short acceleration ramp for smooth ease-in.
  */
 export const INTERACTION_SCRIPT = `
 // ── State ──────────────────────────────────────────────────
@@ -41,8 +42,10 @@ var isPinching = false;
 
 // ── Auto-rotation state ───────────────────────────────────
 var AUTO_ROTATION_RESUME_DELAY_MS = 1750;
+var AUTO_ROTATION_ACCELERATION_MS = 700;
 var autoRotationResumeTimer = null;
 var isAutoRotationEnabled = true;
+var autoRotationRampStartTs = 0;
 
 function clearAutoRotationResumeTimer() {
   if (autoRotationResumeTimer !== null) {
@@ -54,12 +57,14 @@ function clearAutoRotationResumeTimer() {
 function pauseAutoRotation() {
   clearAutoRotationResumeTimer();
   isAutoRotationEnabled = false;
+  autoRotationRampStartTs = 0;
 }
 
 function scheduleAutoRotationResume() {
   clearAutoRotationResumeTimer();
   autoRotationResumeTimer = setTimeout(function() {
     isAutoRotationEnabled = true;
+    autoRotationRampStartTs = Date.now();
     autoRotationResumeTimer = null;
   }, AUTO_ROTATION_RESUME_DELAY_MS);
 }
@@ -332,7 +337,8 @@ function handleTap(clientX, clientY) {
   var tapX = clientX - rect.left;
   var tapY = clientY - rect.top;
 
-  var hitRadius = 80 * scale; // px threshold, scales with zoom
+  // Reduce tap footprint as zoom increases to improve selection in dense clusters.
+  var hitRadius = Math.max(12, Math.min(32, 26 / Math.max(scale, 0.8)));
   var bestDist = Infinity;
   var bestValidator = null;
 
