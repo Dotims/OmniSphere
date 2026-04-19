@@ -96,8 +96,8 @@ canvas:active { cursor: grabbing; }
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  transform: translate(-50%, -50%) translate(var(--marker-x, -9999px), var(--marker-y, -9999px));
-  opacity: var(--marker-opacity, 0);
+  transform: translate(-50%, -50%) translate(var(--cobe-marker-x, -9999px), var(--cobe-marker-y, -9999px));
+  opacity: var(--cobe-visible, 0);
   background: linear-gradient(165deg, #66ccff 0%, #1ab3ff 62%, #008ccc 100%);
   border: 1px solid rgba(232, 248, 255, 0.95);
   box-shadow:
@@ -125,7 +125,7 @@ canvas:active { cursor: grabbing; }
   pointer-events: none;
 }
 .validator-marker.is-selected {
-  transform: translate(-50%, -50%) translate(var(--marker-x, -9999px), var(--marker-y, -9999px)) scale(1.06);
+  transform: translate(-50%, -50%) translate(var(--cobe-marker-x, -9999px), var(--cobe-marker-y, -9999px)) scale(1.06);
   box-shadow:
     0 0 0 1px rgba(180, 228, 255, 0.84),
     0 0 12px rgba(26, 179, 255, 0.34);

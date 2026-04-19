@@ -22,6 +22,23 @@ interface UseGlobeBridgeOptions {
   isReadyRef: React.MutableRefObject<boolean>;
 }
 
+function normalizeLatLon(lat: number, lon: number): [number, number] | null {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return null;
+  }
+
+  if (Math.abs(lat) <= 90 && Math.abs(lon) <= 180) {
+    return [lat, lon];
+  }
+
+  // Guard against accidental payload flips during refactors.
+  if (Math.abs(lon) <= 90 && Math.abs(lat) <= 180) {
+    return [lon, lat];
+  }
+
+  return null;
+}
+
 export function useGlobeBridge({
   validators,
   coordinatesById,
@@ -96,9 +113,15 @@ export function useGlobeBridge({
 
     const payload: ValidatorMarkerPayload[] = validators.map((v, i) => {
       const resolvedCoords = coordinatesById?.[v.iotaAddress];
-      const [lat, lon] = resolvedCoords
+      const fallbackCoords = hashToLatLon(v.iotaAddress);
+      const candidateCoords = resolvedCoords
         ? [resolvedCoords.lat, resolvedCoords.lon]
-        : hashToLatLon(v.iotaAddress);
+        : fallbackCoords;
+      const normalizedCoords = normalizeLatLon(
+        candidateCoords[0],
+        candidateCoords[1],
+      );
+      const [lat, lon] = normalizedCoords ?? fallbackCoords;
 
       return {
         id: v.iotaAddress,

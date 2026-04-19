@@ -295,11 +295,13 @@ window.addEventListener('beforeunload', function() {
 // a forgiving touch target on mobile even with compact visuals.
 //
 var HIT_MAGNETIC_RADIUS_PX = 44;
+var FRONTFACE_VISIBILITY_EPSILON = 0.02;
 
 // Projects [lat, lon] → 2D screen coordinates given current phi/theta/scale
 function latLonToScreen(lat, lon) {
   var latR = lat * Math.PI / 180;
-  var lonR = lon * Math.PI / 180;
+  // Keep fallback projection aligned with COBE's internal longitude basis.
+  var lonR = lon * Math.PI / 180 - Math.PI;
 
   // 3D cartesian on unit sphere
   var cosLat = Math.cos(latR);
@@ -341,7 +343,7 @@ function latLonToScreen(lat, lon) {
   return {
     x: sx,
     y: sy,
-    visible: fz > -0.02,
+    visible: fz > FRONTFACE_VISIBILITY_EPSILON,
     frontness: fz
   };
 }

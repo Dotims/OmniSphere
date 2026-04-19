@@ -19,6 +19,7 @@ var markerLayer = document.getElementById('marker-layer');
 var markersDirty = true;
 var INTERNAL_MARKER_SIZE = 0.003;
 var MARKER_POSITION_EPSILON_PX = 0.16;
+var FRONTFACE_VISIBILITY_EPSILON = 0.02;
 var lastProjectionFrame = {
   phi: Number.POSITIVE_INFINITY,
   theta: Number.POSITIVE_INFINITY,
@@ -69,7 +70,9 @@ function buildMarkerBlueprints(validators) {
 
     var densityWeight = clamp(1 / (1 + neighbors * 0.18), 0.55, 1);
     var latR = v.lat * Math.PI / 180;
-    var lonR = v.lon * Math.PI / 180;
+    // COBE maps marker longitudes with a -PI shift; mirror that orientation
+    // so DOM markers stay locked to the same landmass positions.
+    var lonR = v.lon * Math.PI / 180 - Math.PI;
     var cosLat = Math.cos(latR);
 
     blueprints.push({
@@ -114,7 +117,7 @@ function projectMarkerCartesian(cart, cosPhi, sinPhi, cosTheta, sinTheta, radius
   return {
     x: sx,
     y: sy,
-    visible: fz > -0.02,
+    visible: fz > FRONTFACE_VISIBILITY_EPSILON,
   };
 }
 
@@ -216,9 +219,9 @@ function upsertMarkerDom() {
       el = document.createElement('div');
       el.className = 'validator-marker is-hidden';
       el.setAttribute('data-marker-id', marker.id);
-      el.style.setProperty('--marker-x', '-9999px');
-      el.style.setProperty('--marker-y', '-9999px');
-      el.style.setProperty('--marker-opacity', '0');
+      el.style.setProperty('--cobe-marker-x', '-9999px');
+      el.style.setProperty('--cobe-marker-y', '-9999px');
+      el.style.setProperty('--cobe-visible', '0');
       markerLayer.appendChild(el);
     }
 
@@ -314,7 +317,7 @@ function updateMarkerAnchors(force) {
 
     if (!isValidAnchor) {
       if (!previous || previous.visible) {
-        markerEl.style.setProperty('--marker-opacity', '0');
+        markerEl.style.setProperty('--cobe-visible', '0');
         markerEl.classList.add('is-hidden');
       }
       if (!previous || previous.selected) {
@@ -343,12 +346,12 @@ function updateMarkerAnchors(force) {
       Math.abs(previous.y - projection.y) > MARKER_POSITION_EPSILON_PX;
 
     if (moved) {
-      markerEl.style.setProperty('--marker-x', projection.x.toFixed(2) + 'px');
-      markerEl.style.setProperty('--marker-y', projection.y.toFixed(2) + 'px');
+      markerEl.style.setProperty('--cobe-marker-x', projection.x.toFixed(2) + 'px');
+      markerEl.style.setProperty('--cobe-marker-y', projection.y.toFixed(2) + 'px');
     }
 
     if (!previous || !previous.visible) {
-      markerEl.style.setProperty('--marker-opacity', '1');
+      markerEl.style.setProperty('--cobe-visible', '1');
       markerEl.classList.remove('is-hidden');
     }
 
