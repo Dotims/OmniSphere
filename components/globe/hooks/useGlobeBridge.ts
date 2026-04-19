@@ -32,6 +32,18 @@ export function useGlobeBridge({
 }: UseGlobeBridgeOptions) {
   const pendingDataRef = useRef(false);
 
+  const getUniqueSelectionIds = useCallback(
+    () =>
+      Array.from(
+        new Set(
+          (selectedValidatorIds ?? []).filter(
+            (id): id is string => typeof id === "string" && id.length > 0,
+          ),
+        ),
+      ),
+    [selectedValidatorIds],
+  );
+
   const sendBridgeMessage = useCallback(
     (message: string) => {
       if (Platform.OS === "web") {
@@ -43,7 +55,29 @@ export function useGlobeBridge({
     [webviewRef, iframeRef],
   );
 
-  const bridgeData = useCallback(() => {
+  const bridgeSelection = useCallback(() => {
+    if (
+      (Platform.OS !== "web" && !webviewRef.current) ||
+      (Platform.OS === "web" && !iframeRef.current) ||
+      !isReadyRef.current
+    )
+      return;
+
+    sendBridgeMessage(
+      JSON.stringify({
+        type: "selection",
+        payload: { ids: getUniqueSelectionIds() },
+      }),
+    );
+  }, [
+    webviewRef,
+    iframeRef,
+    isReadyRef,
+    sendBridgeMessage,
+    getUniqueSelectionIds,
+  ]);
+
+  const bridgeValidators = useCallback(() => {
     if (
       (Platform.OS !== "web" && !webviewRef.current) ||
       (Platform.OS === "web" && !iframeRef.current) ||
@@ -75,41 +109,36 @@ export function useGlobeBridge({
       };
     });
 
-    const uniqueSelectionIds = Array.from(
-      new Set(
-        (selectedValidatorIds ?? []).filter(
-          (id): id is string => typeof id === "string" && id.length > 0,
-        ),
-      ),
-    );
-
     sendBridgeMessage(JSON.stringify({ type: "validators", payload }));
-    sendBridgeMessage(
-      JSON.stringify({
-        type: "selection",
-        payload: { ids: uniqueSelectionIds },
-      }),
-    );
-
-    pendingDataRef.current = false;
   }, [
     validators,
     coordinatesById,
-    selectedValidatorIds,
     webviewRef,
     iframeRef,
     isReadyRef,
     sendBridgeMessage,
   ]);
 
+  const bridgeData = useCallback(() => {
+    bridgeValidators();
+    bridgeSelection();
+    pendingDataRef.current = false;
+  }, [bridgeValidators, bridgeSelection]);
+
   // Push new data whenever validators or coordinates change
   useEffect(() => {
     if (isReadyRef.current) {
-      bridgeData();
+      bridgeValidators();
     } else {
       pendingDataRef.current = true;
     }
-  }, [bridgeData, isReadyRef]);
+  }, [bridgeValidators, isReadyRef]);
+
+  // Push lightweight selection updates without resending full validator payload.
+  useEffect(() => {
+    if (!isReadyRef.current) return;
+    bridgeSelection();
+  }, [bridgeSelection, isReadyRef]);
 
   return { bridgeData, pendingDataRef };
 }

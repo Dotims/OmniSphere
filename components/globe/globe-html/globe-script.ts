@@ -12,19 +12,22 @@ export const GLOBE_SCRIPT = `
 // ── Marker data + DOM layer ───────────────────────────────
 var markerBlueprints = [];
 var markerElementsById = Object.create(null);
+var markerRenderStateById = Object.create(null);
+var projectedMarkerList = [];
 var selectedMarkerIds = [];
 var markerLayer = document.getElementById('marker-layer');
 var markersDirty = true;
 var INTERNAL_MARKER_SIZE = 0.003;
+var MARKER_POSITION_EPSILON_PX = 0.16;
+var lastProjectionFrame = {
+  phi: Number.POSITIVE_INFINITY,
+  theta: Number.POSITIVE_INFINITY,
+  scale: Number.POSITIVE_INFINITY,
+  cssSize: Number.POSITIVE_INFINITY,
+};
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
-}
-
-function cssTokenFromId(id) {
-  return String(id || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]/g, '_');
 }
 
 function angularDistanceDeg(lat1, lon1, lat2, lon2) {
@@ -65,25 +68,54 @@ function buildMarkerBlueprints(validators) {
     }
 
     var densityWeight = clamp(1 / (1 + neighbors * 0.18), 0.55, 1);
+    var latR = v.lat * Math.PI / 180;
+    var lonR = v.lon * Math.PI / 180;
+    var cosLat = Math.cos(latR);
 
     blueprints.push({
       id: v.id,
-      token: cssTokenFromId(v.id),
       location: [v.lat, v.lon],
       densityWeight: densityWeight,
+      cart: [
+        -cosLat * Math.cos(lonR),
+        Math.sin(latR),
+        cosLat * Math.sin(lonR),
+      ],
     });
   }
 
   return blueprints;
 }
 
-function markerVarName(axis, token) {
-  return '--cobe-marker-' + axis + '-' + token;
-}
+function projectMarkerCartesian(cart, cosPhi, sinPhi, cosTheta, sinTheta, radius, centerX, centerY) {
+  var x3d = cart[0];
+  var y3d = cart[1];
+  var z3d = cart[2];
 
-function clearMarkerAnchor(token) {
-  container.style.removeProperty(markerVarName('x', token));
-  container.style.removeProperty(markerVarName('y', token));
+  var rx = x3d * cosPhi + z3d * sinPhi;
+  var ry = y3d;
+  var rz = -x3d * sinPhi + z3d * cosPhi;
+
+  var fx = rx;
+  var fy = ry * cosTheta - rz * sinTheta;
+  var fz = ry * sinTheta + rz * cosTheta;
+
+  if (fz < -0.18) return null;
+
+  var sx = centerX + fx * radius;
+  var sy = centerY - fy * radius;
+  var dx = sx - centerX;
+  var dy = sy - centerY;
+  var radialDistSq = dx * dx + dy * dy;
+  var maxDistSq = radius * radius * 1.0404;
+
+  if (radialDistSq > maxDistSq) return null;
+
+  return {
+    x: sx,
+    y: sy,
+    visible: fz > -0.02,
+  };
 }
 
 function materializeMarkers(force) {
@@ -116,25 +148,39 @@ function pruneSelectionToKnownMarkers() {
 }
 
 function setSelectedMarkerIds(ids) {
-  if (!Array.isArray(ids)) {
-    selectedMarkerIds = [];
-    syncMarkerSelectionClasses();
-    return;
-  }
-
+  var rawIds = Array.isArray(ids) ? ids : [];
   var deduped = [];
   var seen = Object.create(null);
-  for (var i = 0; i < ids.length; i++) {
-    var id = ids[i];
-    if (typeof id !== 'string' || id.length === 0 || seen[id]) {
+  for (var i = 0; i < rawIds.length; i++) {
+    var rawId = rawIds[i];
+    if (typeof rawId !== 'string' || rawId.length === 0 || seen[rawId]) {
       continue;
     }
-    seen[id] = true;
-    deduped.push(id);
+    seen[rawId] = true;
+    deduped.push(rawId);
   }
 
-  selectedMarkerIds = deduped;
-  pruneSelectionToKnownMarkers();
+  var known = Object.create(null);
+  for (var j = 0; j < markerBlueprints.length; j++) {
+    known[markerBlueprints[j].id] = true;
+  }
+
+  var nextSelected = deduped.filter(function(id) {
+    return !!known[id];
+  });
+
+  if (nextSelected.length === selectedMarkerIds.length) {
+    var unchanged = true;
+    for (var k = 0; k < nextSelected.length; k++) {
+      if (nextSelected[k] !== selectedMarkerIds[k]) {
+        unchanged = false;
+        break;
+      }
+    }
+    if (unchanged) return;
+  }
+
+  selectedMarkerIds = nextSelected;
   syncMarkerSelectionClasses();
 }
 
@@ -170,13 +216,11 @@ function upsertMarkerDom() {
       el = document.createElement('div');
       el.className = 'validator-marker is-hidden';
       el.setAttribute('data-marker-id', marker.id);
+      el.style.setProperty('--marker-x', '-9999px');
+      el.style.setProperty('--marker-y', '-9999px');
+      el.style.setProperty('--marker-opacity', '0');
       markerLayer.appendChild(el);
     }
-
-    el.setAttribute('data-marker-token', marker.token);
-    el.style.setProperty('--marker-x', 'var(' + markerVarName('x', marker.token) + ', -9999px)');
-    el.style.setProperty('--marker-y', 'var(' + markerVarName('y', marker.token) + ', -9999px)');
-    el.style.setProperty('--marker-opacity', '0');
 
     nextById[marker.id] = el;
   }
@@ -188,48 +232,139 @@ function upsertMarkerDom() {
 
     var staleEl = markerElementsById[staleId];
     if (staleEl) {
-      var staleToken = staleEl.getAttribute('data-marker-token');
-      if (staleToken) {
-        clearMarkerAnchor(staleToken);
-      }
       if (staleEl.parentNode) {
         staleEl.parentNode.removeChild(staleEl);
       }
     }
+    delete markerRenderStateById[staleId];
   }
 
   markerElementsById = nextById;
-  syncMarkerSelectionClasses();
+  // NOTE: syncMarkerSelectionClasses() removed here — updateMarkerAnchors(true)
+  // always follows and handles selection state inline, avoiding double work.
 }
 
-function updateMarkerAnchors() {
+function didProjectionFrameChange() {
+  if (!isFinite(lastProjectionFrame.phi)) {
+    lastProjectionFrame.phi = phi;
+    lastProjectionFrame.theta = theta;
+    lastProjectionFrame.scale = scale;
+    lastProjectionFrame.cssSize = cssSize;
+    return true;
+  }
+
+  var changed =
+    Math.abs(lastProjectionFrame.phi - phi) > 0.0002 ||
+    Math.abs(lastProjectionFrame.theta - theta) > 0.0002 ||
+    Math.abs(lastProjectionFrame.scale - scale) > 0.0002 ||
+    lastProjectionFrame.cssSize !== cssSize;
+
+  if (!changed) return false;
+
+  lastProjectionFrame.phi = phi;
+  lastProjectionFrame.theta = theta;
+  lastProjectionFrame.scale = scale;
+  lastProjectionFrame.cssSize = cssSize;
+  return true;
+}
+
+function updateMarkerAnchors(force) {
   if (!markerLayer || markerBlueprints.length === 0) {
+    projectedMarkerList = [];
     return;
   }
+
+  if (!force && !didProjectionFrameChange()) {
+    return;
+  }
+
+  var cosPhi = Math.cos(phi);
+  var sinPhi = Math.sin(phi);
+  var cosTheta = Math.cos(theta);
+  var sinTheta = Math.sin(theta);
+  var radius = cssSize * 0.4 * scale;
+  var centerX = cssSize / 2;
+  var centerY = cssSize / 2;
+
+  var selectedLookup = Object.create(null);
+  for (var s = 0; s < selectedMarkerIds.length; s++) {
+    selectedLookup[selectedMarkerIds[s]] = true;
+  }
+
+  var nextProjectedList = [];
 
   for (var i = 0; i < markerBlueprints.length; i++) {
     var marker = markerBlueprints[i];
     var markerEl = markerElementsById[marker.id];
     if (!markerEl) continue;
 
-    var projection = latLonToScreen(marker.location[0], marker.location[1]);
+    var projection = projectMarkerCartesian(
+      marker.cart,
+      cosPhi,
+      sinPhi,
+      cosTheta,
+      sinTheta,
+      radius,
+      centerX,
+      centerY
+    );
     var isValidAnchor = !!projection && projection.visible;
+    var previous = markerRenderStateById[marker.id];
+    var shouldSelect = !!selectedLookup[marker.id] && isValidAnchor;
 
     if (!isValidAnchor) {
-      clearMarkerAnchor(marker.token);
-      markerEl.style.setProperty('--marker-opacity', '0');
-      markerEl.classList.add('is-hidden');
-      markerEl.classList.remove('is-selected');
+      if (!previous || previous.visible) {
+        markerEl.style.setProperty('--marker-opacity', '0');
+        markerEl.classList.add('is-hidden');
+      }
+      if (!previous || previous.selected) {
+        markerEl.classList.remove('is-selected');
+      }
+
+      markerRenderStateById[marker.id] = {
+        x: 0,
+        y: 0,
+        visible: false,
+        selected: false,
+      };
       continue;
     }
 
-    container.style.setProperty(markerVarName('x', marker.token), projection.x + 'px');
-    container.style.setProperty(markerVarName('y', marker.token), projection.y + 'px');
-    markerEl.style.setProperty('--marker-opacity', '1');
-    markerEl.classList.remove('is-hidden');
+    nextProjectedList.push({
+      id: marker.id,
+      x: projection.x,
+      y: projection.y,
+    });
+
+    var moved =
+      !previous ||
+      !previous.visible ||
+      Math.abs(previous.x - projection.x) > MARKER_POSITION_EPSILON_PX ||
+      Math.abs(previous.y - projection.y) > MARKER_POSITION_EPSILON_PX;
+
+    if (moved) {
+      markerEl.style.setProperty('--marker-x', projection.x.toFixed(2) + 'px');
+      markerEl.style.setProperty('--marker-y', projection.y.toFixed(2) + 'px');
+    }
+
+    if (!previous || !previous.visible) {
+      markerEl.style.setProperty('--marker-opacity', '1');
+      markerEl.classList.remove('is-hidden');
+    }
+
+    if (!previous || previous.selected !== shouldSelect) {
+      markerEl.classList.toggle('is-selected', shouldSelect);
+    }
+
+    markerRenderStateById[marker.id] = {
+      x: projection.x,
+      y: projection.y,
+      visible: true,
+      selected: shouldSelect,
+    };
   }
 
-  syncMarkerSelectionClasses();
+  projectedMarkerList = nextProjectedList;
 }
 
 // ── Create Globe ───────────────────────────────────────────
@@ -275,7 +410,7 @@ try {
       }
 
       materializeMarkers(false);
-      updateMarkerAnchors();
+      updateMarkerAnchors(false);
 
       state.phi = phi;
       state.theta = theta;
@@ -304,13 +439,20 @@ function handleMessage(event) {
     if (data.type === 'validators') {
       var validators = Array.isArray(data.payload) ? data.payload : [];
       validatorData = validators; // store for hit detection
+      validatorById = Object.create(null);
+      for (var i = 0; i < validators.length; i++) {
+        var validator = validators[i];
+        if (validator && validator.id) {
+          validatorById[validator.id] = validator;
+        }
+      }
 
       markerBlueprints = buildMarkerBlueprints(validators);
       markersDirty = true;
       materializeMarkers(true);
       pruneSelectionToKnownMarkers();
       upsertMarkerDom();
-      updateMarkerAnchors();
+      updateMarkerAnchors(true);
     }
 
     if (data.type === 'selection') {

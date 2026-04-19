@@ -72,50 +72,74 @@ canvas:active { cursor: grabbing; }
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 3;
-  contain: strict;
+  overflow: visible;
+  contain: layout style;
+}
+@keyframes markerSelectionPulse {
+  0% {
+    opacity: 0.32;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  70% {
+    opacity: 0.16;
+    transform: translate(-50%, -50%) scale(1.28);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.42);
+  }
 }
 .validator-marker {
   position: absolute;
-  left: var(--marker-x, -9999px);
-  top: var(--marker-y, -9999px);
+  left: 0;
+  top: 0;
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translate(var(--marker-x, -9999px), var(--marker-y, -9999px));
   opacity: var(--marker-opacity, 0);
   background: linear-gradient(165deg, #66ccff 0%, #1ab3ff 62%, #008ccc 100%);
   border: 1px solid rgba(232, 248, 255, 0.95);
   box-shadow:
     0 0 0 1px rgba(4, 10, 18, 0.72),
     0 0 14px rgba(26, 179, 255, 0.28);
-  will-change: left, top, opacity, transform;
-  transition: opacity 120ms linear, transform 120ms ease, box-shadow 120ms ease;
+  will-change: transform, opacity;
 }
 .validator-marker::after {
   content: '';
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  border: 1.5px solid rgba(102, 204, 255, 0.85);
-  box-shadow: 0 0 0 2px rgba(26, 179, 255, 0.25);
+  background: radial-gradient(
+    circle,
+    rgba(102, 204, 255, 0.42) 0%,
+    rgba(26, 179, 255, 0.20) 42%,
+    rgba(26, 179, 255, 0.06) 66%,
+    rgba(26, 179, 255, 0) 100%
+  );
   opacity: 0;
-  transition: opacity 100ms ease;
+  pointer-events: none;
 }
 .validator-marker.is-selected {
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, -50%) translate(var(--marker-x, -9999px), var(--marker-y, -9999px)) scale(1.06);
   box-shadow:
-    0 0 0 1px rgba(180, 228, 255, 0.9),
-    0 0 16px rgba(26, 179, 255, 0.42);
+    0 0 0 1px rgba(180, 228, 255, 0.84),
+    0 0 12px rgba(26, 179, 255, 0.34);
+  transition: box-shadow 120ms ease;
 }
 .validator-marker.is-selected::after {
-  opacity: 1;
+  opacity: 0.26;
+  animation: markerSelectionPulse 1.5s ease-out infinite;
 }
 .validator-marker.is-hidden,
 .validator-marker.is-hidden::after {
   opacity: 0;
+}
+.validator-marker.is-hidden::after {
+  animation: none;
 }
 `;

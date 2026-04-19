@@ -17,6 +17,7 @@ export const INTERACTION_SCRIPT = `
 // ── State ──────────────────────────────────────────────────
 var currentMarkers = [];
 var validatorData = [];   // full validator payload for hit detection
+var validatorById = Object.create(null);
 var phi = 0.3;
 var theta = 0.15;
 var scale = 1.0;          // zoom level
@@ -371,11 +372,15 @@ function showPulse(sx, sy) {
   pulseOverlay.style.height = container.clientHeight + 'px';
 
   var dpr = window.devicePixelRatio || 2;
-  var cx = sx * dpr;
-  var cy = sy * dpr;
-  var startRadius = 6 * dpr;
-  var endRadius   = 28 * dpr;
-  var duration = 380; // ms
+  var containerRect = container.getBoundingClientRect();
+  var canvasRect = canvas.getBoundingClientRect();
+  var canvasOffsetX = canvasRect.left - containerRect.left;
+  var canvasOffsetY = canvasRect.top - containerRect.top;
+  var cx = (canvasOffsetX + sx) * dpr;
+  var cy = (canvasOffsetY + sy) * dpr;
+  var startRadius = 8 * dpr;
+  var endRadius   = 24 * dpr;
+  var duration = 320; // ms
   var startTime = Date.now();
 
   if (pulseAnim) cancelAnimationFrame(pulseAnim);
@@ -389,18 +394,16 @@ function showPulse(sx, sy) {
     pulseCtx.clearRect(0, 0, pulseOverlay.width, pulseOverlay.height);
 
     var r = startRadius + (endRadius - startRadius) * ease;
-    var alpha = 0.55 * (1 - ease);
+    var alpha = 0.28 * (1 - ease);
+
+    var gradient = pulseCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    gradient.addColorStop(0, 'rgba(102, 204, 255, ' + (alpha * 1.3) + ')');
+    gradient.addColorStop(0.52, 'rgba(26, 179, 255, ' + alpha + ')');
+    gradient.addColorStop(1, 'rgba(26, 179, 255, 0)');
 
     pulseCtx.beginPath();
     pulseCtx.arc(cx, cy, r, 0, Math.PI * 2);
-    pulseCtx.strokeStyle = 'rgba(26, 178, 255, ' + alpha + ')';
-    pulseCtx.lineWidth = 2.5 * dpr;
-    pulseCtx.stroke();
-
-    // inner filled dot that fades
-    pulseCtx.beginPath();
-    pulseCtx.arc(cx, cy, 3 * dpr, 0, Math.PI * 2);
-    pulseCtx.fillStyle = 'rgba(26, 178, 255, ' + (0.7 * (1 - ease)) + ')';
+    pulseCtx.fillStyle = gradient;
     pulseCtx.fill();
 
     if (t < 1) {
@@ -425,23 +428,47 @@ function handleTap(clientX, clientY) {
 
   // Fixed, forgiving magnetic radius for touch interaction.
   var hits = [];
+  var hitRadiusSq = HIT_MAGNETIC_RADIUS_PX * HIT_MAGNETIC_RADIUS_PX;
+  var projectedForHit =
+    typeof projectedMarkerList !== 'undefined' && Array.isArray(projectedMarkerList)
+      ? projectedMarkerList
+      : null;
 
-  for (var i = 0; i < validatorData.length; i++) {
-    var v = validatorData[i];
-    var screen = latLonToScreen(v.lat, v.lon);
-    if (!screen || !screen.visible) continue;
+  if (projectedForHit && projectedForHit.length > 0) {
+    for (var i = 0; i < projectedForHit.length; i++) {
+      var projected = projectedForHit[i];
+      var mappedValidator = validatorById[projected.id];
+      if (!mappedValidator) continue;
 
-    var dist = Math.sqrt(
-      Math.pow(tapX - screen.x, 2) +
-      Math.pow(tapY - screen.y, 2)
-    );
+      var projectedDx = tapX - projected.x;
+      var projectedDy = tapY - projected.y;
+      var projectedDistSq = projectedDx * projectedDx + projectedDy * projectedDy;
 
-    if (dist <= HIT_MAGNETIC_RADIUS_PX) {
-      hits.push({
-        validator: v,
-        screen: screen,
-        dist: dist,
-      });
+      if (projectedDistSq <= hitRadiusSq) {
+        hits.push({
+          validator: mappedValidator,
+          screen: projected,
+          distSq: projectedDistSq,
+        });
+      }
+    }
+  } else {
+    for (var j = 0; j < validatorData.length; j++) {
+      var v = validatorData[j];
+      var screen = latLonToScreen(v.lat, v.lon);
+      if (!screen || !screen.visible) continue;
+
+      var dx = tapX - screen.x;
+      var dy = tapY - screen.y;
+      var distSq = dx * dx + dy * dy;
+
+      if (distSq <= hitRadiusSq) {
+        hits.push({
+          validator: v,
+          screen: screen,
+          distSq: distSq,
+        });
+      }
     }
   }
 
@@ -462,7 +489,7 @@ function handleTap(clientX, clientY) {
   }
 
   hits.sort(function(a, b) {
-    return a.dist - b.dist;
+    return a.distSq - b.distSq;
   });
 
   var seen = {};

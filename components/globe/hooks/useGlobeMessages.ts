@@ -70,7 +70,12 @@ export function useGlobeMessages(options: UseGlobeMessagesOptions) {
       try {
         if (typeof event.data !== "string") return;
         const data = JSON.parse(event.data);
-        processMessage(data, options);
+        processMessage(data, {
+          onSelectValidator,
+          bridgeData,
+          pendingDataRef,
+          isReadyRef,
+        });
       } catch {
         // ignore
       }
@@ -79,7 +84,7 @@ export function useGlobeMessages(options: UseGlobeMessagesOptions) {
     window.addEventListener("message", handleWebMessage as EventListener);
     return () =>
       window.removeEventListener("message", handleWebMessage as EventListener);
-  }, [onSelectValidator, bridgeData, pendingDataRef, isReadyRef, options]);
+  }, [onSelectValidator, bridgeData, pendingDataRef, isReadyRef]);
 
   // Native: WebView onMessage callback
   const handleNativeMessage = useCallback(
