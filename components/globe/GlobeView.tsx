@@ -1,10 +1,9 @@
-import type { ValidatorSummary } from '@/services/validators';
-import { hashToLatLon } from '@/utils/spherical-hash';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import { WebView, type WebViewMessageEvent } from 'react-native-webview';
-import { COBE_BUNDLE_JS } from './cobe-source';
-
+import type { ValidatorSummary } from "@/services/validators";
+import { hashToLatLon } from "@/utils/spherical-hash";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { Platform, StyleSheet, View } from "react-native";
+import { WebView, type WebViewMessageEvent } from "react-native-webview";
+import { COBE_BUNDLE_JS } from "./cobe-source";
 
 interface GlobeViewProps {
   validators: ValidatorSummary[];
@@ -40,11 +39,24 @@ function buildGlobeHTML(cobeSource: string): string {
         position: relative;
         overflow: hidden;
       }
+      .space-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-color: #04060c;
+        background-image:
+          radial-gradient(circle at 30px 40px, rgba(156, 185, 221, 0.16) 0.8px, transparent 1.4px),
+          radial-gradient(circle at 90px 120px, rgba(132, 165, 206, 0.12) 0.7px, transparent 1.3px),
+          radial-gradient(circle at 150px 70px, rgba(112, 144, 184, 0.10) 0.6px, transparent 1.2px);
+        background-size: 180px 180px, 240px 240px, 300px 300px;
+        opacity: 0.22;
+      }
       canvas {
         display: block;
         cursor: grab;
         position: relative;
-        z-index: 1;
+        z-index: 2;
         -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
         mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
       }
@@ -58,17 +70,18 @@ function buildGlobeHTML(cobeSource: string): string {
         border-radius: 50%;
         background: radial-gradient(
           circle,
-          rgba(0, 224, 202, 0.12) 0%,
-          rgba(0, 224, 202, 0.04) 40%,
+          rgba(20, 44, 78, 0.20) 0%,
+          rgba(12, 28, 52, 0.10) 45%,
           transparent 70%
         );
         pointer-events: none;
-        z-index: 0;
+        z-index: 1;
       }
     </style>
   </head>
   <body>
     <div id="globe-container">
+      <div class="space-bg"></div>
       <div class="glow"></div>
       <canvas id="cobe-canvas"></canvas>
     </div>
@@ -319,10 +332,10 @@ function buildGlobeHTML(cobeSource: string): string {
             diffuse: 1.4,
             scale: scale,
             mapSamples: 16000,
-            mapBrightness: 2.5,
-            baseColor: [0.15, 0.18, 0.25],
-            markerColor: [0, 0.878, 0.792],
-            glowColor: [0.04, 0.06, 0.10],
+            mapBrightness: 3.2,
+            baseColor: [0.1, 0.1, 0.15],
+            markerColor: [0.1, 0.7, 1],
+            glowColor: [0.05, 0.1, 0.2],
             markers: currentMarkers,
             onRender: function(state) {
               if (!pointerDown && !isPinching) {
@@ -379,8 +392,10 @@ function buildGlobeHTML(cobeSource: string): string {
   </html>`;
 }
 
-
-export default function GlobeView({ validators, onSelectValidator }: GlobeViewProps) {
+export default function GlobeView({
+  validators,
+  onSelectValidator,
+}: GlobeViewProps) {
   const webviewRef = useRef<WebView>(null);
   const iframeRef = useRef<any>(null);
   const isReadyRef = useRef(false);
@@ -393,11 +408,20 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
 
   // bridge validator data to the WebView
   const bridgeData = useCallback(() => {
-    if ((Platform.OS !== 'web' && !webviewRef.current) || (Platform.OS === 'web' && !iframeRef.current) || !isReadyRef.current || validators.length === 0) return;
+    if (
+      (Platform.OS !== "web" && !webviewRef.current) ||
+      (Platform.OS === "web" && !iframeRef.current) ||
+      !isReadyRef.current ||
+      validators.length === 0
+    )
+      return;
 
     const stakes = validators.map((v) => {
-      try { return Number(BigInt(v.stakingPoolIotaBalance || '0')); }
-      catch { return 0; }
+      try {
+        return Number(BigInt(v.stakingPoolIotaBalance || "0"));
+      } catch {
+        return 0;
+      }
     });
     const maxStake = Math.max(...stakes, 1);
 
@@ -412,9 +436,9 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
       };
     });
 
-    const message = JSON.stringify({ type: 'validators', payload });
-    if (Platform.OS === 'web') {
-      iframeRef.current?.contentWindow?.postMessage(message, '*');
+    const message = JSON.stringify({ type: "validators", payload });
+    if (Platform.OS === "web") {
+      iframeRef.current?.contentWindow?.postMessage(message, "*");
     } else {
       webviewRef.current?.postMessage(message);
     }
@@ -431,25 +455,25 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
 
   // Hook up web messages
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
+    if (Platform.OS !== "web") return;
 
     const handleWebMessage = (event: MessageEvent) => {
       try {
-        if (typeof event.data !== 'string') return;
+        if (typeof event.data !== "string") return;
         const data = JSON.parse(event.data);
 
-        if (data.type === 'ready') {
+        if (data.type === "ready") {
           isReadyRef.current = true;
           if (pendingDataRef.current || validators.length > 0) {
             setTimeout(bridgeData, 100);
           }
         }
 
-        if (data.type === 'error') {
-          console.warn('[GlobeView] WebView error:', data.msg);
+        if (data.type === "error") {
+          console.warn("[GlobeView] WebView error:", data.msg);
         }
 
-        if (data.type === 'VALIDATOR_CLICKED' && onSelectValidator) {
+        if (data.type === "VALIDATOR_CLICKED" && onSelectValidator) {
           onSelectValidator(data.payload?.id || null);
         }
       } catch {
@@ -457,41 +481,45 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
       }
     };
 
-    window.addEventListener('message', handleWebMessage as EventListener);
-    return () => window.removeEventListener('message', handleWebMessage as EventListener);
+    window.addEventListener("message", handleWebMessage as EventListener);
+    return () =>
+      window.removeEventListener("message", handleWebMessage as EventListener);
   }, [onSelectValidator, bridgeData, validators.length]);
 
-  const handleMessage = useCallback((event: WebViewMessageEvent) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
+  const handleMessage = useCallback(
+    (event: WebViewMessageEvent) => {
+      try {
+        const data = JSON.parse(event.nativeEvent.data);
 
-      if (data.type === 'ready') {
-        isReadyRef.current = true;
-        if (pendingDataRef.current || validators.length > 0) {
-          setTimeout(bridgeData, 100);
+        if (data.type === "ready") {
+          isReadyRef.current = true;
+          if (pendingDataRef.current || validators.length > 0) {
+            setTimeout(bridgeData, 100);
+          }
         }
-      }
 
-      if (data.type === 'error') {
-        console.warn('[GlobeView] WebView error:', data.msg);
-      }
+        if (data.type === "error") {
+          console.warn("[GlobeView] WebView error:", data.msg);
+        }
 
-      // Handle marker tap from WebView
-      if (data.type === 'VALIDATOR_CLICKED' && onSelectValidator) {
-        onSelectValidator(data.payload?.id || null);
+        // Handle marker tap from WebView
+        if (data.type === "VALIDATOR_CLICKED" && onSelectValidator) {
+          onSelectValidator(data.payload?.id || null);
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
-  }, [onSelectValidator, bridgeData, validators.length]);
+    },
+    [onSelectValidator, bridgeData, validators.length],
+  );
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     return (
       <View style={styles.container}>
         <iframe
           ref={iframeRef}
           srcDoc={htmlSource.html}
-          style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
+          style={{ flex: 1, border: "none", width: "100%", height: "100%" }}
         />
       </View>
     );
@@ -506,7 +534,7 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
         onMessage={handleMessage}
         javaScriptEnabled={true}
         domStorageEnabled={true}
-        originWhitelist={['*']}
+        originWhitelist={["*"]}
         scrollEnabled={false}
         bounces={false}
         overScrollMode="never"
@@ -515,15 +543,14 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
         startInLoadingState={false}
-        {...(Platform.OS === 'android'
+        {...(Platform.OS === "android"
           ? {
-              androidLayerType: 'hardware',
-              mixedContentMode: 'always' as const,
+              androidLayerType: "hardware",
+              mixedContentMode: "always" as const,
             }
           : {
               allowsBackForwardNavigationGestures: false,
-            }
-        )}
+            })}
       />
     </View>
   );
@@ -532,10 +559,10 @@ export default function GlobeView({ validators, onSelectValidator }: GlobeViewPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#05060A',
+    backgroundColor: "#05060A",
   },
   webview: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
 });

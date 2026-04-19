@@ -1,15 +1,21 @@
 // native overlay card for selected validator info
 // positioned at bottom of screen over the globe WebView
 
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
-import { Palette, FontSize, FontWeight, Spacing, Radius } from '@/constants/theme';
-import type { ValidatorSummary, ValidatorApy } from '@/services/validators';
+import {
+  FontSize,
+  FontWeight,
+  Palette,
+  Radius,
+  Spacing,
+} from "@/constants/theme";
+import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 
 // format IOTA balance from raw string (nanos) to readable
 function formatStake(raw: string | undefined | null): string {
-  if (!raw || raw === '0') return '0 IOTA';
+  if (!raw || raw === "0") return "0 IOTA";
   try {
     const nano = BigInt(raw);
     const iota = Number(nano) / 1_000_000_000;
@@ -17,7 +23,7 @@ function formatStake(raw: string | undefined | null): string {
     if (iota >= 1_000) return `${(iota / 1_000).toFixed(1)}K IOTA`;
     return `${iota.toFixed(0)} IOTA`;
   } catch {
-    return '— IOTA';
+    return "— IOTA";
   }
 }
 
@@ -27,26 +33,30 @@ interface ValidatorOverlayProps {
   onClose: () => void;
 }
 
-export default function ValidatorOverlay({ validator, apy, onClose }: ValidatorOverlayProps) {
-  const addr = validator.iotaAddress || '';
-  const truncatedAddress = addr.length > 14
-    ? `${addr.slice(0, 8)}...${addr.slice(-6)}`
-    : addr;
+export default function ValidatorOverlay({
+  validator,
+  apy,
+  onClose,
+}: ValidatorOverlayProps) {
+  const addr = validator.iotaAddress || "";
+  const truncatedAddress =
+    addr.length > 14 ? `${addr.slice(0, 8)}...${addr.slice(-6)}` : addr;
   const stake = formatStake(validator.stakingPoolIotaBalance);
-  const apyPercent = apy ? `${(apy.apy * 100).toFixed(2)}%` : '—';
-  const commission = validator.commissionRate != null
-    ? `${(validator.commissionRate / 100).toFixed(0)}%`
-    : '—';
-  const votingPower = validator.votingPower != null
-    ? `${(Number(validator.votingPower) / 100).toFixed(2)}%`
-    : '—';
+  const apyPercent = apy ? `${(apy.apy * 100).toFixed(2)}%` : "—";
+  const commission =
+    validator.commissionRate != null
+      ? `${(validator.commissionRate / 100).toFixed(0)}%`
+      : "—";
+  const votingPower =
+    validator.votingPower != null
+      ? `${(Number(validator.votingPower) / 100).toFixed(2)}%`
+      : "—";
 
   return (
     <Animated.View
       entering={FadeInDown.duration(300).springify()}
       exiting={FadeOutDown.duration(200)}
-      style={styles.container}
-    >
+      style={styles.container}>
       <View style={styles.card}>
         {/* drag handle */}
         <View style={styles.handle} />
@@ -56,7 +66,7 @@ export default function ValidatorOverlay({ validator, apy, onClose }: ValidatorO
           <View style={styles.indicator} />
           <View style={styles.headerText}>
             <Text style={styles.name} numberOfLines={1}>
-              {validator.name || 'Unknown Validator'}
+              {validator.name || "Unknown Validator"}
             </Text>
             <Text style={styles.address}>{truncatedAddress}</Text>
           </View>
@@ -73,7 +83,9 @@ export default function ValidatorOverlay({ validator, apy, onClose }: ValidatorO
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>APY</Text>
-            <Text style={[styles.statValue, styles.statValueHighlight]}>{apyPercent}</Text>
+            <Text style={[styles.statValue, styles.statValueHighlight]}>
+              {apyPercent}
+            </Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Commission</Text>
@@ -91,18 +103,18 @@ export default function ValidatorOverlay({ validator, apy, onClose }: ValidatorO
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing['2xl'],
+    paddingBottom: Spacing["2xl"],
   },
   card: {
-    backgroundColor: 'rgba(10, 14, 23, 0.92)',
+    backgroundColor: "rgba(10, 14, 23, 0.92)",
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: 'rgba(0, 224, 202, 0.15)',
+    borderColor: "rgba(26, 179, 255, 0.15)",
     padding: Spacing.lg,
     paddingTop: Spacing.md,
   },
@@ -111,12 +123,12 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: Palette.ash,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: Spacing.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: Spacing.base,
   },
   indicator: {
@@ -141,7 +153,7 @@ const styles = StyleSheet.create({
   address: {
     color: Palette.steel,
     fontSize: FontSize.xs,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     marginTop: 2,
   },
   closeBtn: {
@@ -149,21 +161,21 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     backgroundColor: Palette.white10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   closeBtnText: {
     color: Palette.silver,
     fontSize: FontSize.sm,
   },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.sm,
   },
   statItem: {
     flex: 1,
-    minWidth: '40%' as unknown as number,
+    minWidth: "40%" as unknown as number,
     backgroundColor: Palette.white05,
     borderRadius: Radius.md,
     padding: Spacing.md,
@@ -172,7 +184,7 @@ const styles = StyleSheet.create({
     color: Palette.steel,
     fontSize: FontSize.xs,
     fontWeight: FontWeight.medium,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.8,
     marginBottom: 4,
   },
