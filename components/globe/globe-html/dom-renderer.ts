@@ -22,14 +22,51 @@ function buildMarkerBlueprints(validators) {
     var lonR = v.lon * Math.PI / 180 - Math.PI;
     var cosLat = Math.cos(latR);
 
+    // Preserve stakeNorm from payload (0–1, already normalized by RN bridge)
+    var sn = typeof v.stakeNorm === 'number' ? clamp(v.stakeNorm, 0, 1) : 0;
+
     blueprints.push({
       id: v.id,
       location: [v.lat, v.lon],
       densityWeight: densityWeight,
+      stakeNorm: sn,
       cart: [ -cosLat * Math.cos(lonR), Math.sin(latR), cosLat * Math.sin(lonR) ],
     });
   }
   return blueprints;
+}
+
+// ── Stake → visual mapping ─────────────────────────────────
+// Uses a logarithmic curve so the wide range of stake values
+// produces a visually meaningful distribution rather than
+// everything clustering at the dim end.
+//
+//   t = log(1 + stakeNorm * 99) / log(100)
+//
+// stakeNorm 0.0  → t ≈ 0.0   (dimmest)
+// stakeNorm 0.01 → t ≈ 0.15
+// stakeNorm 0.10 → t ≈ 0.50
+// stakeNorm 0.50 → t ≈ 0.85
+// stakeNorm 1.0  → t = 1.0   (brightest)
+
+var LOG100 = Math.log(100);
+
+function stakeToVisual(stakeNorm) {
+  var t = Math.log(1 + stakeNorm * 99) / LOG100;
+  // hue:     200 (cool blue) → 260 (blue-violet) for high stake
+  var hue     = Math.round(200 + t * 60);
+  // lightness: 42% (dim) → 78% (bright)
+  var light   = Math.round(42 + t * 36);
+  // opacity:  0.45 (faint) → 1.0 (fully opaque)
+  var opacity = (0.45 + t * 0.55).toFixed(2);
+  return { hue: hue, light: light, opacity: opacity };
+}
+
+function applyStakeStyle(el, stakeNorm) {
+  var vis = stakeToVisual(stakeNorm);
+  el.style.setProperty('--cobe-stake-hue', vis.hue);
+  el.style.setProperty('--cobe-stake-light', vis.light + '%');
+  el.style.setProperty('--cobe-stake-opacity', vis.opacity);
 }
 
 function materializeMarkers(force) {
@@ -93,6 +130,11 @@ function upsertMarkerDom() {
   if (!markerLayer) return;
 
   var nextById = Object.create(null);
+  // Build a quick lookup from id → blueprint for stake data
+  var blueprintById = Object.create(null);
+  for (var b = 0; b < markerBlueprints.length; b++) {
+    blueprintById[markerBlueprints[b].id] = markerBlueprints[b];
+  }
 
   for (var i = 0; i < markerBlueprints.length; i++) {
     var marker = markerBlueprints[i];
@@ -107,6 +149,10 @@ function upsertMarkerDom() {
       el.style.setProperty('--cobe-visible', '0');
       markerLayer.appendChild(el);
     }
+
+    // Apply stake-driven visual styling
+    applyStakeStyle(el, marker.stakeNorm);
+
     nextById[marker.id] = el;
   }
 
