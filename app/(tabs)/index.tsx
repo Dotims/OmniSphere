@@ -1,13 +1,14 @@
 // main home screen — COBE globe with IOTA validator visualization
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { GlobeLoader, GlobeView, ValidatorOverlay } from '@/components/globe';
-import { FontSize, FontWeight, Palette, Spacing } from '@/constants/theme';
-import { useValidators } from '@/hooks/use-validators';
-import type { ValidatorApy } from '@/services/validators';
+import { GlobeLoader, GlobeView, ValidatorOverlay } from "@/components/globe";
+import { FontSize, FontWeight, Palette, Spacing } from "@/constants/theme";
+import { useValidatorLocations } from "@/hooks/use-validator-locations";
+import { useValidators } from "@/hooks/use-validators";
+import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -15,14 +16,19 @@ export default function HomeScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // extract validators — the API route unwraps V2
-  const validators = useMemo(() => {
+  const validators = useMemo<ValidatorSummary[]>(() => {
     if (!data?.systemState) return [];
     const state = data.systemState;
     const raw = state as unknown as Record<string, unknown>;
-    const activeValidators = raw.activeValidators
-      ?? (raw.V2 as Record<string, unknown> | undefined)?.activeValidators;
-    return Array.isArray(activeValidators) ? activeValidators : [];
+    const activeValidators =
+      raw.activeValidators ??
+      (raw.V2 as Record<string, unknown> | undefined)?.activeValidators;
+    return Array.isArray(activeValidators)
+      ? (activeValidators as ValidatorSummary[])
+      : [];
   }, [data]);
+
+  const { data: coordinatesById } = useValidatorLocations(validators);
 
   const apys = useMemo(() => {
     if (!data?.apys) return [];
@@ -31,10 +37,10 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (data) {
-      console.log('[Globe] validators count:', validators.length);
+      console.log("[Globe] validators count:", validators.length);
     }
     if (error) {
-      console.log('[Globe] error:', error.message);
+      console.log("[Globe] error:", error.message);
     }
   }, [data, error, validators]);
 
@@ -62,7 +68,7 @@ export default function HomeScreen() {
         <Text style={styles.errorIcon}>⚠</Text>
         <Text style={styles.errorTitle}>Connection Failed</Text>
         <Text style={styles.errorMessage}>
-          {error.message || 'Unable to fetch validator data'}
+          {error.message || "Unable to fetch validator data"}
         </Text>
       </View>
     );
@@ -79,6 +85,7 @@ export default function HomeScreen() {
       <View style={styles.canvasWrapper}>
         <GlobeView
           validators={validators}
+          coordinatesById={coordinatesById}
           onSelectValidator={handleSelect}
         />
         <View style={styles.overlayBadge}>
@@ -105,9 +112,9 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.void,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
   },
@@ -119,14 +126,14 @@ const styles = StyleSheet.create({
   },
   canvasWrapper: {
     flex: 1,
-    position: 'relative',
+    position: "relative",
   },
   overlayBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: Spacing.xl,
     right: Spacing.xl,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Palette.white08,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
@@ -146,10 +153,10 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: Palette.void,
-    padding: Spacing['2xl'],
+    padding: Spacing["2xl"],
   },
   errorIcon: {
     fontSize: 40,
@@ -164,7 +171,7 @@ const styles = StyleSheet.create({
   errorMessage: {
     color: Palette.steel,
     fontSize: FontSize.base,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 22,
   },
 });

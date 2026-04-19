@@ -1,6 +1,6 @@
-import { apiFetch, type ApiResult } from './api/client';
+import { apiFetch, type ApiResult } from "./api/client";
 
-// types 
+// types
 export interface ValidatorApy {
   address: string;
   apy: number;
@@ -13,6 +13,9 @@ export interface ValidatorApyResponse {
 
 export interface ValidatorSummary {
   iotaAddress: string;
+  netAddress?: string | null;
+  p2pAddress?: string | null;
+  primaryAddress?: string | null;
   name: string;
   description: string;
   imageUrl: string;
@@ -39,6 +42,8 @@ export interface ValidatorsResponse {
 }
 
 //  service function
-export async function fetchValidators(): Promise<ApiResult<ValidatorsResponse>> {
-  return apiFetch<ValidatorsResponse>('/api/validators');
+export async function fetchValidators(): Promise<
+  ApiResult<ValidatorsResponse>
+> {
+  return apiFetch<ValidatorsResponse>("/api/validators");
 }

@@ -1,3 +1,4 @@
+import type { ValidatorCoordinatesMap } from "@/services/validator-location";
 import type { ValidatorSummary } from "@/services/validators";
 import { hashToLatLon } from "@/utils/spherical-hash";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
@@ -7,6 +8,7 @@ import { COBE_BUNDLE_JS } from "./cobe-source";
 
 interface GlobeViewProps {
   validators: ValidatorSummary[];
+  coordinatesById?: ValidatorCoordinatesMap;
   onSelectValidator?: (id: string | null) => void;
 }
 
@@ -394,6 +396,7 @@ function buildGlobeHTML(cobeSource: string): string {
 
 export default function GlobeView({
   validators,
+  coordinatesById,
   onSelectValidator,
 }: GlobeViewProps) {
   const webviewRef = useRef<WebView>(null);
@@ -426,7 +429,11 @@ export default function GlobeView({
     const maxStake = Math.max(...stakes, 1);
 
     const payload = validators.map((v, i) => {
-      const [lat, lon] = hashToLatLon(v.iotaAddress);
+      const resolvedCoords = coordinatesById?.[v.iotaAddress];
+      const [lat, lon] = resolvedCoords
+        ? [resolvedCoords.lat, resolvedCoords.lon]
+        : hashToLatLon(v.iotaAddress);
+
       return {
         id: v.iotaAddress,
         name: v.name || v.iotaAddress.slice(0, 12),
@@ -443,7 +450,7 @@ export default function GlobeView({
       webviewRef.current?.postMessage(message);
     }
     pendingDataRef.current = false;
-  }, [validators]);
+  }, [validators, coordinatesById]);
 
   useEffect(() => {
     if (isReadyRef.current) {
