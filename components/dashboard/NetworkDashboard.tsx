@@ -1,13 +1,8 @@
 /**
- * NetworkDashboard — compact summary of IOTA network health metrics.
- * Displayed below the globe on the main screen.
+ * NetworkDashboard — Web3-styled network health summary.
  *
- * Widgets:
- *  - Epoch Lifecycle (epoch number + progress bar)
- *  - Total Stake
- *  - Reference Gas Price
- *  - Active Validators count
- *  - Average Network APY
+ * Transparent card fills, ultra-thin borders, vibrant blue accents,
+ * uppercase muted labels, large bold white values.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -54,7 +49,7 @@ function formatGasPrice(raw: string | undefined | null): string {
   }
 }
 
-// ── Epoch Progress Hook ─────────────────────────────────────
+// ── Epoch Progress ──────────────────────────────────────────
 
 function useEpochProgress(systemState: SystemState) {
   const [progress, setProgress] = useState(0);
@@ -93,7 +88,7 @@ function useEpochProgress(systemState: SystemState) {
     }
 
     tick();
-    const interval = setInterval(tick, 15_000); // update every 15s
+    const interval = setInterval(tick, 15_000);
     return () => clearInterval(interval);
   }, [startMs, durationMs]);
 
@@ -123,10 +118,10 @@ export default function NetworkDashboard({
   return (
     <View style={styles.container}>
       {/* ── Epoch Lifecycle ─────────────────────────────── */}
-      <View style={styles.epochCard}>
+      <View style={styles.card}>
         <View style={styles.epochHeader}>
-          <Text style={styles.epochLabel}>Epoch</Text>
-          <Text style={styles.epochNumber}>#{systemState.epoch}</Text>
+          <Text style={styles.label}>EPOCH</Text>
+          <Text style={styles.epochTag}>#{systemState.epoch}</Text>
         </View>
         <View style={styles.progressTrack}>
           <View
@@ -137,38 +132,36 @@ export default function NetworkDashboard({
           />
         </View>
         <View style={styles.epochFooter}>
-          <Text style={styles.epochPercent}>
-            {(progress * 100).toFixed(0)}%
+          <Text style={styles.sublabel}>
+            {(progress * 100).toFixed(0)}% complete
           </Text>
-          <Text style={styles.epochRemaining}>{remaining} remaining</Text>
+          <Text style={styles.sublabel}>{remaining} remaining</Text>
         </View>
       </View>
 
-      {/* ── Metric Cards Grid ──────────────────────────── */}
+      {/* ── Metric Grid ────────────────────────────────── */}
       <View style={styles.grid}>
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Total Stake</Text>
-          <Text style={styles.metricValue}>{totalStake}</Text>
-          <Text style={styles.metricUnit}>IOTA</Text>
+        <View style={[styles.card, styles.gridCard]}>
+          <Text style={styles.label}>TOTAL STAKE</Text>
+          <Text style={styles.value}>{totalStake}</Text>
+          <Text style={styles.unit}>IOTA</Text>
         </View>
 
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Avg APY</Text>
-          <Text style={[styles.metricValue, styles.metricHighlight]}>
-            {avgApy}
-          </Text>
+        <View style={[styles.card, styles.gridCard]}>
+          <Text style={styles.label}>AVG APY</Text>
+          <Text style={[styles.value, styles.valueAccent]}>{avgApy}</Text>
         </View>
 
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Validators</Text>
-          <Text style={styles.metricValue}>{validatorCount}</Text>
-          <Text style={styles.metricUnit}>active</Text>
+        <View style={[styles.card, styles.gridCard]}>
+          <Text style={styles.label}>VALIDATORS</Text>
+          <Text style={styles.value}>{validatorCount}</Text>
+          <Text style={styles.unit}>active</Text>
         </View>
 
-        <View style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Gas Price</Text>
-          <Text style={styles.metricValue}>{gasPrice}</Text>
-          <Text style={styles.metricUnit}>MIST</Text>
+        <View style={[styles.card, styles.gridCard]}>
+          <Text style={styles.label}>GAS PRICE</Text>
+          <Text style={styles.value}>{gasPrice}</Text>
+          <Text style={styles.unit}>MIST</Text>
         </View>
       </View>
     </View>
@@ -180,100 +173,89 @@ export default function NetworkDashboard({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.sm,
+    paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
     gap: Spacing.sm,
   },
 
-  // Epoch card
-  epochCard: {
-    backgroundColor: Palette.white05,
+  // Shared card tile
+  card: {
+    backgroundColor: Palette.white03,
     borderRadius: Radius.md,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.white08,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.base,
   },
+
+  // Labels — small, uppercase, muted
+  label: {
+    color: Palette.silver,
+    fontSize: 10,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    marginBottom: Spacing.xs,
+  },
+  sublabel: {
+    color: Palette.steel,
+    fontSize: 10,
+    fontWeight: FontWeight.medium,
+  },
+  unit: {
+    color: Palette.steel,
+    fontSize: 10,
+    marginTop: 2,
+  },
+
+  // Values — large, bold, white
+  value: {
+    color: Palette.white,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+  },
+  valueAccent: {
+    color: Palette.blue,
+  },
+
+  // Epoch specific
   epochHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: Spacing.xs + 2,
+    marginBottom: Spacing.sm,
   },
-  epochLabel: {
-    color: Palette.steel,
-    fontSize: FontSize.xs,
-    fontWeight: FontWeight.medium,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  epochNumber: {
-    color: Palette.snow,
+  epochTag: {
+    color: Palette.white,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,
   },
   progressTrack: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: Palette.white10,
+    backgroundColor: Palette.white08,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
     borderRadius: 2,
-    backgroundColor: Palette.cyan,
+    backgroundColor: Palette.blue,
     minWidth: 2,
   },
   epochFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: Spacing.xs,
-  },
-  epochPercent: {
-    color: Palette.silver,
-    fontSize: 10,
-    fontWeight: FontWeight.medium,
-  },
-  epochRemaining: {
-    color: Palette.steel,
-    fontSize: 10,
+    marginTop: Spacing.sm,
   },
 
-  // Metric grid
+  // Grid
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.xs,
+    gap: Spacing.sm,
   },
-  metricCard: {
+  gridCard: {
     flex: 1,
     minWidth: "46%" as unknown as number,
-    backgroundColor: Palette.white05,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Palette.white08,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  metricLabel: {
-    color: Palette.steel,
-    fontSize: 10,
-    fontWeight: FontWeight.medium,
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-    marginBottom: 2,
-  },
-  metricValue: {
-    color: Palette.snow,
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.bold,
-  },
-  metricHighlight: {
-    color: Palette.cyan,
-  },
-  metricUnit: {
-    color: Palette.steel,
-    fontSize: 10,
-    marginTop: 1,
   },
 });

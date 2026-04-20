@@ -1,7 +1,9 @@
 /**
- * OmniSphere Design System
- * Premium crypto-aesthetic theme with dark-first palette.
- * IOTA-inspired accent colors with glassmorphism support.
+ * OmniSphere Design System — Modern Web3 Aesthetic
+ *
+ * Deep dark backgrounds (#0B0D14), vibrant blue (#3B82F6) accents,
+ * pure white primary text, muted slate secondaries.
+ * Ultra-thin borders, transparent card fills, generous whitespace.
  */
 
 import { Platform } from "react-native";
@@ -9,39 +11,43 @@ import { Platform } from "react-native";
 // ─── Color Palette ───────────────────────────────────────────────────────────
 
 export const Palette = {
-  // Core blacks & grays (dark mode primaries)
+  // Core backgrounds — deep dark
   void: "#05060A",
-  obsidian: "#0A0E17",
-  graphite: "#111827",
-  slate: "#1E293B",
-  ash: "#334155",
-  steel: "#64748B",
-  silver: "#94A3B8",
-  mist: "#CBD5E1",
-  cloud: "#E2E8F0",
-  snow: "#F8FAFC",
+  obsidian: "#0B0D14",
+  graphite: "#10131C",
+  slate: "#181C28",
+  ash: "#232838",
+  steel: "#5A607A",
+  silver: "#8A93A6",
+  mist: "#B0B8CA",
+  cloud: "#D0D6E2",
+  snow: "#EDF0F7",
+  white: "#FFFFFF",
 
-  // IOTA accent spectrum
-  cyan: "#1AB3FF",
-  cyanLight: "#66CCFF",
-  cyanDim: "#008CCC",
-  teal: "#0284C7",
+  // Primary accent — vibrant blue
+  blue: "#3B82F6",
+  blueLight: "#60A5FA",
+  blueDim: "#2563EB",
+  blueMuted: "#1D4ED8",
 
   // Secondary accents
+  teal: "#2DD4BF",
   violet: "#8B5CF6",
-  violetLight: "#A78BFA",
   indigo: "#6366F1",
-  blue: "#3B82F6",
-  rose: "#F43F5E",
+  cyan: "#22D3EE",
 
   // Semantic colors
-  success: "#10B981",
+  success: "#22C55E",
   warning: "#F59E0B",
   error: "#EF4444",
-  info: "#06B6D4",
+  info: "#3B82F6",
 
   // Transparency helpers
+  white02: "rgba(255, 255, 255, 0.02)",
+  white03: "rgba(255, 255, 255, 0.03)",
+  white04: "rgba(255, 255, 255, 0.04)",
   white05: "rgba(255, 255, 255, 0.05)",
+  white06: "rgba(255, 255, 255, 0.06)",
   white08: "rgba(255, 255, 255, 0.08)",
   white10: "rgba(255, 255, 255, 0.10)",
   white15: "rgba(255, 255, 255, 0.15)",
@@ -51,9 +57,9 @@ export const Palette = {
   white80: "rgba(255, 255, 255, 0.80)",
   black40: "rgba(0, 0, 0, 0.40)",
   black60: "rgba(0, 0, 0, 0.60)",
-  cyan20: "rgba(26, 179, 255, 0.20)",
-  cyan10: "rgba(26, 179, 255, 0.10)",
-  violet20: "rgba(139, 92, 246, 0.20)",
+  blue12: "rgba(59, 130, 246, 0.12)",
+  blue08: "rgba(59, 130, 246, 0.08)",
+  blue20: "rgba(59, 130, 246, 0.20)",
 } as const;
 
 // ─── Theme Colors ────────────────────────────────────────────────────────────
@@ -65,15 +71,15 @@ export const Colors = {
     surfaceElevated: Palette.graphite,
     card: Palette.slate,
     border: Palette.ash,
-    borderSubtle: Palette.white08,
-    text: Palette.snow,
+    borderSubtle: Palette.white06,
+    text: Palette.white,
     textSecondary: Palette.silver,
     textMuted: Palette.steel,
-    tint: Palette.cyan,
+    tint: Palette.blue,
     tintSecondary: Palette.violet,
     icon: Palette.silver,
     tabIconDefault: Palette.steel,
-    tabIconSelected: Palette.cyan,
+    tabIconSelected: Palette.blue,
     statusBar: "light" as const,
   },
   light: {
@@ -86,11 +92,11 @@ export const Colors = {
     text: "#0F172A",
     textSecondary: "#475569",
     textMuted: "#94A3B8",
-    tint: "#0D9488",
+    tint: "#3B82F6",
     tintSecondary: "#7C3AED",
     icon: "#64748B",
     tabIconDefault: "#94A3B8",
-    tabIconSelected: "#0D9488",
+    tabIconSelected: "#3B82F6",
     statusBar: "dark" as const,
   },
 } as const;
@@ -165,56 +171,55 @@ export const Spacing = {
 // ─── Border Radius ───────────────────────────────────────────────────────────
 
 export const Radius = {
-  sm: 6,
-  md: 10,
-  lg: 14,
+  sm: 8,
+  md: 12,
+  lg: 16,
   xl: 20,
   "2xl": 28,
   full: 9999,
 } as const;
 
-// ─── Shadows ─────────────────────────────────────────────────────────────────
+// ─── Shadows (subtle — no harsh drops) ───────────────────────────────────────
 
 export const Shadows = {
   sm: {
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 1,
   },
   md: {
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
   },
   lg: {
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
   glow: (color: string) => ({
     shadowColor: color,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 6,
   }),
 } as const;
 
-// ─── Gradients (for LinearGradient usage) ────────────────────────────────────
+// ─── Gradients ───────────────────────────────────────────────────────────────
 
 export const Gradients = {
-  primary: [Palette.cyan, Palette.teal],
+  primary: [Palette.blue, Palette.blueDim],
   accent: [Palette.violet, Palette.indigo],
   surface: [Palette.obsidian, Palette.graphite],
-  card: [Palette.white05, Palette.white08],
-  cyanGlow: [Palette.cyan20, "transparent"],
-  violetGlow: [Palette.violet20, "transparent"],
+  card: [Palette.white02, Palette.white04],
+  blueGlow: [Palette.blue12, "transparent"],
 } as const;
 
 // ─── Animation Durations ─────────────────────────────────────────────────────

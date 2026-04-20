@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 2,
-    borderColor: Palette.cyan,
+    borderColor: Palette.blue,
     borderTopColor: 'transparent',
     position: 'absolute',
   },
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: Palette.cyan,
+    backgroundColor: Palette.blue,
     position: 'absolute',
   },
   text: {

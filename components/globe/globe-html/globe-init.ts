@@ -22,10 +22,10 @@ function initGlobe() {
       mapSamples: 16000,
       mapBrightness: 8.0, // Overdriven multiplier makes dots highly luminous and opaque
       // baseColor determines both the ocean and the continent hue.
-      // [0.2, 0.24, 0.4] * 0.1 (ocean lighting) = [0.02, 0.024, 0.04], which is EXACTLY #05060A.
-      // The continents multiply this by mapBrightness, creating vibrant light cyan/white dots.
+      // [0.2, 0.24, 0.4] * 0.1 (ocean lighting) ≈ #05060A.
+      // The continents multiply this by mapBrightness for luminous dots.
       baseColor: [0.2, 0.24, 0.4],
-      markerColor: [0.1, 0.8, 1.0],
+      markerColor: [0.23, 0.51, 0.96],  // vibrant blue #3B82F6 mapped to [0–1]
       glowColor: [0.04, 0.08, 0.16],
       markers: currentMarkers,
       onRender: function(state) {

@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   title: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.xl,
     fontWeight: FontWeight.bold,
     letterSpacing: -0.5,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   // Dashboard: bottom ~50%
   dashboardSection: {
     flex: 1,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Palette.white08,
   },
   dashboardContent: {
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Palette.cyan,
+    backgroundColor: Palette.blue,
   },
   badgeText: {
     color: Palette.silver,
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
   },
   errorTitle: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.lg,
     fontWeight: FontWeight.semibold,
     marginBottom: Spacing.sm,

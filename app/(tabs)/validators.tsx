@@ -1,6 +1,6 @@
 /**
- * Validators tab — full scrollable list of active validators
- * with search filtering, sort toggles, and expandable accordion rows.
+ * Validators tab — full scrollable list with search, sort, and accordion.
+ * Web3 aesthetic: transparent fills, hairline borders, vibrant blue accents.
  */
 
 import React, { useCallback, useMemo, useState } from "react";
@@ -43,11 +43,11 @@ function formatStake(raw: string | undefined | null): string {
   try {
     const nano = BigInt(raw);
     const iota = Number(nano) / 1_000_000_000;
-    if (iota >= 1_000_000) return `${(iota / 1_000_000).toFixed(1)}M IOTA`;
-    if (iota >= 1_000) return `${(iota / 1_000).toFixed(1)}K IOTA`;
-    return `${iota.toFixed(0)} IOTA`;
+    if (iota >= 1_000_000) return `${(iota / 1_000_000).toFixed(1)}M`;
+    if (iota >= 1_000) return `${(iota / 1_000).toFixed(1)}K`;
+    return `${iota.toFixed(0)}`;
   } catch {
-    return "— IOTA";
+    return "—";
   }
 }
 
@@ -98,10 +98,10 @@ function ValidatorRow({
           styles.row,
           isFirst && styles.rowFirst,
           isLast && !isExpanded && styles.rowLast,
-          !isLast && !isExpanded && styles.rowBorder,
+          !isLast && !isExpanded && styles.rowDivider,
         ]}
       >
-        <View style={styles.rowMarker} />
+        <View style={styles.rowDot} />
         <View style={styles.rowTextWrap}>
           <Text style={styles.rowName} numberOfLines={1}>
             {validator.name || "Unknown Validator"}
@@ -111,7 +111,7 @@ function ValidatorRow({
           </Text>
         </View>
         <Text style={styles.rowStakeHint} numberOfLines={1}>
-          {formatStake(validator.stakingPoolIotaBalance)}
+          {stake}
         </Text>
         <Text style={styles.chevron}>{isExpanded ? "▴" : "▾"}</Text>
       </Pressable>
@@ -121,43 +121,43 @@ function ValidatorRow({
           entering={FadeInDown.duration(150)}
           style={[
             styles.expandedPanel,
-            isLast && styles.expandedPanelLast,
-            !isLast && styles.rowBorder,
+            isLast && styles.expandedLast,
+            !isLast && styles.rowDivider,
           ]}
         >
           <View style={styles.metricsGrid}>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Stake</Text>
-              <Text style={styles.metricValue}>{stake}</Text>
-            </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>APY</Text>
-              <Text style={[styles.metricValue, styles.metricHighlight]}>
-                {apyPercent}
-              </Text>
-            </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Voting Power</Text>
-              <Text style={styles.metricValue}>{votingPower}</Text>
-            </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Commission</Text>
-              <Text style={styles.metricValue}>{commission}</Text>
-            </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Next Epoch Stake</Text>
-              <Text style={styles.metricValue}>{nextStake}</Text>
-            </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Next Commission</Text>
-              <Text style={styles.metricValue}>
-                {formatPercent(validator.nextEpochCommissionRate)}
-              </Text>
-            </View>
+            <MetricCell label="STAKE" value={`${stake} IOTA`} />
+            <MetricCell label="APY" value={apyPercent} accent />
+            <MetricCell label="VOTING POWER" value={votingPower} />
+            <MetricCell label="COMMISSION" value={commission} />
+            <MetricCell label="NEXT EPOCH STAKE" value={`${nextStake} IOTA`} />
+            <MetricCell
+              label="NEXT COMMISSION"
+              value={formatPercent(validator.nextEpochCommissionRate)}
+            />
           </View>
         </Animated.View>
       )}
     </Animated.View>
+  );
+}
+
+function MetricCell({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <View style={styles.metricCell}>
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={[styles.metricValue, accent && styles.metricAccent]}>
+        {value}
+      </Text>
+    </View>
   );
 }
 
@@ -192,7 +192,6 @@ export default function ValidatorsScreen() {
     return m;
   }, [apys]);
 
-  // Filter + sort
   const filteredValidators = useMemo(() => {
     const query = search.trim().toLowerCase();
     let list = validators;
@@ -277,12 +276,7 @@ export default function ValidatorsScreen() {
   );
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top },
-      ]}
-    >
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* ── Header ─────────────────────────────────────── */}
       <View style={styles.header}>
         <Text style={styles.title}>Validators</Text>
@@ -332,8 +326,8 @@ export default function ValidatorsScreen() {
 
       {/* ── List ───────────────────────────────────────── */}
       {isLoading ? (
-        <View style={styles.loadingWrap}>
-          <Text style={styles.loadingText}>Loading validators…</Text>
+        <View style={styles.centerWrap}>
+          <Text style={styles.mutedText}>Loading validators…</Text>
         </View>
       ) : (
         <FlatList
@@ -343,8 +337,8 @@ export default function ValidatorsScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
-              <Text style={styles.emptyText}>No validators found</Text>
+            <View style={styles.centerWrap}>
+              <Text style={styles.mutedText}>No validators found</Text>
             </View>
           }
         />
@@ -365,10 +359,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
   title: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.xl,
     fontWeight: FontWeight.bold,
     letterSpacing: -0.5,
@@ -385,13 +379,13 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.sm,
   },
   searchInput: {
-    backgroundColor: Palette.white05,
-    borderWidth: 1,
-    borderColor: Palette.white10,
+    backgroundColor: Palette.white03,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.white08,
     borderRadius: Radius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    color: Palette.snow,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
+    color: Palette.white,
     fontSize: FontSize.sm,
   },
 
@@ -399,20 +393,20 @@ const styles = StyleSheet.create({
   sortRow: {
     flexDirection: "row",
     paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing.sm,
-    gap: Spacing.xs,
+    paddingBottom: Spacing.md,
+    gap: Spacing.sm,
   },
   sortPill: {
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 100,
-    backgroundColor: Palette.white05,
-    borderWidth: 1,
+    paddingVertical: Spacing.xs + 2,
+    borderRadius: Radius.full,
+    backgroundColor: Palette.white03,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.white08,
   },
   sortPillActive: {
-    backgroundColor: "rgba(26, 179, 255, 0.12)",
-    borderColor: "rgba(26, 179, 255, 0.30)",
+    backgroundColor: Palette.blue08,
+    borderColor: "rgba(59, 130, 246, 0.25)",
   },
   sortPillText: {
     color: Palette.steel,
@@ -420,7 +414,7 @@ const styles = StyleSheet.create({
     fontWeight: FontWeight.medium,
   },
   sortPillTextActive: {
-    color: Palette.cyan,
+    color: Palette.blue,
   },
 
   // List
@@ -428,63 +422,72 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing["2xl"],
   },
-  loadingWrap: {
+  centerWrap: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  loadingText: {
-    color: Palette.steel,
-    fontSize: FontSize.sm,
-  },
-  emptyWrap: {
     paddingVertical: Spacing["3xl"],
-    alignItems: "center",
   },
-  emptyText: {
+  mutedText: {
     color: Palette.steel,
     fontSize: FontSize.sm,
   },
 
-  // Row — zero gap, divider-separated
+  // Row — zero gap, hairline dividers
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    backgroundColor: Palette.white05,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md + 2,
+    backgroundColor: Palette.white02,
   },
   rowFirst: {
     borderTopLeftRadius: Radius.md,
     borderTopRightRadius: Radius.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Palette.white08,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: Palette.white08,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: Palette.white08,
   },
   rowLast: {
     borderBottomLeftRadius: Radius.md,
     borderBottomRightRadius: Radius.md,
-  },
-  rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Palette.white10,
+    borderBottomColor: Palette.white08,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: Palette.white08,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: Palette.white08,
   },
-  rowMarker: {
-    width: 8,
-    height: 8,
-    borderRadius: 2,
-    backgroundColor: Palette.cyan,
+  rowDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Palette.white06,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: Palette.white08,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: Palette.white08,
+  },
+  rowDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Palette.blue,
   },
   rowTextWrap: {
     flex: 1,
   },
   rowName: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.medium,
   },
   rowAddress: {
     color: Palette.steel,
     fontSize: 10,
-    marginTop: 1,
+    marginTop: 2,
     fontFamily: "monospace",
   },
   rowStakeHint: {
@@ -502,42 +505,48 @@ const styles = StyleSheet.create({
 
   // Expanded
   expandedPanel: {
-    paddingHorizontal: Spacing.md,
-    paddingTop: Spacing.xs,
-    paddingBottom: Spacing.md,
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    paddingHorizontal: Spacing.base,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.base,
+    backgroundColor: Palette.white02,
   },
-  expandedPanelLast: {
+  expandedLast: {
     borderBottomLeftRadius: Radius.md,
     borderBottomRightRadius: Radius.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Palette.white08,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: Palette.white08,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: Palette.white08,
   },
   metricsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.xs,
+    gap: Spacing.sm,
   },
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
-    backgroundColor: Palette.white05,
+    backgroundColor: Palette.white03,
     borderRadius: Radius.sm,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs + 2,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
   },
   metricLabel: {
     color: Palette.steel,
-    fontSize: 10,
-    fontWeight: FontWeight.medium,
+    fontSize: 9,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: 1,
     textTransform: "uppercase",
-    letterSpacing: 0.6,
     marginBottom: 2,
   },
   metricValue: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.bold,
   },
-  metricHighlight: {
-    color: Palette.cyan,
+  metricAccent: {
+    color: Palette.blue,
   },
 });

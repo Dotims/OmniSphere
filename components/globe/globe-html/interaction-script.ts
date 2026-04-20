@@ -399,9 +399,9 @@ function showPulse(sx, sy) {
     var alpha = 0.28 * (1 - ease);
 
     var gradient = pulseCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    gradient.addColorStop(0, 'rgba(102, 204, 255, ' + (alpha * 1.3) + ')');
-    gradient.addColorStop(0.52, 'rgba(26, 179, 255, ' + alpha + ')');
-    gradient.addColorStop(1, 'rgba(26, 179, 255, 0)');
+    gradient.addColorStop(0, 'rgba(96, 165, 250, ' + (alpha * 1.3) + ')');
+    gradient.addColorStop(0.52, 'rgba(59, 130, 246, ' + alpha + ')');
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
 
     pulseCtx.beginPath();
     pulseCtx.arc(cx, cy, r, 0, Math.PI * 2);
