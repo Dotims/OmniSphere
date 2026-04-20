@@ -217,12 +217,12 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing["2xl"],
   },
   card: {
-    backgroundColor: "rgba(10, 14, 23, 0.94)",
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: "rgba(26, 179, 255, 0.18)",
-    padding: Spacing.lg,
-    paddingTop: Spacing.md,
+    backgroundColor: "rgba(11, 13, 20, 0.94)",
+    borderRadius: Radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.white08,
+    padding: Spacing.xl,
+    paddingTop: Spacing.base,
   },
   handle: {
     width: 36,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.md,
     fontWeight: FontWeight.semibold,
   },
@@ -272,9 +272,9 @@ const styles = StyleSheet.create({
   // Continuous container with shared border radius
   listContainer: {
     borderRadius: Radius.md,
-    backgroundColor: Palette.white05,
-    borderWidth: 1,
-    borderColor: Palette.white10,
+    backgroundColor: Palette.white02,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.white08,
     overflow: "hidden",
   },
   // ── Row styles (zero gap, divider-separated) ──────────────
@@ -299,13 +299,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 2,
-    backgroundColor: Palette.cyan,
+    backgroundColor: Palette.blue,
   },
   rowTextWrap: {
     flex: 1,
   },
   rowName: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.medium,
   },
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
-    backgroundColor: Palette.white05,
+    backgroundColor: Palette.white03,
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.xs + 2,
@@ -348,15 +348,15 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: FontWeight.medium,
     textTransform: "uppercase",
-    letterSpacing: 0.6,
+    letterSpacing: 1,
     marginBottom: 2,
   },
   metricValue: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.semibold,
   },
   metricHighlight: {
-    color: Palette.cyan,
+    color: Palette.blue,
   },
 });

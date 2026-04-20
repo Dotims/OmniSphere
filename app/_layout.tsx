@@ -15,12 +15,12 @@ const OmniSphereDarkTheme: Theme = {
   dark: true,
   colors: {
     ...DarkTheme.colors,
-    primary: Palette.cyan,
+    primary: Palette.blue,
     background: Palette.void,
     card: Palette.obsidian,
     text: Palette.snow,
     border: Palette.ash,
-    notification: Palette.cyan,
+    notification: Palette.blue,
   },
   fonts: DarkTheme.fonts,
 };
