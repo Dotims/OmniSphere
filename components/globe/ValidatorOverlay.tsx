@@ -1,6 +1,6 @@
 // native overlay card for selected validator info
 // positioned at bottom of screen over the globe WebView
-// Premium soft dark theme — aggressive radius, pastel accents, no borders
+// Premium soft dark theme — elevated surface, blue glow border, dimmed backdrop
 
 import {
   FontSize,
@@ -12,7 +12,12 @@ import {
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  FadeOutDown,
+} from "react-native-reanimated";
 
 // format IOTA balance from raw string (nanos) to readable
 function formatStake(raw: string | undefined | null): string {
@@ -54,55 +59,79 @@ export default function ValidatorOverlay({
       : "—";
 
   return (
-    <Animated.View
-      entering={FadeInDown.duration(300).springify()}
-      exiting={FadeOutDown.duration(200)}
-      style={styles.container}>
-      <View style={styles.card}>
-        {/* drag handle */}
-        <View style={styles.handle} />
+    <>
+      {/* ── Scrim: dims the dashboard behind ──────────────── */}
+      <Animated.View
+        entering={FadeIn.duration(200)}
+        exiting={FadeOut.duration(150)}
+        style={styles.scrim}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      </Animated.View>
 
-        {/* header */}
-        <View style={styles.header}>
-          <View style={styles.indicator} />
-          <View style={styles.headerText}>
-            <Text style={styles.name} numberOfLines={1}>
-              {validator.name || "Unknown Validator"}
-            </Text>
-            <Text style={styles.address}>{truncatedAddress}</Text>
-          </View>
-          <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={12}>
-            <Text style={styles.closeBtnText}>✕</Text>
-          </Pressable>
-        </View>
+      {/* ── Card ──────────────────────────────────────────── */}
+      <Animated.View
+        entering={FadeInDown.duration(300).springify()}
+        exiting={FadeOutDown.duration(200)}
+        style={styles.container}>
+        <View style={styles.card}>
+          {/* drag handle */}
+          <View style={styles.handle} />
 
-        {/* stats grid */}
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Stake</Text>
-            <Text style={styles.statValue}>{stake}</Text>
+          {/* header */}
+          <View style={styles.header}>
+            <View style={styles.indicator} />
+            <View style={styles.headerText}>
+              <Text style={styles.name} numberOfLines={1}>
+                {validator.name || "Unknown Validator"}
+              </Text>
+              <Text style={styles.address}>{truncatedAddress}</Text>
+            </View>
+            <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={12}>
+              <Text style={styles.closeBtnText}>✕</Text>
+            </Pressable>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>APY</Text>
-            <Text style={[styles.statValue, styles.statValueHighlight]}>
-              {apyPercent}
-            </Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Commission</Text>
-            <Text style={styles.statValue}>{commission}</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Voting Power</Text>
-            <Text style={styles.statValue}>{votingPower}</Text>
+
+          {/* stats grid */}
+          <View style={styles.statsGrid}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Stake</Text>
+              <Text style={styles.statValue}>{stake}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>APY</Text>
+              <Text style={[styles.statValue, styles.statValueHighlight]}>
+                {apyPercent}
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Commission</Text>
+              <Text style={styles.statValue}>{commission}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Voting Power</Text>
+              <Text style={styles.statValue}>{votingPower}</Text>
+            </View>
           </View>
         </View>
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  // Full-screen dim backdrop — separates overlay from dashboard
+  scrim: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    // Extend well past bottom to cover the tab bar
+    bottom: -100,
+    backgroundColor: "rgba(0, 0, 0, 0.70)",
+    zIndex: 28,
+  },
+
   container: {
     position: "absolute",
     bottom: 0,
@@ -110,12 +139,23 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing["2xl"],
+    zIndex: 30,
   },
+  // Elevated card — #242428 is distinctly lighter than the #1C1C1E dashboard cards
   card: {
-    backgroundColor: Palette.slate,
+    backgroundColor: "#242428",
     borderRadius: Radius["2xl"],
     padding: Spacing.xl,
     paddingTop: Spacing.base,
+    // Subtle blue outer glow for boundary definition
+    shadowColor: Palette.blue,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 8,
+    // Thin hairline border for additional separation
+    borderWidth: 1,
+    borderColor: "rgba(59, 130, 246, 0.12)",
   },
   handle: {
     width: 36,
@@ -171,7 +211,7 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     minWidth: "40%" as unknown as number,
-    backgroundColor: Palette.ash,
+    backgroundColor: Palette.slate, // #1C1C1E — darker than card's #242428
     borderRadius: Radius.md,
     padding: Spacing.md + 4,
   },

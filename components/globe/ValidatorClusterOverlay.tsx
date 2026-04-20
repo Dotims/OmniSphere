@@ -9,7 +9,9 @@ import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 import React, { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, {
+    FadeIn,
     FadeInDown,
+    FadeOut,
     FadeOutDown,
     LinearTransition,
 } from "react-native-reanimated";
@@ -106,7 +108,7 @@ function ValidatorRow({
             </View>
             <View style={styles.metricCell}>
               <Text style={styles.metricLabel}>APY</Text>
-              <Text style={[styles.metricValue, styles.metricHighlight]}>
+              <Text style={styles.metricValue}>
                 {apyPercent}
               </Text>
             </View>
@@ -161,49 +163,73 @@ export default function ValidatorClusterOverlay({
   );
 
   return (
-    <Animated.View
-      entering={FadeInDown.duration(300).springify()}
-      exiting={FadeOutDown.duration(200)}
-      style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.handle} />
+    <>
+      {/* ── Scrim: dims the dashboard behind ──────────────── */}
+      <Animated.View
+        entering={FadeIn.duration(200)}
+        exiting={FadeOut.duration(150)}
+        style={styles.scrim}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      </Animated.View>
 
-        <View style={styles.header}>
-          <View style={styles.headerTextWrap}>
-            <Text style={styles.title}>Dense Cluster</Text>
-            <Text style={styles.subtitle}>
-              {validators.length} validators in tap range
-            </Text>
+      {/* ── Card ──────────────────────────────────────────── */}
+      <Animated.View
+        entering={FadeInDown.duration(300).springify()}
+        exiting={FadeOutDown.duration(200)}
+        style={styles.container}>
+        <View style={styles.card}>
+          <View style={styles.handle} />
+
+          <View style={styles.header}>
+            <View style={styles.headerTextWrap}>
+              <Text style={styles.title}>Dense Cluster</Text>
+              <Text style={styles.subtitle}>
+                {validators.length} validators in tap range
+              </Text>
+            </View>
+            <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={12}>
+              <Text style={styles.closeBtnText}>✕</Text>
+            </Pressable>
           </View>
-          <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={12}>
-            <Text style={styles.closeBtnText}>✕</Text>
-          </Pressable>
+
+          <ScrollView
+            style={styles.list}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.listContainer}>
+              {validators.map((validator, idx) => (
+                <ValidatorRow
+                  key={validator.iotaAddress}
+                  validator={validator}
+                  apy={apyByAddress.get(validator.iotaAddress)}
+                  isFirst={idx === 0}
+                  isLast={idx === validators.length - 1}
+                  isExpanded={expandedId === validator.iotaAddress}
+                  onToggle={() => handleToggle(validator.iotaAddress)}
+                />
+              ))}
+            </View>
+          </ScrollView>
         </View>
-
-        <ScrollView
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}>
-          <View style={styles.listContainer}>
-            {validators.map((validator, idx) => (
-              <ValidatorRow
-                key={validator.iotaAddress}
-                validator={validator}
-                apy={apyByAddress.get(validator.iotaAddress)}
-                isFirst={idx === 0}
-                isLast={idx === validators.length - 1}
-                isExpanded={expandedId === validator.iotaAddress}
-                onToggle={() => handleToggle(validator.iotaAddress)}
-              />
-            ))}
-          </View>
-        </ScrollView>
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  // Full-screen dim backdrop — separates overlay from dashboard
+  scrim: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    // Extend well past bottom to cover the tab bar
+    bottom: -100,
+    backgroundColor: "rgba(0, 0, 0, 0.70)",
+    zIndex: 28,
+  },
+
   container: {
     position: "absolute",
     bottom: 0,
@@ -211,12 +237,23 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing["2xl"],
+    zIndex: 30,
   },
+  // Elevated card — #242428 is distinctly lighter than the #1C1C1E dashboard cards
   card: {
-    backgroundColor: Palette.slate,
+    backgroundColor: "#242428",
     borderRadius: Radius["2xl"],
     padding: Spacing.xl,
     paddingTop: Spacing.base,
+    // Subtle blue outer glow for boundary definition
+    shadowColor: Palette.blue,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 8,
+    // Thin hairline border for additional separation
+    borderWidth: 1,
+    borderColor: "rgba(59, 130, 246, 0.12)",
   },
   handle: {
     width: 36,
@@ -263,10 +300,10 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: Spacing.xs,
   },
-  // Continuous container — rounded, no border
+  // Inner list container — slightly darker than card for depth
   listContainer: {
     borderRadius: Radius.md,
-    backgroundColor: Palette.ash,
+    backgroundColor: Palette.slate, // #1C1C1E — darker than card's #242428
     overflow: "hidden",
   },
   // ── Row styles ────────────────────────────────────────────
@@ -279,7 +316,7 @@ const styles = StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: Palette.slate,
+    borderBottomColor: "rgba(255, 255, 255, 0.06)",
   },
   rowMarker: {
     width: 8,
@@ -311,35 +348,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.xs,
     paddingBottom: Spacing.md,
-    backgroundColor: "rgba(44, 44, 46, 0.5)",
+    backgroundColor: "#1C1C1E", // Slightly darker to create a nested effect
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.04)",
   },
   metricsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.xs,
+    gap: Spacing.sm,
   },
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
-    backgroundColor: Palette.slate,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.05)", // Subtle inner border
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.sm + 4,
     paddingVertical: Spacing.xs + 4,
   },
   metricLabel: {
-    color: Palette.steel,
+    color: Palette.steel, // Muted gray for labels
     fontSize: 10,
     fontWeight: FontWeight.medium,
     textTransform: "uppercase",
     letterSpacing: 1,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   metricValue: {
-    color: Palette.white,
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.bold,
-  },
-  metricHighlight: {
-    color: Palette.blue,
+    color: Palette.blue, // Large bold blue for metrics
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.extrabold,
   },
 });

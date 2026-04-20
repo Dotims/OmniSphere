@@ -4,8 +4,16 @@ import React from 'react';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Palette } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { TabBarBackground } from '@/components/ui/TabBarBackground';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const R = 28; // Radius of the concave horns
+  const baseHeight = 54;
+  const totalHeight = baseHeight + insets.bottom + R;
+
   return (
     <Tabs
       screenOptions={{
@@ -13,12 +21,17 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Palette.steel,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarBackground: () => <TabBarBackground />,
         tabBarStyle: {
-          backgroundColor: Palette.void,
+          position: 'absolute',
+          backgroundColor: 'transparent',
           borderTopColor: 'transparent',
           borderTopWidth: 0,
           elevation: 0,
-          paddingTop: 4,
+          height: totalHeight,
+          // Push the icons down by R so they sit in the flat area
+          paddingTop: R + 4,
+          paddingBottom: insets.bottom,
         },
         tabBarLabelStyle: {
           fontSize: 10,
@@ -54,7 +67,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="newspaper.fill" color={color} />,
         }}
       />
-      {/* Hide explore from tab bar but keep file for routing */}
       <Tabs.Screen
         name="explore"
         options={{
