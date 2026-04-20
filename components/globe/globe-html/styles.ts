@@ -43,22 +43,21 @@ html, body {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: var(--cobe-canvas-css-size, 0px);
-  height: var(--cobe-canvas-css-size, 0px);
+  width: var(--cobe-viewport-w, 100vw);
+  height: var(--cobe-viewport-h, 100vh);
   transform: translate(-50%, -50%);
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  overflow: visible;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
   z-index: 2;
 }
 canvas {
   display: block;
   cursor: grab;
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 1;
 }
 canvas:active { cursor: grabbing; }

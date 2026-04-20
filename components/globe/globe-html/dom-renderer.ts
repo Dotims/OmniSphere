@@ -180,8 +180,8 @@ function updateMarkerAnchors(force) {
   var cosTheta = Math.cos(theta);
   var sinTheta = Math.sin(theta);
   var radius = cssSize * 0.4 * scale;
-  var centerX = cssSize / 2;
-  var centerY = cssSize / 2;
+  var centerX = viewportW / 2;
+  var centerY = viewportH / 2;
 
   var selectedLookup = Object.create(null);
   for (var s = 0; s < selectedMarkerIds.length; s++) {

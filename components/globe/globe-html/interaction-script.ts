@@ -28,7 +28,9 @@ var velocity = [0, 0];
 var pointerDown = false;
 var canvasWidth = 0;
 var canvasHeight = 0;
-var cssSize = 0;          // canvas CSS pixel size (for hit detection)
+var cssSize = 0;          // canvas CSS pixel size (square, Math.max(w,h))
+var viewportW = 0;        // actual viewport width  (container width)
+var viewportH = 0;        // actual viewport height (container height)
 
 // ── Tap detection state ─────────────────────────────────────
 var tapStartPos = null;
@@ -75,7 +77,16 @@ function resize() {
   var w = container.clientWidth;
   var h = container.clientHeight;
   if (w === 0 || h === 0) return;
-  cssSize = Math.min(w, h);
+
+  // Viewport spans the full container
+  viewportW = w;
+  viewportH = h;
+  container.style.setProperty('--cobe-viewport-w', w + 'px');
+  container.style.setProperty('--cobe-viewport-h', h + 'px');
+
+  // Canvas is square, sized to the larger dimension so the sphere
+  // fills the width without being clipped at the edges.
+  cssSize = Math.max(w, h);
   var dpr = Math.min(window.devicePixelRatio || 2, 2);
   canvasWidth = Math.floor(cssSize * dpr);
   canvasHeight = Math.floor(cssSize * dpr);
@@ -330,8 +341,8 @@ function latLonToScreen(lat, lon) {
 
   // project to 2D (orthographic, globe radius = 0.8 of half-canvas)
   var r = cssSize * 0.4 * scale;
-  var cx = cssSize / 2;
-  var cy = cssSize / 2;
+  var cx = viewportW / 2;
+  var cy = viewportH / 2;
 
   var sx = cx + fx * r;
   var sy = cy - fy * r;
@@ -374,12 +385,9 @@ function showPulse(sx, sy) {
   pulseOverlay.style.height = container.clientHeight + 'px';
 
   var dpr = window.devicePixelRatio || 2;
-  var containerRect = container.getBoundingClientRect();
-  var canvasRect = canvas.getBoundingClientRect();
-  var canvasOffsetX = canvasRect.left - containerRect.left;
-  var canvasOffsetY = canvasRect.top - containerRect.top;
-  var cx = (canvasOffsetX + sx) * dpr;
-  var cy = (canvasOffsetY + sy) * dpr;
+  // sx, sy are in viewport (container) coordinates — scale directly to HiDPI
+  var cx = sx * dpr;
+  var cy = sy * dpr;
   var startRadius = 8 * dpr;
   var endRadius   = 24 * dpr;
   var duration = 320; // ms
@@ -423,10 +431,10 @@ function showPulse(sx, sy) {
 function handleTap(clientX, clientY) {
   if (validatorData.length === 0) return;
 
-  // get tap position relative to canvas
-  var rect = canvas.getBoundingClientRect();
-  var tapX = clientX - rect.left;
-  var tapY = clientY - rect.top;
+  // get tap position relative to viewport (container), matching marker projection space
+  var containerRect = container.getBoundingClientRect();
+  var tapX = clientX - containerRect.left;
+  var tapY = clientY - containerRect.top;
 
   // Fixed, forgiving magnetic radius for touch interaction.
   var hits = [];
