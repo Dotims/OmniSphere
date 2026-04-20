@@ -53,7 +53,6 @@ function formatPercent(
 function ValidatorRow({
   validator,
   apy,
-  isFirst,
   isLast,
   isExpanded,
   onToggle,
@@ -77,8 +76,6 @@ function ValidatorRow({
         onPress={onToggle}
         style={[
           styles.row,
-          isFirst && styles.rowFirst,
-          isLast && !isExpanded && styles.rowLast,
           !isLast && !isExpanded && styles.rowBorder,
         ]}
       >
@@ -99,7 +96,6 @@ function ValidatorRow({
           entering={FadeInDown.duration(150)}
           style={[
             styles.expandedPanel,
-            isLast && styles.expandedPanelLast,
             !isLast && styles.rowBorder,
           ]}
         >
@@ -217,10 +213,8 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing["2xl"],
   },
   card: {
-    backgroundColor: "rgba(11, 13, 20, 0.94)",
-    borderRadius: Radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.white08,
+    backgroundColor: Palette.slate,
+    borderRadius: Radius["2xl"],
     padding: Spacing.xl,
     paddingTop: Spacing.base,
   },
@@ -244,7 +238,7 @@ const styles = StyleSheet.create({
   title: {
     color: Palette.white,
     fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.bold,
   },
   subtitle: {
     marginTop: 2,
@@ -252,15 +246,15 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
   },
   closeBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Palette.white10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Palette.ash,
     justifyContent: "center",
     alignItems: "center",
   },
   closeBtnText: {
-    color: Palette.silver,
+    color: Palette.mist,
     fontSize: FontSize.sm,
   },
   list: {
@@ -269,31 +263,23 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: Spacing.xs,
   },
-  // Continuous container with shared border radius
+  // Continuous container — rounded, no border
   listContainer: {
     borderRadius: Radius.md,
-    backgroundColor: Palette.white02,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.white08,
+    backgroundColor: Palette.ash,
     overflow: "hidden",
   },
-  // ── Row styles (zero gap, divider-separated) ──────────────
+  // ── Row styles ────────────────────────────────────────────
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-  },
-  rowFirst: {
-    // No extra styling needed — container handles top radius
-  },
-  rowLast: {
-    // No extra styling needed — container handles bottom radius
+    paddingHorizontal: Spacing.md + 4,
+    paddingVertical: Spacing.sm + 4,
   },
   rowBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Palette.white10,
+    borderBottomWidth: 1,
+    borderBottomColor: Palette.slate,
   },
   rowMarker: {
     width: 8,
@@ -307,7 +293,7 @@ const styles = StyleSheet.create({
   rowName: {
     color: Palette.white,
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
+    fontWeight: FontWeight.semibold,
   },
   rowAddress: {
     color: Palette.steel,
@@ -325,10 +311,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.xs,
     paddingBottom: Spacing.md,
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
-  },
-  expandedPanelLast: {
-    // Container handles bottom radius
+    backgroundColor: "rgba(44, 44, 46, 0.5)",
   },
   metricsGrid: {
     flexDirection: "row",
@@ -338,10 +321,10 @@ const styles = StyleSheet.create({
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
-    backgroundColor: Palette.white03,
+    backgroundColor: Palette.slate,
     borderRadius: Radius.sm,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs + 2,
+    paddingHorizontal: Spacing.sm + 4,
+    paddingVertical: Spacing.xs + 4,
   },
   metricLabel: {
     color: Palette.steel,
@@ -354,7 +337,7 @@ const styles = StyleSheet.create({
   metricValue: {
     color: Palette.white,
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.bold,
   },
   metricHighlight: {
     color: Palette.blue,

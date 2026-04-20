@@ -1,8 +1,8 @@
 /**
- * NetworkDashboard — Web3-styled network health summary.
+ * NetworkDashboard — Premium soft dark theme.
  *
- * Transparent card fills, ultra-thin borders, vibrant blue accents,
- * uppercase muted labels, large bold white values.
+ * True black bg, pastel accent cards, 32px radius, zero borders/shadows,
+ * massive bold values (32px / extrabold), tiny muted labels.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -117,12 +117,15 @@ export default function NetworkDashboard({
 
   return (
     <View style={styles.container}>
-      {/* ── Epoch Lifecycle ─────────────────────────────── */}
-      <View style={styles.card}>
+      {/* ── Epoch Card — Mint accent ────────────────────── */}
+      <View style={styles.epochCard}>
         <View style={styles.epochHeader}>
-          <Text style={styles.label}>EPOCH</Text>
-          <Text style={styles.epochTag}>#{systemState.epoch}</Text>
+          <Text style={styles.epochLabel}>EPOCH</Text>
+          <View style={styles.epochBadge}>
+            <Text style={styles.epochBadgeText}>#{systemState.epoch}</Text>
+          </View>
         </View>
+
         <View style={styles.progressTrack}>
           <View
             style={[
@@ -131,36 +134,37 @@ export default function NetworkDashboard({
             ]}
           />
         </View>
+
         <View style={styles.epochFooter}>
-          <Text style={styles.sublabel}>
-            {(progress * 100).toFixed(0)}% complete
+          <Text style={styles.epochProgress}>
+            {(progress * 100).toFixed(0)}%
           </Text>
-          <Text style={styles.sublabel}>{remaining} remaining</Text>
+          <Text style={styles.epochRemaining}>{remaining} left</Text>
         </View>
       </View>
 
       {/* ── Metric Grid ────────────────────────────────── */}
       <View style={styles.grid}>
-        <View style={[styles.card, styles.gridCard]}>
+        <View style={[styles.card, styles.cardMint]}>
           <Text style={styles.label}>TOTAL STAKE</Text>
-          <Text style={styles.value}>{totalStake}</Text>
+          <Text style={styles.valueHuge}>{totalStake}</Text>
           <Text style={styles.unit}>IOTA</Text>
         </View>
 
-        <View style={[styles.card, styles.gridCard]}>
+        <View style={[styles.card, styles.cardPeach]}>
           <Text style={styles.label}>AVG APY</Text>
-          <Text style={[styles.value, styles.valueAccent]}>{avgApy}</Text>
+          <Text style={[styles.valueHuge, styles.valuePeach]}>{avgApy}</Text>
         </View>
 
-        <View style={[styles.card, styles.gridCard]}>
+        <View style={[styles.card, styles.cardLavender]}>
           <Text style={styles.label}>VALIDATORS</Text>
-          <Text style={styles.value}>{validatorCount}</Text>
+          <Text style={styles.valueHuge}>{validatorCount}</Text>
           <Text style={styles.unit}>active</Text>
         </View>
 
-        <View style={[styles.card, styles.gridCard]}>
+        <View style={[styles.card, styles.cardYellow]}>
           <Text style={styles.label}>GAS PRICE</Text>
-          <Text style={styles.value}>{gasPrice}</Text>
+          <Text style={styles.valueHuge}>{gasPrice}</Text>
           <Text style={styles.unit}>MIST</Text>
         </View>
       </View>
@@ -175,70 +179,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
 
-  // Shared card tile
-  card: {
-    backgroundColor: Palette.white03,
-    borderRadius: Radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.white08,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.base,
+  // ── Epoch card ─────────────────────────────────────────────
+  epochCard: {
+    backgroundColor: Palette.slate,
+    borderRadius: Radius["2xl"],
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
   },
-
-  // Labels — small, uppercase, muted
-  label: {
-    color: Palette.silver,
-    fontSize: 10,
-    fontWeight: FontWeight.semibold,
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    marginBottom: Spacing.xs,
-  },
-  sublabel: {
-    color: Palette.steel,
-    fontSize: 10,
-    fontWeight: FontWeight.medium,
-  },
-  unit: {
-    color: Palette.steel,
-    fontSize: 10,
-    marginTop: 2,
-  },
-
-  // Values — large, bold, white
-  value: {
-    color: Palette.white,
-    fontSize: FontSize.lg,
-    fontWeight: FontWeight.bold,
-  },
-  valueAccent: {
-    color: Palette.blue,
-  },
-
-  // Epoch specific
   epochHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  epochTag: {
-    color: Palette.white,
-    fontSize: FontSize.sm,
+  epochLabel: {
+    color: Palette.steel,
+    fontSize: 10,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+  },
+  epochBadge: {
+    backgroundColor: Palette.blue,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing["2xs"],
+  },
+  epochBadgeText: {
+    color: Palette.void,
+    fontSize: FontSize.xs,
     fontWeight: FontWeight.bold,
   },
   progressTrack: {
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Palette.white08,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Palette.ash,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    borderRadius: 2,
+    borderRadius: 3,
     backgroundColor: Palette.blue,
     minWidth: 2,
   },
@@ -247,15 +230,71 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: Spacing.sm,
   },
+  epochProgress: {
+    color: Palette.blue,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+  },
+  epochRemaining: {
+    color: Palette.steel,
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
+  },
 
-  // Grid
+  // ── Metric Grid ────────────────────────────────────────────
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
-  gridCard: {
+
+  // Shared card — no border, no shadow, solid color contrast
+  card: {
     flex: 1,
     minWidth: "46%" as unknown as number,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
+  },
+
+  // Pastel card backgrounds
+  cardMint: {
+    backgroundColor: Palette.slate,
+  },
+  cardPeach: {
+    backgroundColor: Palette.slate,
+  },
+  cardLavender: {
+    backgroundColor: Palette.slate,
+  },
+  cardYellow: {
+    backgroundColor: Palette.slate,
+  },
+
+  // Labels — tiny, uppercase, muted
+  label: {
+    color: Palette.steel,
+    fontSize: 10,
+    fontWeight: FontWeight.semibold,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    marginBottom: Spacing.xs,
+  },
+  unit: {
+    color: Palette.steel,
+    fontSize: 10,
+    marginTop: 2,
+    fontWeight: FontWeight.medium,
+  },
+
+  // Values — extremely large, bold
+  valueHuge: {
+    color: Palette.white,
+    fontSize: 32,
+    fontWeight: FontWeight.extrabold,
+    letterSpacing: -1,
+  },
+  valuePeach: {
+    color: Palette.blue,
   },
 });

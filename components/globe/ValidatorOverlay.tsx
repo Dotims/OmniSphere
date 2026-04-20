@@ -1,5 +1,6 @@
 // native overlay card for selected validator info
 // positioned at bottom of screen over the globe WebView
+// Premium soft dark theme — aggressive radius, pastel accents, no borders
 
 import {
   FontSize,
@@ -111,10 +112,8 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing["2xl"],
   },
   card: {
-    backgroundColor: "rgba(11, 13, 20, 0.94)",
-    borderRadius: Radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.white08,
+    backgroundColor: Palette.slate,
+    borderRadius: Radius["2xl"],
     padding: Spacing.xl,
     paddingTop: Spacing.base,
   },
@@ -132,9 +131,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
   },
   indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: Palette.blue,
     marginRight: Spacing.sm,
   },
@@ -144,7 +143,7 @@ const styles = StyleSheet.create({
   name: {
     color: Palette.white,
     fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
+    fontWeight: FontWeight.bold,
   },
   address: {
     color: Palette.steel,
@@ -153,15 +152,15 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   closeBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Palette.white10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Palette.ash,
     justifyContent: "center",
     alignItems: "center",
   },
   closeBtnText: {
-    color: Palette.silver,
+    color: Palette.mist,
     fontSize: FontSize.sm,
   },
   statsGrid: {
@@ -172,9 +171,9 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     minWidth: "40%" as unknown as number,
-    backgroundColor: Palette.white03,
+    backgroundColor: Palette.ash,
     borderRadius: Radius.md,
-    padding: Spacing.md,
+    padding: Spacing.md + 4,
   },
   statLabel: {
     color: Palette.steel,
@@ -186,8 +185,8 @@ const styles = StyleSheet.create({
   },
   statValue: {
     color: Palette.white,
-    fontSize: FontSize.base,
-    fontWeight: FontWeight.bold,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.extrabold,
   },
   statValueHighlight: {
     color: Palette.blue,

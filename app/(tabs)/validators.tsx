@@ -1,6 +1,6 @@
 /**
- * Validators tab — full scrollable list with search, sort, and accordion.
- * Web3 aesthetic: transparent fills, hairline borders, vibrant blue accents.
+ * Validators tab — premium soft dark theme.
+ * True black bg, pastel accents, aggressive radius, zero borders/shadows.
  */
 
 import React, { useCallback, useMemo, useState } from "react";
@@ -72,8 +72,6 @@ function truncateAddress(address: string): string {
 function ValidatorRow({
   validator,
   apy,
-  isFirst,
-  isLast,
   isExpanded,
   onToggle,
 }: {
@@ -94,12 +92,7 @@ function ValidatorRow({
     <Animated.View layout={LinearTransition.duration(200)}>
       <Pressable
         onPress={onToggle}
-        style={[
-          styles.row,
-          isFirst && styles.rowFirst,
-          isLast && !isExpanded && styles.rowLast,
-          !isLast && !isExpanded && styles.rowDivider,
-        ]}
+        style={[styles.row, isExpanded && styles.rowExpanded]}
       >
         <View style={styles.rowDot} />
         <View style={styles.rowTextWrap}>
@@ -119,11 +112,7 @@ function ValidatorRow({
       {isExpanded && (
         <Animated.View
           entering={FadeInDown.duration(150)}
-          style={[
-            styles.expandedPanel,
-            isLast && styles.expandedLast,
-            !isLast && styles.rowDivider,
-          ]}
+          style={styles.expandedPanel}
         >
           <View style={styles.metricsGrid}>
             <MetricCell label="STAKE" value={`${stake} IOTA`} />
@@ -280,10 +269,12 @@ export default function ValidatorsScreen() {
       {/* ── Header ─────────────────────────────────────── */}
       <View style={styles.header}>
         <Text style={styles.title}>Validators</Text>
-        <Text style={styles.countBadge}>
-          {filteredValidators.length}
-          {search ? ` / ${validators.length}` : ""}
-        </Text>
+        <View style={styles.countBadgeWrap}>
+          <Text style={styles.countBadge}>
+            {filteredValidators.length}
+            {search ? ` / ${validators.length}` : ""}
+          </Text>
+        </View>
       </View>
 
       {/* ── Search ─────────────────────────────────────── */}
@@ -364,32 +355,36 @@ const styles = StyleSheet.create({
   title: {
     color: Palette.white,
     fontSize: FontSize.xl,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.extrabold,
     letterSpacing: -0.5,
   },
+  countBadgeWrap: {
+    backgroundColor: Palette.slate,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing["2xs"] + 1,
+  },
   countBadge: {
-    color: Palette.steel,
+    color: Palette.blue,
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
+    fontWeight: FontWeight.bold,
   },
 
-  // Search
+  // Search — rounded, no border
   searchWrap: {
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing.sm,
   },
   searchInput: {
-    backgroundColor: Palette.white03,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.white08,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
+    backgroundColor: Palette.slate,
+    borderRadius: Radius.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md + 2,
     color: Palette.white,
     fontSize: FontSize.sm,
   },
 
-  // Sort
+  // Sort pills — pastel active state
   sortRow: {
     flexDirection: "row",
     paddingHorizontal: Spacing.base,
@@ -397,30 +392,28 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   sortPill: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs + 2,
+    paddingHorizontal: Spacing.md + 2,
+    paddingVertical: Spacing.xs + 3,
     borderRadius: Radius.full,
-    backgroundColor: Palette.white03,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Palette.white08,
+    backgroundColor: Palette.slate,
   },
   sortPillActive: {
-    backgroundColor: Palette.blue08,
-    borderColor: "rgba(59, 130, 246, 0.25)",
+    backgroundColor: Palette.blue,
   },
   sortPillText: {
     color: Palette.steel,
     fontSize: FontSize.xs,
-    fontWeight: FontWeight.medium,
+    fontWeight: FontWeight.semibold,
   },
   sortPillTextActive: {
-    color: Palette.blue,
+    color: Palette.void,
   },
 
   // List
   listContent: {
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing["2xl"],
+    gap: Spacing.sm,
   },
   centerWrap: {
     flex: 1,
@@ -433,47 +426,24 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
   },
 
-  // Row — zero gap, hairline dividers
+  // Row — individual rounded cards, no border
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md + 2,
-    backgroundColor: Palette.white02,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md + 4,
+    backgroundColor: Palette.slate,
+    borderRadius: Radius.lg,
   },
-  rowFirst: {
-    borderTopLeftRadius: Radius.md,
-    borderTopRightRadius: Radius.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Palette.white08,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: Palette.white08,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: Palette.white08,
-  },
-  rowLast: {
-    borderBottomLeftRadius: Radius.md,
-    borderBottomRightRadius: Radius.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Palette.white08,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: Palette.white08,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: Palette.white08,
-  },
-  rowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Palette.white06,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: Palette.white08,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: Palette.white08,
+  rowExpanded: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   rowDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: Palette.blue,
   },
   rowTextWrap: {
@@ -482,7 +452,7 @@ const styles = StyleSheet.create({
   rowName: {
     color: Palette.white,
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
+    fontWeight: FontWeight.semibold,
   },
   rowAddress: {
     color: Palette.steel,
@@ -491,9 +461,9 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
   },
   rowStakeHint: {
-    color: Palette.silver,
-    fontSize: 10,
-    fontWeight: FontWeight.medium,
+    color: Palette.mist,
+    fontSize: 11,
+    fontWeight: FontWeight.bold,
     maxWidth: 80,
     textAlign: "right",
   },
@@ -503,22 +473,14 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.xs,
   },
 
-  // Expanded
+  // Expanded panel — connected to row
   expandedPanel: {
-    paddingHorizontal: Spacing.base,
+    paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
-    paddingBottom: Spacing.base,
-    backgroundColor: Palette.white02,
-  },
-  expandedLast: {
-    borderBottomLeftRadius: Radius.md,
-    borderBottomRightRadius: Radius.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Palette.white08,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: Palette.white08,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: Palette.white08,
+    paddingBottom: Spacing.lg,
+    backgroundColor: Palette.slate,
+    borderBottomLeftRadius: Radius.lg,
+    borderBottomRightRadius: Radius.lg,
   },
   metricsGrid: {
     flexDirection: "row",
@@ -528,10 +490,10 @@ const styles = StyleSheet.create({
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
-    backgroundColor: Palette.white03,
-    borderRadius: Radius.sm,
+    backgroundColor: Palette.ash,
+    borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
+    paddingVertical: Spacing.sm + 4,
   },
   metricLabel: {
     color: Palette.steel,
@@ -543,7 +505,7 @@ const styles = StyleSheet.create({
   },
   metricValue: {
     color: Palette.white,
-    fontSize: FontSize.sm,
+    fontSize: FontSize.base,
     fontWeight: FontWeight.bold,
   },
   metricAccent: {

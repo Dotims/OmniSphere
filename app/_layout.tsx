@@ -9,7 +9,7 @@ import 'react-native-reanimated';
 import { Palette } from '@/constants/theme';
 import { createQueryClient } from '@/services/query-client';
 
-// custom dark theme
+// custom dark theme — true black + vibrant blue
 const OmniSphereDarkTheme: Theme = {
   ...DarkTheme,
   dark: true,
@@ -17,9 +17,9 @@ const OmniSphereDarkTheme: Theme = {
     ...DarkTheme.colors,
     primary: Palette.blue,
     background: Palette.void,
-    card: Palette.obsidian,
+    card: Palette.void,
     text: Palette.snow,
-    border: Palette.ash,
+    border: 'transparent',
     notification: Palette.blue,
   },
   fonts: DarkTheme.fonts,
@@ -53,7 +53,7 @@ export default function RootLayout() {
                 presentation: 'modal',
                 title: 'Modal',
                 headerShown: true,
-                headerStyle: { backgroundColor: Palette.obsidian },
+                headerStyle: { backgroundColor: Palette.void },
                 headerTintColor: Palette.snow,
               }}
             />

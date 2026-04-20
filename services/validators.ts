@@ -38,6 +38,12 @@ export interface SystemState {
   epochStartTimestampMs?: string;
   /** Epoch duration (ms) — from RPC V2 envelope */
   epochDurationMs?: string;
+  /** Total IOTA token supply */
+  iotaTotalSupply?: string;
+  /** Protocol version number */
+  protocolVersion?: string;
+  /** IOTA treasury balance */
+  iotaTreasuryBalance?: string;
 }
 
 export interface ValidatorsResponse {
