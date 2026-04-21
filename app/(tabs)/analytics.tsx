@@ -14,7 +14,7 @@ import {
   Text,
   View,
 } from "react-native";
-import Svg, { G, Circle } from "react-native-svg";
+import Svg, { G, Circle, Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AnimatedRN, { FadeInDown } from "react-native-reanimated";
 
@@ -120,44 +120,105 @@ function CustomDonutChart({
   const size = 260;
   const strokeWidth = 32;
   const radius = (size - strokeWidth) / 2 - 10; // Extra padding for highlight expansion
-  const circumference = 2 * Math.PI * radius;
+  const tooltipRadius = radius + 20;
 
-  // Ensure total adds up strictly for dasharray math
   const total = data.reduce((acc, slice) => acc + slice.votingPower, 0);
-  let currentOffset = 0;
+  let currentPercentage = 0;
+
+  // Helpers for exact SVG Path hit-testing
+  const polarToCartesian = (centerX: number, centerY: number, r: number, angleInDegrees: number) => {
+    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+    return {
+      x: centerX + r * Math.cos(angleInRadians),
+      y: centerY + r * Math.sin(angleInRadians),
+    };
+  };
+
+  const describeArc = (x: number, y: number, r: number, startAngle: number, endAngle: number) => {
+    if (endAngle - startAngle >= 360) endAngle = startAngle + 359.99;
+    const start = polarToCartesian(x, y, r, endAngle);
+    const end = polarToCartesian(x, y, r, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return ["M", start.x, start.y, "A", r, r, 0, largeArcFlag, 0, end.x, end.y].join(" ");
+  };
+
+  const slicesWithAngles = data.map((slice) => {
+    const slicePercentage = slice.votingPower / total;
+    const startPercentage = currentPercentage;
+    const endPercentage = currentPercentage + slicePercentage;
+    const midPercentage = currentPercentage + slicePercentage / 2;
+    currentPercentage += slicePercentage;
+
+    let startAngle = startPercentage * 360;
+    let endAngle = endPercentage * 360;
+    
+    // Create a visual gap between slices (except if there's only 1)
+    if (data.length > 1) {
+      endAngle = Math.max(startAngle + 0.1, endAngle - 1.5);
+    }
+
+    const midAngleRad = (midPercentage * 360 - 90) * (Math.PI / 180);
+    const tooltipX = size / 2 + tooltipRadius * Math.cos(midAngleRad);
+    const tooltipY = size / 2 + tooltipRadius * Math.sin(midAngleRad);
+    const pathData = describeArc(size / 2, size / 2, radius, startAngle, endAngle);
+
+    return { ...slice, pathData, tooltipX, tooltipY };
+  });
+
+  const activeData = slicesWithAngles.find((s) => s.name === activeSlice?.name);
 
   return (
     <View style={{ width: size, height: size, alignSelf: "center", justifyContent: "center", alignItems: "center" }}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <G rotation="-90" origin={`${size / 2}, ${size / 2}`}>
-          {data.map((slice) => {
-            const slicePercentage = slice.votingPower / total;
-            const strokeLength = slicePercentage * circumference;
-            // 2px gap between slices
-            const actualStrokeLength = Math.max(0, strokeLength - 2);
-            const offset = currentOffset;
-            currentOffset += strokeLength;
-
-            const isActive = activeSlice?.name === slice.name;
-            const currentStrokeWidth = isActive ? strokeWidth + 6 : strokeWidth;
-            
-            return (
-              <Circle
-                key={slice.name}
-                cx={size / 2}
-                cy={size / 2}
-                r={radius}
-                stroke={slice.color}
-                strokeWidth={currentStrokeWidth}
-                strokeDasharray={`${actualStrokeLength} ${circumference}`}
-                strokeDashoffset={-offset}
-                fill="transparent"
-                onPress={() => onSlicePress(slice)}
-              />
-            );
-          })}
-        </G>
+        {slicesWithAngles.map((slice) => {
+          const isActive = activeData?.name === slice.name;
+          const currentStrokeWidth = isActive ? strokeWidth + 6 : strokeWidth;
+          
+          return (
+            <Path
+              key={slice.name}
+              d={slice.pathData}
+              stroke={slice.color}
+              strokeWidth={currentStrokeWidth}
+              fill="none"
+              onPress={() => onSlicePress(slice)}
+            />
+          );
+        })}
       </Svg>
+
+      {/* Floating Tooltip */}
+      {activeData && (
+        <AnimatedRN.View
+          key={activeData.name}
+          entering={FadeInDown.duration(200).springify()}
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            ...(activeData.tooltipX < size / 2
+              ? { right: size - activeData.tooltipX }
+              : { left: activeData.tooltipX }),
+            ...(activeData.tooltipY < size / 2
+              ? { bottom: size - activeData.tooltipY }
+              : { top: activeData.tooltipY }),
+            backgroundColor: "#202024", // Premium soft dark card
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: Radius.md,
+            borderWidth: 1,
+            borderColor: "rgba(255,255,255,0.05)",
+            zIndex: 100,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.5,
+            shadowRadius: 8,
+          }}
+        >
+          <Text style={{ color: Palette.white, fontSize: 11, fontWeight: "bold" }}>
+            {activeData.name}
+          </Text>
+        </AnimatedRN.View>
+      )}
 
       {/* Dynamic Center Hole Data */}
       <View style={[StyleSheet.absoluteFillObject, { justifyContent: "center", alignItems: "center", padding: 40 }]} pointerEvents="none">
@@ -192,9 +253,11 @@ function CustomDonutChart({
 
 export default function AnalyticsScreen() {
   const insets = useSafeAreaInsets();
-  const { data, isLoading, isError, error, refetch, isRefetching } = useValidators();
+  const { data, isLoading, isError, error, refetch } = useValidators();
   
   const [activeSlice, setActiveSlice] = useState<PieSlice | null>(null);
+  const [isManualRefresh, setIsManualRefresh] = useState(false);
+  const isInitialLoad = isLoading && !data;
   const [isLegendExpanded, setIsLegendExpanded] = useState(false);
 
   const systemState = data?.systemState;
@@ -279,7 +342,10 @@ export default function AnalyticsScreen() {
     }));
   }, [activeValidators, apys]);
 
-  const handleRetry = useCallback(() => void refetch(), [refetch]);
+  const handleRetry = useCallback(() => {
+    setIsManualRefresh(true);
+    refetch().finally(() => setIsManualRefresh(false));
+  }, [refetch]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -309,7 +375,7 @@ export default function AnalyticsScreen() {
           contentContainerStyle={[styles.content, { paddingBottom: 100 + insets.bottom }]}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching && !isLoading}
+              refreshing={isManualRefresh}
               onRefresh={handleRetry}
               tintColor={Palette.blue}
               colors={[Palette.blue]}
@@ -317,7 +383,7 @@ export default function AnalyticsScreen() {
           }
         >
           {/* 1. Voting Power Chart (Donut) */}
-          {isLoading ? (
+          {isInitialLoad ? (
             <SkeletonChartCard />
           ) : (
             <AnimatedRN.View entering={FadeInDown.duration(300).delay(100)} style={styles.chartCard}>
@@ -340,7 +406,7 @@ export default function AnalyticsScreen() {
           )}
 
           {/* 3. Premium Legend Cards */}
-          {!isLoading && pieChartData.length > 0 && (
+          {!isInitialLoad && pieChartData.length > 0 && (
             <View style={styles.legendSection}>
               <Text style={styles.sectionLabel}>VALIDATOR LEADERBOARD</Text>
               <View style={styles.legendList}>
@@ -386,7 +452,7 @@ export default function AnalyticsScreen() {
           )}
 
           {/* 4. APY Horizontal Carousel */}
-          {!isLoading && apyLeaderboard.length > 0 && (
+          {!isInitialLoad && apyLeaderboard.length > 0 && (
             <View style={styles.apySection}>
               <Text style={[styles.sectionLabel, { paddingHorizontal: Spacing.base }]}>HIGHEST YIELD (APY)</Text>
               <ScrollView
