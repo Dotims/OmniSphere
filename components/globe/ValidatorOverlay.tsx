@@ -18,6 +18,7 @@ import Animated, {
   FadeOut,
   FadeOutDown,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // format IOTA balance from raw string (nanos) to readable
 function formatStake(raw: string | undefined | null): string {
@@ -44,6 +45,7 @@ export default function ValidatorOverlay({
   apy,
   onClose,
 }: ValidatorOverlayProps) {
+  const insets = useSafeAreaInsets();
   const addr = validator.iotaAddress || "";
   const truncatedAddress =
     addr.length > 14 ? `${addr.slice(0, 8)}...${addr.slice(-6)}` : addr;
@@ -73,8 +75,11 @@ export default function ValidatorOverlay({
       <Animated.View
         entering={FadeInDown.duration(300).springify()}
         exiting={FadeOutDown.duration(200)}
-        style={styles.container}>
+        style={[styles.container, { paddingBottom: 82 + insets.bottom + Spacing.lg }]}>
         <View style={styles.card}>
+          {/* Stylistic Top Edge Notch */}
+          <View style={styles.notch} />
+          
           {/* drag handle */}
           <View style={styles.handle} />
 
@@ -138,8 +143,22 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing["2xl"],
     zIndex: 30,
+  },
+  notch: {
+    position: "absolute",
+    top: -1,
+    alignSelf: "center",
+    width: 48,
+    height: 6,
+    backgroundColor: Palette.void,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+    borderBottomWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: "rgba(59, 130, 246, 0.12)",
+    zIndex: 10,
   },
   // Elevated card — #242428 is distinctly lighter than the #1C1C1E dashboard cards
   card: {
