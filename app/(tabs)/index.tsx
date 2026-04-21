@@ -132,7 +132,10 @@ export default function HomeScreen() {
       <View style={styles.dashboardSection}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.dashboardContent}
+          contentContainerStyle={[
+            styles.dashboardContent,
+            { paddingBottom: 82 + insets.bottom },
+          ]}
         >
           {data?.systemState && (
             <NetworkDashboard systemState={data.systemState} apys={apys} />

@@ -325,7 +325,10 @@ export default function ValidatorsScreen() {
           data={filteredValidators}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: 82 + insets.bottom },
+          ]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.centerWrap}>

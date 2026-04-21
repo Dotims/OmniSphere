@@ -144,6 +144,7 @@ export default function ValidatorClusterOverlay({
   onClose,
 }: ValidatorClusterOverlayProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const insets = useSafeAreaInsets();
 
   const apyByAddress = React.useMemo(() => {
     const map = new Map<string, ValidatorApy>();
@@ -177,8 +178,11 @@ export default function ValidatorClusterOverlay({
       <Animated.View
         entering={FadeInDown.duration(300).springify()}
         exiting={FadeOutDown.duration(200)}
-        style={styles.container}>
+        style={[styles.container, { paddingBottom: 82 + insets.bottom + Spacing.lg }]}>
         <View style={styles.card}>
+          {/* Stylistic Top Edge Notch */}
+          <View style={styles.notch} />
+          
           <View style={styles.handle} />
 
           <View style={styles.header}>
@@ -236,8 +240,22 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing["2xl"],
     zIndex: 30,
+  },
+  notch: {
+    position: "absolute",
+    top: -1,
+    alignSelf: "center",
+    width: 48,
+    height: 6,
+    backgroundColor: Palette.void,
+    borderBottomLeftRadius: 6,
+    borderBottomRightRadius: 6,
+    borderBottomWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: "rgba(59, 130, 246, 0.12)",
+    zIndex: 10,
   },
   // Elevated card — #242428 is distinctly lighter than the #1C1C1E dashboard cards
   card: {

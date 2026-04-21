@@ -200,7 +200,10 @@ export default function AnalyticsScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: 82 + insets.bottom },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching && !isLoading}

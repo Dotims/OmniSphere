@@ -139,7 +139,10 @@ export default function ExploreScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: 82 + insets.bottom },
+        ]}
       >
         {/* ── Feature highlights ────────────────────── */}
         <Text style={styles.sectionLabel}>HIGHLIGHTS</Text>

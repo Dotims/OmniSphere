@@ -8,7 +8,7 @@ export default function NewsScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: 82 + insets.bottom }]}>
       <View style={styles.header}>
         <Text style={styles.title}>News</Text>
       </View>
