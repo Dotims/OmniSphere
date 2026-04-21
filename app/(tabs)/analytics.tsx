@@ -1,46 +1,40 @@
 /**
- * Analytics tab — network statistics and visualizations.
- *
- * Premium soft dark theme — true black background, vibrant blue accent,
- * aggressive radius, no borders.
+ * Analytics Tab — live IOTA network statistics.
+ * Premium Soft Dark theme. High-end financial dashboard UI.
  */
 
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
+  Animated,
   Dimensions,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { PieChart, ProgressChart } from "react-native-chart-kit";
+import Svg, { G, Circle } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import AnimatedRN, { FadeInDown } from "react-native-reanimated";
 
-import {
-  FontSize,
-  FontWeight,
-  Palette,
-  Radius,
-  Spacing,
-} from "@/constants/theme";
+import { FontSize, FontWeight, Palette, Radius, Spacing } from "@/constants/theme";
 import { useValidators } from "@/hooks/use-validators";
 import type { ValidatorSummary } from "@/services/validators";
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const CHART_WIDTH = SCREEN_WIDTH - Spacing.base * 2 - Spacing.xl * 2;
-
-// Hardcoded fallback for Total Supply if not available from RPC
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_PADDING = Spacing.xl;
+const CHART_WIDTH = SCREEN_WIDTH - Spacing.base * 2 - CARD_PADDING * 2;
 const FALLBACK_TOTAL_SUPPLY_IOTA = 4_600_000_000;
 
-// Formatters
+// ─── Formatters ───────────────────────────────────────────────────────────────
+
 function formatIota(raw: string | undefined | null): string {
   if (!raw || raw === "0") return "0";
   try {
     const iota = Number(BigInt(raw)) / 1_000_000_000;
     if (iota >= 1_000_000_000) return `${(iota / 1_000_000_000).toFixed(2)}B`;
-    if (iota >= 1_000_000) return `${(iota / 1_000_000).toFixed(1)}M`;
+    if (iota >= 1_000_000) return `${(iota / 1_000_000).toFixed(2)}M`;
     if (iota >= 1_000) return `${(iota / 1_000).toFixed(1)}K`;
     return iota.toFixed(0);
   } catch {
@@ -48,128 +42,236 @@ function formatIota(raw: string | undefined | null): string {
   }
 }
 
-function truncateString(str: string, maxLength: number): string {
-  if (str.length <= maxLength) return str;
-  return `${str.substring(0, maxLength - 1)}…`;
+function truncate(str: string, max: number): string {
+  return str.length <= max ? str : `${str.slice(0, max - 1)}…`;
 }
 
-// ── Components ──────────────────────────────────────────────
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function SkeletonBlock({ width, height, style }: { width?: number | string; height: number; style?: object }) {
+  const shimmer = useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [shimmer]);
+
+  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.7] });
+
+  return (
+    <Animated.View
+      style={[
+        { width: width ?? "100%", height, borderRadius: Radius.sm, backgroundColor: Palette.ash, opacity },
+        style,
+      ]}
+    />
+  );
+}
+
+function SkeletonChartCard() {
+  return (
+    <View style={styles.chartCard}>
+      <SkeletonBlock width={100} height={12} style={{ marginBottom: 8 }} />
+      <SkeletonBlock width={160} height={20} style={{ marginBottom: Spacing.xl }} />
+      <SkeletonBlock height={200} style={{ borderRadius: Radius.full, width: 200, alignSelf: "center" }} />
+    </View>
+  );
+}
+
+// ─── Error State ──────────────────────────────────────────────────────────────
+
+function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <View style={styles.errorContainer}>
+      <Text style={styles.errorIcon}>⚠</Text>
+      <Text style={styles.errorTitle}>Connection Failed</Text>
+      <Text style={styles.errorMessage}>{message}</Text>
+      <Pressable style={styles.retryBtn} onPress={onRetry}>
+        <Text style={styles.retryBtnText}>Retry Connection</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface PieSlice {
+  name: string;
+  votingPower: number;
+  stakeFormatted: string;
+  color: string;
+}
+
+// ─── Custom Interactive Donut Chart ───────────────────────────────────────────
+
+function CustomDonutChart({
+  data,
+  activeSlice,
+  onSlicePress,
+}: {
+  data: PieSlice[];
+  activeSlice: PieSlice | null;
+  onSlicePress: (slice: PieSlice) => void;
+}) {
+  const size = 260;
+  const strokeWidth = 32;
+  const radius = (size - strokeWidth) / 2 - 10; // Extra padding for highlight expansion
+  const circumference = 2 * Math.PI * radius;
+
+  // Ensure total adds up strictly for dasharray math
+  const total = data.reduce((acc, slice) => acc + slice.votingPower, 0);
+  let currentOffset = 0;
+
+  return (
+    <View style={{ width: size, height: size, alignSelf: "center", justifyContent: "center", alignItems: "center" }}>
+      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <G rotation="-90" origin={`${size / 2}, ${size / 2}`}>
+          {data.map((slice) => {
+            const slicePercentage = slice.votingPower / total;
+            const strokeLength = slicePercentage * circumference;
+            // 2px gap between slices
+            const actualStrokeLength = Math.max(0, strokeLength - 2);
+            const offset = currentOffset;
+            currentOffset += strokeLength;
+
+            const isActive = activeSlice?.name === slice.name;
+            const currentStrokeWidth = isActive ? strokeWidth + 6 : strokeWidth;
+            
+            return (
+              <Circle
+                key={slice.name}
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                stroke={slice.color}
+                strokeWidth={currentStrokeWidth}
+                strokeDasharray={`${actualStrokeLength} ${circumference}`}
+                strokeDashoffset={-offset}
+                fill="transparent"
+                onPress={() => onSlicePress(slice)}
+              />
+            );
+          })}
+        </G>
+      </Svg>
+
+      {/* Dynamic Center Hole Data */}
+      <View style={[StyleSheet.absoluteFillObject, { justifyContent: "center", alignItems: "center", padding: 40 }]} pointerEvents="none">
+        {activeSlice ? (
+          <AnimatedRN.View entering={FadeInDown.duration(200)} style={{ alignItems: "center" }}>
+            <Text style={{ color: Palette.steel, fontSize: 10, fontWeight: "bold", textTransform: "uppercase", marginBottom: 4, textAlign: "center" }} numberOfLines={1}>
+              {activeSlice.name}
+            </Text>
+            <Text style={{ color: Palette.blue, fontSize: 32, fontWeight: "800", letterSpacing: -1 }}>
+              {activeSlice.votingPower.toFixed(2)}%
+            </Text>
+            <Text style={{ color: Palette.white, fontSize: 13, fontWeight: "600", marginTop: 4 }}>
+              {activeSlice.stakeFormatted}
+            </Text>
+          </AnimatedRN.View>
+        ) : (
+          <AnimatedRN.View style={{ alignItems: "center" }}>
+            <Text style={{ color: Palette.steel, fontSize: 10, fontWeight: "bold", textTransform: "uppercase", marginBottom: 4 }}>
+              Total Network
+            </Text>
+            <Text style={{ color: Palette.white, fontSize: 18, fontWeight: "800", letterSpacing: -0.5, textAlign: "center" }}>
+              Tap a slice
+            </Text>
+          </AnimatedRN.View>
+        )}
+      </View>
+    </View>
+  );
+}
+
+// ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function AnalyticsScreen() {
   const insets = useSafeAreaInsets();
-  const { data, isLoading, refetch, isRefetching } = useValidators();
+  const { data, isLoading, isError, error, refetch, isRefetching } = useValidators();
+  
+  const [activeSlice, setActiveSlice] = useState<PieSlice | null>(null);
+  const [isLegendExpanded, setIsLegendExpanded] = useState(false);
 
-  // ── Data Processing ────────────────────────────────────────
   const systemState = data?.systemState;
-  const apys = data?.apys?.apys || [];
+  const apys = data?.apys?.apys ?? [];
 
+  // ── Active Validators ───────────────────────────────────────────────────────
   const activeValidators = useMemo<ValidatorSummary[]>(() => {
     if (!systemState) return [];
     const raw = systemState as unknown as Record<string, unknown>;
-    const av =
-      raw.activeValidators ??
-      (raw.V2 as Record<string, unknown> | undefined)?.activeValidators;
+    const av = raw.activeValidators ?? (raw.V2 as Record<string, unknown> | undefined)?.activeValidators;
     return Array.isArray(av) ? (av as ValidatorSummary[]) : [];
   }, [systemState]);
 
-  // 1. Stake Distribution (Pie Chart)
-  const pieChartData = useMemo(() => {
+  // ── Pie Chart Data ──────────────────────────────────────────────────────────
+  const pieChartData = useMemo<PieSlice[]>(() => {
     if (!activeValidators.length) return [];
-
-    // Sort by voting power (descending)
-    const sorted = [...activeValidators].sort(
-      (a, b) => Number(b.votingPower || 0) - Number(a.votingPower || 0)
-    );
-
+    const sorted = [...activeValidators].sort((a, b) => Number(b.votingPower ?? 0) - Number(a.votingPower ?? 0));
     const top10 = sorted.slice(0, 10);
     const rest = sorted.slice(10);
+    
+    // Premium Soft Dark Palette for slices
+    const slices: PieSlice[] = top10.map((v, i) => {
+      let color = Palette.blue;
+      if (i === 0) color = Palette.blue; // Primary IOTA Blue for lead slice
+      else if (i === 1) color = "rgba(59, 130, 246, 0.75)";
+      else if (i === 2) color = "rgba(59, 130, 246, 0.45)";
+      else if (i === 3) color = "rgba(255, 255, 255, 0.5)"; // Deep grays / muted accents
+      else if (i === 4) color = "rgba(255, 255, 255, 0.4)";
+      else if (i === 5) color = "rgba(255, 255, 255, 0.3)";
+      else if (i === 6) color = "rgba(255, 255, 255, 0.2)";
+      else if (i === 7) color = "rgba(255, 255, 255, 0.15)";
+      else if (i === 8) color = "rgba(255, 255, 255, 0.1)";
+      else if (i === 9) color = "rgba(255, 255, 255, 0.05)";
 
-    const colors = [
-      Palette.blue,
-      Palette.mint,
-      Palette.peach,
-      Palette.lavender,
-      Palette.yellow,
-      Palette.sky,
-      Palette.rose,
-      Palette.blueLight,
-      Palette.mintSoft,
-      Palette.peachSoft,
-    ];
+      return {
+        name: truncate(v.name || "Unknown", 14),
+        votingPower: Number(v.votingPower ?? 0) / 100,
+        stakeFormatted: formatIota(v.stakingPoolIotaBalance) + " IOTA",
+        color,
+      };
+    });
 
-    const dataPoints = top10.map((v, i) => ({
-      name: truncateString(v.name || "Unknown", 10),
-      votingPower: Number(v.votingPower || 0) / 100, // Basis points to percentage
-      color: colors[i % colors.length],
-      legendFontColor: Palette.steel,
-      legendFontSize: 11,
-    }));
-
-    if (rest.length > 0) {
-      const restVotingPower = rest.reduce(
-        (acc, v) => acc + Number(v.votingPower || 0),
-        0
-      );
-      dataPoints.push({
-        name: "Rest",
-        votingPower: restVotingPower / 100,
-        color: Palette.ash, // Neutral for the rest
-        legendFontColor: Palette.steel,
-        legendFontSize: 11,
+    if (rest.length) {
+      const combinedStake = rest.reduce((s, v) => s + BigInt(v.stakingPoolIotaBalance || "0"), 0n);
+      slices.push({
+        name: "Others",
+        votingPower: rest.reduce((s, v) => s + Number(v.votingPower ?? 0), 0) / 100,
+        stakeFormatted: formatIota(combinedStake.toString()) + " IOTA",
+        color: "rgba(255, 255, 255, 0.04)", // Visually subtle darker shade
       });
     }
-
-    return dataPoints;
+    return slices;
   }, [activeValidators]);
 
-  // 2. Staking Ratio (Progress Chart)
-  const stakingRatioData = useMemo(() => {
-    if (!systemState) return { data: [0], text: "0%" };
-
-    const totalStakeNanos = Number(BigInt(systemState.totalStake || "0"));
-    const totalStakeIota = totalStakeNanos / 1_000_000_000;
-
-    let totalSupplyIota = FALLBACK_TOTAL_SUPPLY_IOTA;
-    if (systemState.iotaTotalSupply) {
-      totalSupplyIota = Number(BigInt(systemState.iotaTotalSupply)) / 1_000_000_000;
+  // Set default active slice when data loads
+  React.useEffect(() => {
+    if (!activeSlice && pieChartData && pieChartData.length > 0) {
+      setActiveSlice(pieChartData[0]);
     }
+  }, [pieChartData, activeSlice]);
 
-    const ratio = Math.min(1, Math.max(0, totalStakeIota / totalSupplyIota));
+  // ── APY Leaderboard ─────────────────────────────────────────────────────────
 
-    return {
-      data: [ratio],
-      text: `${(ratio * 100).toFixed(1)}%`,
-    };
-  }, [systemState]);
 
-  // 3. APY Leaderboard (Horizontal Bars)
+  // ── APY Leaderboard ─────────────────────────────────────────────────────────
   const apyLeaderboard = useMemo(() => {
     if (!activeValidators.length || !apys.length) return [];
-
-    // Sort by stake first to get top 10 validators by stake
     const topByStake = [...activeValidators]
-      .sort((a, b) => {
-        const sa = Number(BigInt(a.stakingPoolIotaBalance || "0"));
-        const sb = Number(BigInt(b.stakingPoolIotaBalance || "0"));
-        return sb - sa;
-      })
+      .sort((a, b) => Number(BigInt(b.stakingPoolIotaBalance || "0")) - Number(BigInt(a.stakingPoolIotaBalance || "0")))
       .slice(0, 10);
-
-    // Map APY values and sort them by APY descending
     const withApy = topByStake
       .map((v) => {
         const apyObj = apys.find((a) => a.address === v.iotaAddress);
-        return {
-          id: v.iotaAddress,
-          name: v.name || truncateString(v.iotaAddress, 10),
-          apy: apyObj ? apyObj.apy : 0,
-        };
+        return { id: v.iotaAddress, name: v.name || truncate(v.iotaAddress, 10), apy: apyObj?.apy ?? 0 };
       })
       .sort((a, b) => b.apy - a.apy);
-
-    // Find max APY for scaling bars
-    const maxApy = Math.max(...withApy.map((v) => v.apy), 0.0001); // Prevent div by 0
-
+    const maxApy = Math.max(...withApy.map((v) => v.apy), 0.0001);
     return withApy.map((v) => ({
       ...v,
       percentageOfMax: (v.apy / maxApy) * 100,
@@ -177,339 +279,265 @@ export default function AnalyticsScreen() {
     }));
   }, [activeValidators, apys]);
 
-  // Network Health Values
-  let displayTotalSupply = `${FALLBACK_TOTAL_SUPPLY_IOTA / 1_000_000_000}B`;
-  if (systemState?.iotaTotalSupply) {
-    displayTotalSupply = formatIota(systemState.iotaTotalSupply);
-  }
-  const protocolVersion = systemState?.protocolVersion || "—";
-  let displayGasPrice = "—";
-  if (systemState?.referenceGasPrice) {
-    displayGasPrice = `${systemState.referenceGasPrice} MIST`;
-  }
+  const handleRetry = useCallback(() => void refetch(), [refetch]);
 
-  // ── Render ──────────────────────────────────────────────────
-
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Analytics</Text>
-        <Text style={styles.subtitle}>Network Statistics</Text>
+        <View>
+          <Text style={styles.title}>Analytics</Text>
+          <Text style={styles.subtitle}>Network Statistics · Live</Text>
+        </View>
+        <View style={styles.livePill}>
+          <View style={styles.liveDot} />
+          <Text style={styles.liveText}>LIVE</Text>
+        </View>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: 82 + insets.bottom },
-        ]}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching && !isLoading}
-            onRefresh={refetch}
-            tintColor={Palette.blue}
-            colors={[Palette.blue]}
-          />
-        }
-      >
-        {/* 1. Staking Ratio Gauge */}
-        <Animated.View entering={FadeInDown.duration(300)} style={styles.card}>
-          <Text style={styles.cardTitle}>STAKING RATIO</Text>
-          <Text style={styles.cardSubtitle}>
-            Total Stake vs Total Supply
-          </Text>
-          <View style={styles.gaugeContainer}>
-            <View style={styles.gaugeCenterTextContainer}>
-              <Text style={styles.gaugeValueText}>{stakingRatioData.text}</Text>
-              <Text style={styles.gaugeLabelText}>Staked</Text>
-            </View>
-            <ProgressChart
-              data={stakingRatioData}
-              width={CHART_WIDTH}
-              height={200}
-              strokeWidth={20}
-              radius={80}
-              chartConfig={{
-                backgroundColor: Palette.slate,
-                backgroundGradientFrom: Palette.slate,
-                backgroundGradientTo: Palette.slate,
-                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // Vibrant Blue
-                labelColor: () => Palette.steel,
-              }}
-              hideLegend={true}
-              style={styles.chartStyle}
+      {isError && !isLoading && (
+        <ErrorState
+          message={error?.message ?? "Unable to reach the IOTA RPC endpoint."}
+          onRetry={handleRetry}
+        />
+      )}
+
+      {!isError && (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.content, { paddingBottom: 100 + insets.bottom }]}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching && !isLoading}
+              onRefresh={handleRetry}
+              tintColor={Palette.blue}
+              colors={[Palette.blue]}
             />
-          </View>
-        </Animated.View>
-
-        {/* 2. Stake Distribution */}
-        <Animated.View
-          entering={FadeInDown.duration(300).delay(100)}
-          style={styles.card}
+          }
         >
-          <Text style={styles.cardTitle}>VOTING POWER</Text>
-          <Text style={styles.cardSubtitle}>Top 10 Validators vs Rest</Text>
-          {pieChartData.length > 0 ? (
-            <View style={styles.pieChartContainer}>
-              <PieChart
-                data={pieChartData}
-                width={SCREEN_WIDTH - Spacing.base * 2}
-                height={220}
-                chartConfig={{
-                  color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                }}
-                accessor="votingPower"
-                backgroundColor="transparent"
-                paddingLeft="0"
-                center={[0, 0]}
-                absolute
-              />
-            </View>
+          {/* 1. Voting Power Chart (Donut) */}
+          {isLoading ? (
+            <SkeletonChartCard />
           ) : (
-            <Text style={styles.mutedText}>No data available</Text>
-          )}
-        </Animated.View>
-
-        {/* 3. APY Leaderboard */}
-        <Animated.View
-          entering={FadeInDown.duration(300).delay(200)}
-          style={styles.card}
-        >
-          <Text style={styles.cardTitle}>APY LEADERBOARD</Text>
-          <Text style={styles.cardSubtitle}>Top 10 Validators by Stake</Text>
-
-          <View style={styles.barChartContainer}>
-            {apyLeaderboard.length > 0 ? (
-              apyLeaderboard.map((item, index) => (
-                <View key={item.id} style={styles.barRow}>
-                  <View style={styles.barLabelContainer}>
-                    <Text style={styles.barName} numberOfLines={1}>
-                      {index + 1}. {item.name}
-                    </Text>
-                    <Text style={styles.barValue}>{item.displayValue}</Text>
-                  </View>
-                  <View style={styles.barTrack}>
-                    <View
-                      style={[
-                        styles.barFill,
-                        { width: `${item.percentageOfMax}%` as unknown as number },
-                      ]}
-                    />
-                  </View>
+            <AnimatedRN.View entering={FadeInDown.duration(300).delay(100)} style={styles.chartCard}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardSectionLabel}>VOTING POWER</Text>
+                <Text style={styles.cardTitle}>Network Consensus</Text>
+              </View>
+              {pieChartData.length > 0 ? (
+                <View style={styles.pieChartContainer}>
+                  <CustomDonutChart
+                    data={pieChartData}
+                    activeSlice={activeSlice}
+                    onSlicePress={setActiveSlice}
+                  />
                 </View>
-              ))
-            ) : (
-              <Text style={styles.mutedText}>No APY data available</Text>
-            )}
-          </View>
-        </Animated.View>
+              ) : (
+                <Text style={styles.mutedText}>No validator data available</Text>
+              )}
+            </AnimatedRN.View>
+          )}
 
-        {/* 4. Network Health Cards */}
-        <Text style={styles.sectionLabel}>NETWORK HEALTH</Text>
-        <View style={styles.grid}>
-          <Animated.View
-            entering={FadeInDown.duration(300).delay(300)}
-            style={[styles.smallCard, styles.cardLavender]}
-          >
-            <Text style={styles.smallCardLabel}>TOTAL SUPPLY</Text>
-            <Text style={styles.smallCardValue}>{displayTotalSupply}</Text>
-            <Text style={styles.smallCardUnit}>IOTA</Text>
-          </Animated.View>
+          {/* 3. Premium Legend Cards */}
+          {!isLoading && pieChartData.length > 0 && (
+            <View style={styles.legendSection}>
+              <Text style={styles.sectionLabel}>VALIDATOR LEADERBOARD</Text>
+              <View style={styles.legendList}>
+                {(isLegendExpanded ? pieChartData : pieChartData.slice(0, 3)).map((slice, index) => {
+                  const isActive = activeSlice?.name === slice.name;
+                  return (
+                    <AnimatedRN.View key={slice.name} entering={FadeInDown.duration(300).delay(150 + index * 30)}>
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.legendCard,
+                          isActive && styles.legendCardActive,
+                          pressed && styles.cardPressed
+                        ]}
+                        onPress={() => setActiveSlice(isActive ? null : slice)}
+                      >
+                        <View style={[styles.legendDot, { backgroundColor: slice.color }]} />
+                        <View style={styles.legendTextWrap}>
+                          <Text style={styles.legendName} numberOfLines={1}>{slice.name}</Text>
+                          <Text style={styles.legendSub}>
+                            {slice.name === "Others" ? "Combined voting power" : `Rank ${index + 1}`}
+                          </Text>
+                        </View>
+                        <View style={{ alignItems: "flex-end" }}>
+                          <Text style={styles.legendValue}>{slice.votingPower.toFixed(2)}%</Text>
+                          <Text style={styles.legendSubRight}>{slice.stakeFormatted}</Text>
+                        </View>
+                      </Pressable>
+                    </AnimatedRN.View>
+                  );
+                })}
+              </View>
+              {pieChartData.length > 3 && (
+                <Pressable
+                  style={styles.expandButton}
+                  onPress={() => setIsLegendExpanded(!isLegendExpanded)}
+                >
+                  <Text style={styles.expandButtonText}>
+                    {isLegendExpanded ? "Show Less" : `Show All Validators (${pieChartData.length})`}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          )}
 
-          <Animated.View
-            entering={FadeInDown.duration(300).delay(350)}
-            style={[styles.smallCard, styles.cardPeach]}
-          >
-            <Text style={styles.smallCardLabel}>PROTOCOL</Text>
-            <Text style={styles.smallCardValue}>v{protocolVersion}</Text>
-            <Text style={styles.smallCardUnit}>Version</Text>
-          </Animated.View>
+          {/* 4. APY Horizontal Carousel */}
+          {!isLoading && apyLeaderboard.length > 0 && (
+            <View style={styles.apySection}>
+              <Text style={[styles.sectionLabel, { paddingHorizontal: Spacing.base }]}>HIGHEST YIELD (APY)</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.apyCarousel}
+                decelerationRate="fast"
+                snapToInterval={216} // 200 width + 16 gap
+              >
+                {apyLeaderboard.map((item, index) => (
+                  <AnimatedRN.View key={item.id} entering={FadeInDown.duration(300).delay(200 + index * 50)}>
+                    <View style={styles.apyCard}>
+                      <View style={styles.apyHeader}>
+                        <Text style={styles.apyRank}>#{index + 1}</Text>
+                        <Text style={styles.apyValue}>{item.displayValue}</Text>
+                      </View>
+                      <Text style={styles.apyName} numberOfLines={1}>{item.name}</Text>
+                      <View style={styles.barTrack}>
+                        <View style={[styles.barFill, { width: `${item.percentageOfMax}%` as unknown as number }]} />
+                      </View>
+                    </View>
+                  </AnimatedRN.View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
-          <Animated.View
-            entering={FadeInDown.duration(300).delay(400)}
-            style={[styles.smallCard, styles.cardMint]}
-          >
-            <Text style={styles.smallCardLabel}>REF GAS PRICE</Text>
-            <Text style={styles.smallCardValue}>{displayGasPrice}</Text>
-            <Text style={styles.smallCardUnit}>Current Epoch</Text>
-          </Animated.View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
     </View>
   );
 }
 
-// ── Styles ──────────────────────────────────────────────────
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Palette.void,
-  },
+  container: { flex: 1, backgroundColor: Palette.void },
+
   header: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  title: {
-    color: Palette.white,
-    fontSize: FontSize.xl,
-    fontWeight: FontWeight.extrabold,
-    letterSpacing: -0.5,
+  title: { color: Palette.white, fontSize: FontSize.xl, fontWeight: FontWeight.extrabold, letterSpacing: -0.5 },
+  subtitle: { color: Palette.steel, fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: 2 },
+
+  livePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(59,130,246,0.12)",
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
   },
-  subtitle: {
-    color: Palette.steel,
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.medium,
-    marginTop: 2,
-  },
-  content: {
-    paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing["3xl"],
-    gap: Spacing.md,
-  },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Palette.blue },
+  liveText: { color: Palette.blue, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1 },
+
+  content: { paddingVertical: Spacing.md, gap: Spacing.xl },
+  
   sectionLabel: {
     color: Palette.steel,
-    fontSize: 10,
-    fontWeight: FontWeight.semibold,
+    fontSize: 11,
+    fontWeight: FontWeight.bold,
     letterSpacing: 1.5,
     textTransform: "uppercase",
-    marginTop: Spacing.md,
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.md,
   },
-  mutedText: {
-    color: Palette.steel,
-    fontSize: FontSize.sm,
-    paddingVertical: Spacing.lg,
-  },
+  mutedText: { color: Palette.steel, fontSize: FontSize.sm, paddingVertical: Spacing.lg, textAlign: "center" },
 
-  // Premium Cards (Absolute Black aesthetic, no borders)
-  card: {
+  // Primary Chart Cards
+  chartCard: {
+    backgroundColor: Palette.slate,
+    borderRadius: Radius["2xl"],
+    padding: CARD_PADDING,
+    marginHorizontal: Spacing.base,
+  },
+  cardHeader: { marginBottom: Spacing.xl },
+  cardSectionLabel: { color: Palette.steel, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, textTransform: "uppercase" },
+  cardTitle: { color: Palette.white, fontSize: FontSize.lg, fontWeight: FontWeight.extrabold, marginTop: 4 },
+
+  pieChartContainer: { alignItems: "center", justifyContent: "center", marginVertical: Spacing.sm },
+
+  // Premium Legend Cards
+  legendSection: { paddingHorizontal: Spacing.base },
+  legendList: { gap: Spacing.md },
+  legendCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Palette.slate,
+    borderRadius: Radius["2xl"],
+    padding: Spacing.lg,
+    gap: Spacing.lg,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  expandButton: {
+    marginTop: Spacing.md,
+    alignSelf: "center",
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: Radius.full,
+  },
+  expandButtonText: {
+    color: Palette.white,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+  },
+  legendCardActive: {
+    borderColor: "rgba(59, 130, 246, 0.3)",
+    backgroundColor: "#202024",
+  },
+  cardPressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
+  legendDot: { width: 14, height: 14, borderRadius: 7 },
+  legendTextWrap: { flex: 1 },
+  legendName: { color: Palette.white, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  legendSub: { color: Palette.steel, fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: 4 },
+  legendSubRight: { color: Palette.steel, fontSize: FontSize.xs, fontWeight: FontWeight.medium, marginTop: 4 },
+  legendValue: { color: Palette.blue, fontSize: FontSize["2xl"], fontWeight: FontWeight.extrabold, letterSpacing: -0.5 },
+
+  // APY Horizontal Carousel
+  apySection: { marginTop: Spacing.md },
+  apyCarousel: { paddingHorizontal: Spacing.base, gap: Spacing.md },
+  apyCard: {
     backgroundColor: Palette.slate,
     borderRadius: Radius["2xl"],
     padding: Spacing.xl,
-  },
-  cardTitle: {
-    color: Palette.steel,
-    fontSize: 10,
-    fontWeight: FontWeight.semibold,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-  },
-  cardSubtitle: {
-    color: Palette.white,
-    fontSize: FontSize.base,
-    fontWeight: FontWeight.bold,
-    marginTop: 4,
-    marginBottom: Spacing.lg,
-  },
-
-  // Charts
-  chartStyle: {
-    marginVertical: 8,
-    borderRadius: Radius.lg,
-  },
-  gaugeContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  gaugeCenterTextContainer: {
-    position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10,
-  },
-  gaugeValueText: {
-    color: Palette.white,
-    fontSize: FontSize["2xl"],
-    fontWeight: FontWeight.extrabold,
-    letterSpacing: -1,
-  },
-  gaugeLabelText: {
-    color: Palette.steel,
-    fontSize: FontSize.xs,
-    fontWeight: FontWeight.medium,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginTop: 2,
-  },
-  pieChartContainer: {
-    alignItems: "center",
-    marginLeft: -Spacing.base, // Adjust chart-kit default padding
-  },
-
-  // Horizontal Bar Chart
-  barChartContainer: {
-    gap: Spacing.md,
-  },
-  barRow: {
-    flexDirection: "column",
-    gap: 6,
-  },
-  barLabelContainer: {
-    flexDirection: "row",
+    width: 200,
     justifyContent: "space-between",
-    alignItems: "center",
   },
-  barName: {
-    color: Palette.white,
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
-    flex: 1,
-  },
-  barValue: {
-    color: Palette.blue,
-    fontSize: FontSize.sm,
-    fontWeight: FontWeight.bold,
-  },
-  barTrack: {
-    height: 8,
+  apyHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.sm },
+  apyRank: { color: Palette.steel, fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  apyValue: { color: Palette.blue, fontSize: FontSize.lg, fontWeight: FontWeight.extrabold },
+  apyName: { color: Palette.white, fontSize: FontSize.md, fontWeight: FontWeight.bold, marginBottom: Spacing.lg },
+  barTrack: { height: 6, backgroundColor: Palette.ash, borderRadius: 3, overflow: "hidden" },
+  barFill: { height: "100%", backgroundColor: Palette.blue, borderRadius: 3 },
+
+  // Error
+  errorContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing["3xl"], gap: Spacing.md },
+  errorIcon: { fontSize: 48, color: Palette.steel },
+  errorTitle: { color: Palette.white, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  errorMessage: { color: Palette.steel, fontSize: FontSize.base, textAlign: "center", lineHeight: 22 },
+  retryBtn: {
+    marginTop: Spacing.lg,
     backgroundColor: Palette.ash,
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  barFill: {
-    height: "100%",
-    backgroundColor: Palette.blue,
-    borderRadius: 4,
-  },
-
-  // Network Health Grid
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.md,
-  },
-  smallCard: {
-    flex: 1,
-    minWidth: "46%" as unknown as number,
     borderRadius: Radius.lg,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
   },
-  cardMint: { backgroundColor: Palette.slate },
-  cardPeach: { backgroundColor: Palette.slate },
-  cardLavender: { backgroundColor: Palette.slate },
-
-  smallCardLabel: {
-    color: Palette.steel,
-    fontSize: 10,
-    fontWeight: FontWeight.semibold,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-    marginBottom: Spacing.xs,
-  },
-  smallCardValue: {
-    color: Palette.white,
-    fontSize: 26,
-    fontWeight: FontWeight.extrabold,
-    letterSpacing: -1,
-  },
-  smallCardUnit: {
-    color: Palette.steel,
-    fontSize: 10,
-    marginTop: 4,
-    fontWeight: FontWeight.medium,
-  },
+  retryBtnText: { color: Palette.white, fontSize: FontSize.base, fontWeight: FontWeight.bold },
 });

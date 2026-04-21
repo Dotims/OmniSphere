@@ -6,8 +6,14 @@ import { useQuery } from "@tanstack/react-query";
 
 export const VALIDATORS_QUERY_KEY = ["validators"] as const;
 
+/**
+ * Fetches live validator and system-state data from the IOTA RPC proxy.
+ *
+ * - Refreshes every 30 seconds automatically (background + foreground).
+ * - Exposes isError / error so callers can render graceful error states.
+ */
 export function useValidators() {
-  return useQuery<ValidatorsResponse>({
+  return useQuery<ValidatorsResponse, Error>({
     queryKey: VALIDATORS_QUERY_KEY,
     queryFn: async () => {
       const result = await fetchValidators();
@@ -18,12 +24,12 @@ export function useValidators() {
 
       return result.data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes in cache
-    refetchInterval: 10000,
+    staleTime: 30 * 1000,           // 30 s — data stays fresh for one refresh cycle
+    gcTime: 30 * 60 * 1000,         // 30 min in cache
+    refetchInterval: 30 * 1000,     // auto-refresh every 30 s
     refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 15_000),
   });
 }
