@@ -43,6 +43,9 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "iotaRpcUrl": "https://api.mainnet.iota.cafe"
     }
   }
 }

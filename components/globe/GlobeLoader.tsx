@@ -1,5 +1,5 @@
 // dark-themed loading state for the globe view
-// pulsing ring animation with status text
+// pulsing ring animation with status text — premium soft dark theme
 
 import { FontSize, FontWeight, Palette } from '@/constants/theme';
 import React, { useEffect } from 'react';

@@ -11,7 +11,7 @@ import {
     ValidatorClusterOverlay,
     ValidatorOverlay,
 } from "@/components/globe";
-import { FontSize, FontWeight, Palette, Spacing } from "@/constants/theme";
+import { FontSize, FontWeight, Palette, Radius, Spacing } from "@/constants/theme";
 import { useValidatorLocations } from "@/hooks/use-validator-locations";
 import { useValidators } from "@/hooks/use-validators";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
@@ -132,7 +132,10 @@ export default function HomeScreen() {
       <View style={styles.dashboardSection}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.dashboardContent}
+          contentContainerStyle={[
+            styles.dashboardContent,
+            { paddingBottom: 82 + insets.bottom },
+          ]}
         >
           {data?.systemState && (
             <NetworkDashboard systemState={data.systemState} apys={apys} />
@@ -175,7 +178,7 @@ const styles = StyleSheet.create({
   title: {
     color: Palette.white,
     fontSize: FontSize.xl,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.extrabold,
     letterSpacing: -0.5,
   },
 
@@ -187,11 +190,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
 
-  // Dashboard: bottom ~50%
+  // Dashboard: bottom ~50% — no border
   dashboardSection: {
     flex: 1,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Palette.white08,
   },
   dashboardContent: {
     paddingBottom: Spacing.base,
@@ -203,10 +204,10 @@ const styles = StyleSheet.create({
     right: Spacing.lg,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Palette.white08,
+    backgroundColor: Palette.slate,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 100,
+    paddingVertical: Spacing.xs + 2,
+    borderRadius: Radius.full,
     gap: 6,
   },
   badgeDot: {

@@ -5,11 +5,12 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/theme';
 import { createQueryClient } from '@/services/query-client';
 
-// custom dark theme
+// custom dark theme — true black + vibrant blue
 const OmniSphereDarkTheme: Theme = {
   ...DarkTheme,
   dark: true,
@@ -17,9 +18,9 @@ const OmniSphereDarkTheme: Theme = {
     ...DarkTheme.colors,
     primary: Palette.blue,
     background: Palette.void,
-    card: Palette.obsidian,
+    card: Palette.void,
     text: Palette.snow,
-    border: Palette.ash,
+    border: 'transparent',
     notification: Palette.blue,
   },
   fonts: DarkTheme.fonts,
@@ -37,30 +38,32 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={OmniSphereDarkTheme}>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: Palette.void },
-              animation: 'slide_from_right',
-            }}
-          >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="modal"
-              options={{
-                presentation: 'modal',
-                title: 'Modal',
-                headerShown: true,
-                headerStyle: { backgroundColor: Palette.obsidian },
-                headerTintColor: Palette.snow,
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider value={OmniSphereDarkTheme}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: Palette.void },
+                animation: 'slide_from_right',
               }}
-            />
-          </Stack>
-          <StatusBar style="light" />
-        </ThemeProvider>
-      </QueryClientProvider>
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="modal"
+                options={{
+                  presentation: 'modal',
+                  title: 'Modal',
+                  headerShown: true,
+                  headerStyle: { backgroundColor: Palette.void },
+                  headerTintColor: Palette.snow,
+                }}
+              />
+            </Stack>
+            <StatusBar style="light" />
+          </ThemeProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

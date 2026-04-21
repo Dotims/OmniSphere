@@ -1,8 +1,8 @@
 /**
  * CSS styles injected into the globe WebView.
  *
- * Separated from the HTML template so styling changes don't require
- * touching the interaction / rendering logic.
+ * Premium soft dark theme — true black background, mint green accents,
+ * no borders/shadows on markers.
  */
 export const GLOBE_CSS = `
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -12,7 +12,7 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: #05060A;
+  background-color: #0A0A0C;
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
@@ -31,7 +31,7 @@ html, body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-color: #05060A;
+  background-color: #0A0A0C;
   background-image:
     radial-gradient(circle at 30px 40px, rgba(156, 185, 221, 0.16) 0.8px, transparent 1.4px),
     radial-gradient(circle at 90px 120px, rgba(132, 165, 206, 0.12) 0.7px, transparent 1.3px),
@@ -106,8 +106,8 @@ canvas:active { cursor: grabbing; }
  * --cobe-stake-light  : lightness (42%–78%) driven by stakeNorm
  * --cobe-stake-opacity: base opacity (0.45–1.0) driven by stakeNorm
  *
- * Low  stake → dim, muted blue    (hue 210, light 42%, opacity 0.45)
- * High stake → bright, vivid blue (hue 225, light 78%, opacity 1.0)
+ * Low  stake → dim, muted blue     (hue 210, light 42%, opacity 0.45)
+ * High stake → bright, vivid blue  (hue 225, light 78%, opacity 1.0)
  */
 .validator-marker {
   position: absolute;
@@ -119,7 +119,7 @@ canvas:active { cursor: grabbing; }
   transform: translate(-50%, -50%) translate(var(--cobe-marker-x, -9999px), var(--cobe-marker-y, -9999px));
   opacity: calc(var(--cobe-visible, 0) * var(--cobe-stake-opacity, 0.65));
   background: hsl(var(--cobe-stake-hue, 210), 72%, var(--cobe-stake-light, 58%));
-  border: 1px solid hsla(var(--cobe-stake-hue, 210), 60%, 88%, 0.6);
+  border: none;
   box-shadow: none;
   will-change: transform, opacity;
 }
@@ -143,9 +143,9 @@ canvas:active { cursor: grabbing; }
 }
 .validator-marker.is-selected {
   transform: translate(-50%, -50%) translate(var(--cobe-marker-x, -9999px), var(--cobe-marker-y, -9999px)) scale(1.1);
-  border-color: hsla(var(--cobe-stake-hue, 210), 80%, 90%, 0.9);
+  border: none;
   box-shadow: 0 0 8px hsla(var(--cobe-stake-hue, 210), 80%, 65%, 0.35);
-  transition: box-shadow 120ms ease, border-color 120ms ease;
+  transition: box-shadow 120ms ease;
 }
 .validator-marker.is-selected::after {
   opacity: 0.3;

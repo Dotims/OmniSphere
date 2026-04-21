@@ -1,9 +1,10 @@
 /**
- * OmniSphere Design System — Modern Web3 Aesthetic
+ * OmniSphere Design System — Premium Soft Dark Theme
  *
- * Deep dark backgrounds (#0B0D14), vibrant blue (#3B82F6) accents,
- * pure white primary text, muted slate secondaries.
- * Ultra-thin borders, transparent card fills, generous whitespace.
+ * True black background (#0A0A0C), vibrant blue (#3B82F6) primary accent,
+ * aggressive border radius (24–32px), zero borders / shadows,
+ * extremely large bold data values, muted tiny labels.
+ * Soft pastel colors retained for secondary accents (cards, badges).
  */
 
 import { Platform } from "react-native";
@@ -11,24 +12,44 @@ import { Platform } from "react-native";
 // ─── Color Palette ───────────────────────────────────────────────────────────
 
 export const Palette = {
-  // Core backgrounds — deep dark
-  void: "#05060A",
-  obsidian: "#0B0D14",
-  graphite: "#10131C",
-  slate: "#181C28",
-  ash: "#232838",
-  steel: "#5A607A",
-  silver: "#8A93A6",
-  mist: "#B0B8CA",
-  cloud: "#D0D6E2",
-  snow: "#EDF0F7",
+  // Core backgrounds — true black
+  void: "#0A0A0C",
+  obsidian: "#0A0A0C",
+  graphite: "#141416",
+  slate: "#1C1C1E",
+  ash: "#2C2C2E",
+  steel: "#636366",
+  silver: "#8E8E93",
+  mist: "#AEAEB2",
+  cloud: "#D1D1D6",
+  snow: "#F2F2F7",
   white: "#FFFFFF",
 
-  // Primary accent — vibrant blue
+  // Primary accent — vibrant blue (restored)
   blue: "#3B82F6",
   blueLight: "#60A5FA",
   blueDim: "#2563EB",
   blueMuted: "#1D4ED8",
+
+  // Soft pastel accents (for secondary UI elements)
+  mint: "#A8F0D4",
+  mintSoft: "#D4FAE9",
+  mintDim: "#3DDEA0",
+  peach: "#FFD5C2",
+  peachSoft: "#FFE8DD",
+  peachDim: "#FF9F7A",
+  yellow: "#FFF3C4",
+  yellowSoft: "#FFF9E0",
+  yellowDim: "#FFD95C",
+  lavender: "#D8C4F6",
+  lavenderSoft: "#EDE0FF",
+  lavenderDim: "#A78BFA",
+  sky: "#BAE6FD",
+  skySoft: "#E0F2FE",
+  skyDim: "#38BDF8",
+  rose: "#FFC9D5",
+  roseSoft: "#FFE4EC",
+  roseDim: "#F472B6",
 
   // Secondary accents
   teal: "#2DD4BF",
@@ -67,11 +88,11 @@ export const Palette = {
 export const Colors = {
   dark: {
     background: Palette.void,
-    surface: Palette.obsidian,
-    surfaceElevated: Palette.graphite,
+    surface: Palette.graphite,
+    surfaceElevated: Palette.slate,
     card: Palette.slate,
-    border: Palette.ash,
-    borderSubtle: Palette.white06,
+    border: "transparent",
+    borderSubtle: "transparent",
     text: Palette.white,
     textSecondary: Palette.silver,
     textMuted: Palette.steel,
@@ -168,47 +189,47 @@ export const Spacing = {
   "6xl": 80,
 } as const;
 
-// ─── Border Radius ───────────────────────────────────────────────────────────
+// ─── Border Radius — aggressive round ────────────────────────────────────────
 
 export const Radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  "2xl": 28,
+  sm: 12,
+  md: 20,
+  lg: 24,
+  xl: 28,
+  "2xl": 32,
   full: 9999,
 } as const;
 
-// ─── Shadows (subtle — no harsh drops) ───────────────────────────────────────
+// ─── Shadows — NONE for premium flat aesthetic ───────────────────────────────
 
 export const Shadows = {
   sm: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   md: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   lg: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  glow: (color: string) => ({
-    shadowColor: color,
+    shadowColor: "transparent",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 14,
-    elevation: 6,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  glow: (_color: string) => ({
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   }),
 } as const;
 
@@ -217,7 +238,7 @@ export const Shadows = {
 export const Gradients = {
   primary: [Palette.blue, Palette.blueDim],
   accent: [Palette.violet, Palette.indigo],
-  surface: [Palette.obsidian, Palette.graphite],
+  surface: [Palette.graphite, Palette.slate],
   card: [Palette.white02, Palette.white04],
   blueGlow: [Palette.blue12, "transparent"],
 } as const;

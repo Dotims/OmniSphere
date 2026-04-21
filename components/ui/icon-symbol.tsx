@@ -20,6 +20,8 @@ const MAPPING = {
   'chevron.right': 'chevron-right',
   'globe.americas.fill': 'public',
   'person.3.fill': 'groups',
+  'newspaper.fill': 'article',
+  'chart.bar.fill': 'bar-chart',
 } as IconMapping;
 
 /**
