@@ -15,8 +15,8 @@ export const VALIDATORS_QUERY_KEY = ["validators"] as const;
 export function useValidators() {
   return useQuery<ValidatorsResponse, Error>({
     queryKey: VALIDATORS_QUERY_KEY,
-    queryFn: async () => {
-      const result = await fetchValidators();
+    queryFn: async ({ signal }) => {
+      const result = await fetchValidators({ signal });
 
       if (result.error) {
         throw new Error(result.error.message);

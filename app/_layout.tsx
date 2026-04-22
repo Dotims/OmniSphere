@@ -1,3 +1,4 @@
+import React from 'react';
 import { DarkTheme, ThemeProvider, type Theme } from '@react-navigation/native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
@@ -9,6 +10,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/theme';
 import { createQueryClient } from '@/services/query-client';
+import BootAnimation from '@/components/BootAnimation';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Prevent native splash screen from hiding automatically
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // custom dark theme — true black + vibrant blue
 const OmniSphereDarkTheme: Theme = {
@@ -36,6 +42,13 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
+  const [isBooting, setIsBooting] = React.useState(true);
+
+  // Hide the native splash screen as soon as React renders our BootAnimation
+  React.useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
@@ -61,6 +74,9 @@ export default function RootLayout() {
               />
             </Stack>
             <StatusBar style="light" />
+            {isBooting && (
+              <BootAnimation onComplete={() => setIsBooting(false)} />
+            )}
           </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
