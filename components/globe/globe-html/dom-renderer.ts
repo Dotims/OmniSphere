@@ -169,7 +169,7 @@ function upsertMarkerDom() {
   markerElementsById = nextById;
 }
 
-function updateMarkerAnchors(force) {
+function updateMarkerAnchors(force, renderPhi, renderTheta, renderScale) {
   if (!markerLayer || markerBlueprints.length === 0) {
     projectedMarkerList = [];
     return;
