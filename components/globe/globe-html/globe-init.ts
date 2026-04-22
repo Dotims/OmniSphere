@@ -1,5 +1,6 @@
 export const GLOBE_INIT_SCRIPT = `
 var globe = null;
+var lastFrameTs = Date.now();
 
 // State currently rendered on the WebGL canvas (1 frame behind JS state)
 var renderedPhi = phi;
@@ -34,17 +35,26 @@ function initGlobe() {
       glowColor: [0.04, 0.08, 0.16],
       markers: currentMarkers,
       onRender: function(state) {
+        var now = Date.now();
+        var deltaMs = now - lastFrameTs;
+        lastFrameTs = now;
+        
+        // Cap delta to prevent huge jumps after tab suspension (16.66ms = ~60fps)
+        if (deltaMs > 100) deltaMs = 16.66;
+
         if (isAutoRotationEnabled && !pointerDown && !isPinching) {
           var rampProgress = 1;
           if (autoRotationRampStartTs > 0) {
-            var elapsed = Date.now() - autoRotationRampStartTs;
+            var elapsed = now - autoRotationRampStartTs;
             rampProgress = clamp(elapsed / AUTO_ROTATION_ACCELERATION_MS, 0, 1);
             if (rampProgress >= 1) autoRotationRampStartTs = 0;
           }
 
           var easedRamp = rampProgress * rampProgress * (3 - 2 * rampProgress);
 
-          phi += 0.003 * easedRamp;
+          // 0.003 rad per 16.66ms frame = ~0.00018 rad/ms
+          var baseRotation = 0.00018 * deltaMs;
+          phi += baseRotation * easedRamp;
           phi += velocity[0];
           theta += velocity[1];
           velocity[0] *= 0.92;

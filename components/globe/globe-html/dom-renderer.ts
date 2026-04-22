@@ -175,13 +175,6 @@ function updateMarkerAnchors(force, renderPhi, renderTheta, renderScale) {
     return;
   }
 
-  var cosPhi = Math.cos(phi);
-  var sinPhi = Math.sin(phi);
-  var cosTheta = Math.cos(theta);
-  var sinTheta = Math.sin(theta);
-  var radius = cssSize * 0.4 * scale;
-  var centerX = cssSize / 2;
-  var centerY = cssSize / 2;
   var p = renderPhi !== undefined ? renderPhi : phi;
   var t = renderTheta !== undefined ? renderTheta : theta;
   var s = renderScale !== undefined ? renderScale : scale;
