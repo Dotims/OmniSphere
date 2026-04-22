@@ -60,9 +60,6 @@ function initGlobe() {
           velocity[0] *= 0.92;
           velocity[1] *= 0.92;
           theta = Math.max(-1.4, Math.min(1.4, theta));
-          
-          phi = phi % TWO_PI;
-          if (phi < 0) phi += TWO_PI;
         }
 
         materializeMarkers(false);
