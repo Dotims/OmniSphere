@@ -35,7 +35,7 @@ function processMessage(
   if (data.type === "ready") {
     isReadyRef.current = true;
     pendingDataRef.current = false;
-    setTimeout(bridgeData, 100);
+    setTimeout(bridgeData, 300);
   }
 
   if (data.type === "error") {

@@ -11,7 +11,7 @@ import { Platform } from "react-native";
 
 // ─── Color Palette ───────────────────────────────────────────────────────────
 
-export const Palette = {
+export const DarkPalette = {
   // Core backgrounds — true black
   void: "#0A0A0C",
   obsidian: "#0A0A0C",
@@ -83,41 +83,115 @@ export const Palette = {
   blue20: "rgba(59, 130, 246, 0.20)",
 } as const;
 
+export const LightPalette = {
+  // Core backgrounds — premium soft light
+  void: "#F8FAFC", // Off-white, soft blue tint
+  obsidian: "#F1F5F9",
+  graphite: "#FFFFFF",
+  slate: "#FFFFFF",
+  ash: "#E2E8F0",
+  steel: "#94A3B8",
+  silver: "#64748B",
+  mist: "#475569",
+  cloud: "#334155",
+  snow: "#1E293B",
+  white: "#0F172A",
+
+  // Primary accent
+  blue: "#2563EB",
+  blueLight: "#3B82F6",
+  blueDim: "#1D4ED8",
+  blueMuted: "#1E3A8A",
+
+  // Soft pastel accents (darker for contrast on light background)
+  mint: "#10B981",
+  mintSoft: "#D1FAE5",
+  mintDim: "#059669",
+  peach: "#F97316",
+  peachSoft: "#FFEDD5",
+  peachDim: "#EA580C",
+  yellow: "#EAB308",
+  yellowSoft: "#FEF9C3",
+  yellowDim: "#CA8A04",
+  lavender: "#8B5CF6",
+  lavenderSoft: "#EDE9FE",
+  lavenderDim: "#7C3AED",
+  sky: "#0EA5E9",
+  skySoft: "#E0F2FE",
+  skyDim: "#0284C7",
+  rose: "#F43F5E",
+  roseSoft: "#FFE4E6",
+  roseDim: "#E11D48",
+
+  // Secondary accents
+  teal: "#0D9488",
+  violet: "#6D28D9",
+  indigo: "#4F46E5",
+  cyan: "#0891B2",
+
+  // Semantic colors
+  success: "#16A34A",
+  warning: "#D97706",
+  error: "#DC2626",
+  info: "#2563EB",
+
+  // Transparency helpers (using black instead of white for light theme shadows/borders)
+  white02: "rgba(0, 0, 0, 0.02)",
+  white03: "rgba(0, 0, 0, 0.03)",
+  white04: "rgba(0, 0, 0, 0.04)",
+  white05: "rgba(0, 0, 0, 0.05)",
+  white06: "rgba(0, 0, 0, 0.06)",
+  white08: "rgba(0, 0, 0, 0.08)",
+  white10: "rgba(0, 0, 0, 0.10)",
+  white15: "rgba(0, 0, 0, 0.15)",
+  white20: "rgba(0, 0, 0, 0.20)",
+  white40: "rgba(0, 0, 0, 0.40)",
+  white60: "rgba(0, 0, 0, 0.60)",
+  white80: "rgba(0, 0, 0, 0.80)",
+  black40: "rgba(255, 255, 255, 0.40)",
+  black60: "rgba(255, 255, 255, 0.60)",
+  blue12: "rgba(37, 99, 235, 0.12)",
+  blue08: "rgba(37, 99, 235, 0.08)",
+  blue20: "rgba(37, 99, 235, 0.20)",
+} as const;
+
+export const Palette = DarkPalette;
+
 // ─── Theme Colors ────────────────────────────────────────────────────────────
 
 export const Colors = {
   dark: {
-    background: Palette.void,
-    surface: Palette.graphite,
-    surfaceElevated: Palette.slate,
-    card: Palette.slate,
+    background: DarkPalette.void,
+    surface: DarkPalette.graphite,
+    surfaceElevated: DarkPalette.slate,
+    card: DarkPalette.slate,
     border: "transparent",
     borderSubtle: "transparent",
-    text: Palette.white,
-    textSecondary: Palette.silver,
-    textMuted: Palette.steel,
-    tint: Palette.blue,
-    tintSecondary: Palette.violet,
-    icon: Palette.silver,
-    tabIconDefault: Palette.steel,
-    tabIconSelected: Palette.blue,
+    text: DarkPalette.white,
+    textSecondary: DarkPalette.silver,
+    textMuted: DarkPalette.steel,
+    tint: DarkPalette.blue,
+    tintSecondary: DarkPalette.violet,
+    icon: DarkPalette.silver,
+    tabIconDefault: DarkPalette.steel,
+    tabIconSelected: DarkPalette.blue,
     statusBar: "light" as const,
   },
   light: {
-    background: "#F0F4F8",
-    surface: "#FFFFFF",
-    surfaceElevated: "#F8FAFC",
-    card: "#FFFFFF",
-    border: "#E2E8F0",
-    borderSubtle: "rgba(0, 0, 0, 0.06)",
-    text: "#0F172A",
-    textSecondary: "#475569",
-    textMuted: "#94A3B8",
-    tint: "#3B82F6",
-    tintSecondary: "#7C3AED",
-    icon: "#64748B",
-    tabIconDefault: "#94A3B8",
-    tabIconSelected: "#3B82F6",
+    background: LightPalette.void,
+    surface: LightPalette.graphite,
+    surfaceElevated: LightPalette.ash,
+    card: LightPalette.slate,
+    border: LightPalette.ash,
+    borderSubtle: LightPalette.white06,
+    text: LightPalette.white, // This is "#0F172A" in LightPalette
+    textSecondary: LightPalette.silver, // "#64748B"
+    textMuted: LightPalette.steel,
+    tint: LightPalette.blue,
+    tintSecondary: LightPalette.violet,
+    icon: LightPalette.mist,
+    tabIconDefault: LightPalette.steel,
+    tabIconSelected: LightPalette.blue,
     statusBar: "dark" as const,
   },
 } as const;

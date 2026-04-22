@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { Palette } from '@/constants/theme';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
 export function TabBarBackground() {
   const R = 28; // Radius of the concave corner

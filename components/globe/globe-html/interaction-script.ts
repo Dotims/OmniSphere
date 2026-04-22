@@ -518,7 +518,9 @@ function handleTap(clientX, clientY) {
   }
 
   // Visual pulse at the primary marker's projected position
-  showPulse(primaryHit.screen.x, primaryHit.screen.y);
+  if (typeof isReduceAnimations !== 'undefined' && !isReduceAnimations) {
+    showPulse(primaryHit.screen.x, primaryHit.screen.y);
+  }
 
   // Fire bridge event immediately (synchronous postMessage)
   postParentMessage(JSON.stringify({

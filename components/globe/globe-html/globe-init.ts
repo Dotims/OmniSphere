@@ -3,6 +3,11 @@ var globe = null;
 var lastFrameTs = Date.now();
 
 function initGlobe() {
+  // Reset hydration gate so markers stay hidden until the new
+  // globe instance has rendered enough frames with valid layout.
+  globeRenderedFirstFrame = false;
+  globeFrameCount = 0;
+
   if (globe) {
     try { globe.destroy(); } catch(e) {}
     globe = null;
@@ -58,6 +63,22 @@ function initGlobe() {
           
           phi = phi % TWO_PI;
           if (phi < 0) phi += TWO_PI;
+        }
+
+        // Unlock marker hydration only after the globe's render loop has
+        // produced multiple frames AND the viewport has valid dimensions.
+        // This ensures phi, theta, scale, cssSize, viewportW, viewportH
+        // are all real values — preventing the initial "snap" of markers
+        // from wrong default coordinates.
+        if (!globeRenderedFirstFrame) {
+          // If viewport is still 0 (container not laid out yet), re-measure.
+          if (cssSize === 0 || viewportW === 0 || viewportH === 0) {
+            resize();
+          }
+          globeFrameCount++;
+          if (globeFrameCount >= 3 && cssSize > 0 && viewportW > 0 && viewportH > 0) {
+            globeRenderedFirstFrame = true;
+          }
         }
 
         materializeMarkers(false);

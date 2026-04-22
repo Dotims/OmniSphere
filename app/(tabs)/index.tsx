@@ -14,6 +14,7 @@ import {
 import { FontSize, FontWeight, Palette, Radius, Spacing } from "@/constants/theme";
 import { useValidatorLocations } from "@/hooks/use-validator-locations";
 import { useValidators } from "@/hooks/use-validators";
+import { useSettings } from "@/hooks/use-settings";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 
 export default function HomeScreen() {
@@ -40,6 +41,8 @@ export default function HomeScreen() {
     if (!data?.apys) return [];
     return Array.isArray(data.apys.apys) ? data.apys.apys : [];
   }, [data]);
+
+  const { activePalette } = useSettings();
 
   useEffect(() => {
     if (data) {
@@ -97,10 +100,10 @@ export default function HomeScreen() {
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
+      <View style={[styles.errorContainer, { backgroundColor: activePalette.void }]}>
         <Text style={styles.errorIcon}>⚠</Text>
-        <Text style={styles.errorTitle}>Connection Failed</Text>
-        <Text style={styles.errorMessage}>
+        <Text style={[styles.errorTitle, { color: activePalette.white }]}>Connection Failed</Text>
+        <Text style={[styles.errorMessage, { color: activePalette.steel }]}>
           {error.message || "Unable to fetch validator data"}
         </Text>
       </View>
@@ -108,10 +111,10 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: activePalette.void }]}>
       {/* header */}
       <View style={styles.header}>
-        <Text style={styles.title}>OmniSphere</Text>
+        <Text style={[styles.title, { color: activePalette.white }]}>OmniSphere</Text>
       </View>
 
       {/* ── Top half: Globe ──────────────────────────────── */}
@@ -122,9 +125,9 @@ export default function HomeScreen() {
           selectedValidatorIds={selectedIds}
           onSelectValidator={handleSelect}
         />
-        <View style={styles.overlayBadge}>
+        <View style={[styles.overlayBadge, { backgroundColor: activePalette.slate }]}>
           <View style={styles.badgeDot} />
-          <Text style={styles.badgeText}>{validators.length} validators</Text>
+          <Text style={[styles.badgeText, { color: activePalette.silver }]}>{validators.length} validators</Text>
         </View>
       </View>
 

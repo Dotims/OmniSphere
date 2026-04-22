@@ -22,6 +22,18 @@ const MAPPING = {
   'person.3.fill': 'groups',
   'newspaper.fill': 'article',
   'chart.bar.fill': 'bar-chart',
+  // Premium Tab Bar Icons
+  'globe': 'explore',
+  'server.rack': 'dns',
+  'waveform.path.ecg': 'insights',
+  'bolt.fill': 'bolt',
+  'slider.horizontal.3': 'tune',
+  // Settings Screen Icons
+  'gear': 'settings',
+  'paintbrush.fill': 'palette',
+  'network': 'hub',
+  'sparkles': 'auto-awesome',
+  'wrench.and.screwdriver.fill': 'build',
 } as IconMapping;
 
 /**

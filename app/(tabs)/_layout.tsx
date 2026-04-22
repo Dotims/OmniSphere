@@ -3,10 +3,10 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Palette } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TabBarBackground } from '@/components/ui/TabBarBackground';
+import { useSettings } from '@/hooks/use-settings';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -14,11 +14,13 @@ export default function TabLayout() {
   const baseHeight = 54;
   const totalHeight = baseHeight + insets.bottom + R;
 
+  const { activePalette } = useSettings();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Palette.blue,
-        tabBarInactiveTintColor: Palette.steel,
+        tabBarActiveTintColor: activePalette.blue,
+        tabBarInactiveTintColor: activePalette.steel,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: () => <TabBarBackground />,
@@ -43,34 +45,35 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Globe',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="globe.americas.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="globe" color={color} />,
         }}
       />
       <Tabs.Screen
         name="validators"
         options={{
-          title: 'Validators',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="person.3.fill" color={color} />,
+          title: 'Nodes',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="server.rack" color={color} />,
         }}
       />
       <Tabs.Screen
         name="analytics"
         options={{
           title: 'Analytics',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="chart.bar.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="waveform.path.ecg" color={color} />,
         }}
       />
       <Tabs.Screen
         name="news"
         options={{
-          title: 'News',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="newspaper.fill" color={color} />,
+          title: 'Feed',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="bolt.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="settings"
         options={{
-          href: null,
+          title: 'Settings',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="slider.horizontal.3" color={color} />,
         }}
       />
     </Tabs>

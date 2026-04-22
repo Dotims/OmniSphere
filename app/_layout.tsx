@@ -41,43 +41,73 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-export default function RootLayout() {
-  const [isBooting, setIsBooting] = React.useState(true);
+import { DefaultTheme } from '@react-navigation/native';
+import { LightPalette } from '@/constants/theme';
+import { SettingsProvider, useSettings } from '@/hooks/use-settings';
 
-  // Hide the native splash screen as soon as React renders our BootAnimation
+const OmniSphereLightTheme: Theme = {
+  ...DefaultTheme,
+  dark: false,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: LightPalette.blue,
+    background: LightPalette.void,
+    card: LightPalette.void,
+    text: LightPalette.snow,
+    border: 'transparent',
+    notification: LightPalette.blue,
+  },
+  fonts: DefaultTheme.fonts,
+};
+
+function AppContent() {
+  const [isBooting, setIsBooting] = React.useState(true);
+  const { theme, activePalette } = useSettings();
+  const isDark = theme === "dark";
+
   React.useEffect(() => {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
 
   return (
+    <>
+      <ThemeProvider value={isDark ? OmniSphereDarkTheme : OmniSphereLightTheme}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: activePalette.void },
+            animation: 'slide_from_right',
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="modal"
+            options={{
+              presentation: 'modal',
+              title: 'Modal',
+              headerShown: true,
+              headerStyle: { backgroundColor: activePalette.void },
+              headerTintColor: activePalette.snow,
+            }}
+          />
+        </Stack>
+        <StatusBar style={isDark ? "light" : "dark"} />
+        {isBooting && (
+          <BootAnimation onComplete={() => setIsBooting(false)} />
+        )}
+      </ThemeProvider>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider value={OmniSphereDarkTheme}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: Palette.void },
-                animation: 'slide_from_right',
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="modal"
-                options={{
-                  presentation: 'modal',
-                  title: 'Modal',
-                  headerShown: true,
-                  headerStyle: { backgroundColor: Palette.void },
-                  headerTintColor: Palette.snow,
-                }}
-              />
-            </Stack>
-            <StatusBar style="light" />
-            {isBooting && (
-              <BootAnimation onComplete={() => setIsBooting(false)} />
-            )}
-          </ThemeProvider>
+          <SettingsProvider>
+            <AppContent />
+          </SettingsProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
