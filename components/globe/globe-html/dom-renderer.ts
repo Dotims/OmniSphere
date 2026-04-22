@@ -169,7 +169,7 @@ function upsertMarkerDom() {
   markerElementsById = nextById;
 }
 
-function updateMarkerAnchors(force) {
+function updateMarkerAnchors(force, renderPhi, renderTheta, renderScale) {
   if (!markerLayer || markerBlueprints.length === 0) {
     projectedMarkerList = [];
     return;
@@ -182,6 +182,17 @@ function updateMarkerAnchors(force) {
   var radius = cssSize * 0.4 * scale;
   var centerX = cssSize / 2;
   var centerY = cssSize / 2;
+  var p = renderPhi !== undefined ? renderPhi : phi;
+  var t = renderTheta !== undefined ? renderTheta : theta;
+  var s = renderScale !== undefined ? renderScale : scale;
+
+  var cosPhi = Math.cos(p);
+  var sinPhi = Math.sin(p);
+  var cosTheta = Math.cos(t);
+  var sinTheta = Math.sin(t);
+  var radius = cssSize * 0.4 * s;
+  var centerX = viewportW / 2;
+  var centerY = viewportH / 2;
 
   var selectedLookup = Object.create(null);
   for (var s = 0; s < selectedMarkerIds.length; s++) {

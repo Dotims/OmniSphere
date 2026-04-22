@@ -1,6 +1,11 @@
 export const GLOBE_INIT_SCRIPT = `
 var globe = null;
 
+// State currently rendered on the WebGL canvas (1 frame behind JS state)
+var renderedPhi = phi;
+var renderedTheta = theta;
+var renderedScale = scale;
+
 function initGlobe() {
   if (globe) {
     try { globe.destroy(); } catch(e) {}
@@ -51,7 +56,15 @@ function initGlobe() {
         }
 
         materializeMarkers(false);
-        updateMarkerAnchors(false);
+        
+        // Sync DOM markers with the EXACT state the WebGL canvas just painted
+        // (WebGL render happens before this onRender callback)
+        updateMarkerAnchors(false, renderedPhi, renderedTheta, renderedScale);
+
+        // Save the NEW state so we can use it for markers NEXT frame
+        renderedPhi = phi;
+        renderedTheta = theta;
+        renderedScale = scale;
 
         state.phi = phi;
         state.theta = theta;
