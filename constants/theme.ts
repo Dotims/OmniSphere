@@ -1,7 +1,10 @@
 /**
- * OmniSphere Design System
- * Premium crypto-aesthetic theme with dark-first palette.
- * IOTA-inspired accent colors with glassmorphism support.
+ * OmniSphere Design System — Premium Soft Dark Theme
+ *
+ * True black background (#0A0A0C), vibrant blue (#3B82F6) primary accent,
+ * aggressive border radius (24–32px), zero borders / shadows,
+ * extremely large bold data values, muted tiny labels.
+ * Soft pastel colors retained for secondary accents (cards, badges).
  */
 
 import { Platform } from "react-native";
@@ -9,39 +12,63 @@ import { Platform } from "react-native";
 // ─── Color Palette ───────────────────────────────────────────────────────────
 
 export const Palette = {
-  // Core blacks & grays (dark mode primaries)
-  void: "#05060A",
-  obsidian: "#0A0E17",
-  graphite: "#111827",
-  slate: "#1E293B",
-  ash: "#334155",
-  steel: "#64748B",
-  silver: "#94A3B8",
-  mist: "#CBD5E1",
-  cloud: "#E2E8F0",
-  snow: "#F8FAFC",
+  // Core backgrounds — true black
+  void: "#0A0A0C",
+  obsidian: "#0A0A0C",
+  graphite: "#141416",
+  slate: "#1C1C1E",
+  ash: "#2C2C2E",
+  steel: "#636366",
+  silver: "#8E8E93",
+  mist: "#AEAEB2",
+  cloud: "#D1D1D6",
+  snow: "#F2F2F7",
+  white: "#FFFFFF",
 
-  // IOTA accent spectrum
-  cyan: "#1AB3FF",
-  cyanLight: "#66CCFF",
-  cyanDim: "#008CCC",
-  teal: "#0284C7",
+  // Primary accent — vibrant blue (restored)
+  blue: "#3B82F6",
+  blueLight: "#60A5FA",
+  blueDim: "#2563EB",
+  blueMuted: "#1D4ED8",
+
+  // Soft pastel accents (for secondary UI elements)
+  mint: "#A8F0D4",
+  mintSoft: "#D4FAE9",
+  mintDim: "#3DDEA0",
+  peach: "#FFD5C2",
+  peachSoft: "#FFE8DD",
+  peachDim: "#FF9F7A",
+  yellow: "#FFF3C4",
+  yellowSoft: "#FFF9E0",
+  yellowDim: "#FFD95C",
+  lavender: "#D8C4F6",
+  lavenderSoft: "#EDE0FF",
+  lavenderDim: "#A78BFA",
+  sky: "#BAE6FD",
+  skySoft: "#E0F2FE",
+  skyDim: "#38BDF8",
+  rose: "#FFC9D5",
+  roseSoft: "#FFE4EC",
+  roseDim: "#F472B6",
 
   // Secondary accents
+  teal: "#2DD4BF",
   violet: "#8B5CF6",
-  violetLight: "#A78BFA",
   indigo: "#6366F1",
-  blue: "#3B82F6",
-  rose: "#F43F5E",
+  cyan: "#22D3EE",
 
   // Semantic colors
-  success: "#10B981",
+  success: "#22C55E",
   warning: "#F59E0B",
   error: "#EF4444",
-  info: "#06B6D4",
+  info: "#3B82F6",
 
   // Transparency helpers
+  white02: "rgba(255, 255, 255, 0.02)",
+  white03: "rgba(255, 255, 255, 0.03)",
+  white04: "rgba(255, 255, 255, 0.04)",
   white05: "rgba(255, 255, 255, 0.05)",
+  white06: "rgba(255, 255, 255, 0.06)",
   white08: "rgba(255, 255, 255, 0.08)",
   white10: "rgba(255, 255, 255, 0.10)",
   white15: "rgba(255, 255, 255, 0.15)",
@@ -51,9 +78,9 @@ export const Palette = {
   white80: "rgba(255, 255, 255, 0.80)",
   black40: "rgba(0, 0, 0, 0.40)",
   black60: "rgba(0, 0, 0, 0.60)",
-  cyan20: "rgba(26, 179, 255, 0.20)",
-  cyan10: "rgba(26, 179, 255, 0.10)",
-  violet20: "rgba(139, 92, 246, 0.20)",
+  blue12: "rgba(59, 130, 246, 0.12)",
+  blue08: "rgba(59, 130, 246, 0.08)",
+  blue20: "rgba(59, 130, 246, 0.20)",
 } as const;
 
 // ─── Theme Colors ────────────────────────────────────────────────────────────
@@ -61,19 +88,19 @@ export const Palette = {
 export const Colors = {
   dark: {
     background: Palette.void,
-    surface: Palette.obsidian,
-    surfaceElevated: Palette.graphite,
+    surface: Palette.graphite,
+    surfaceElevated: Palette.slate,
     card: Palette.slate,
-    border: Palette.ash,
-    borderSubtle: Palette.white08,
-    text: Palette.snow,
+    border: "transparent",
+    borderSubtle: "transparent",
+    text: Palette.white,
     textSecondary: Palette.silver,
     textMuted: Palette.steel,
-    tint: Palette.cyan,
+    tint: Palette.blue,
     tintSecondary: Palette.violet,
     icon: Palette.silver,
     tabIconDefault: Palette.steel,
-    tabIconSelected: Palette.cyan,
+    tabIconSelected: Palette.blue,
     statusBar: "light" as const,
   },
   light: {
@@ -86,11 +113,11 @@ export const Colors = {
     text: "#0F172A",
     textSecondary: "#475569",
     textMuted: "#94A3B8",
-    tint: "#0D9488",
+    tint: "#3B82F6",
     tintSecondary: "#7C3AED",
     icon: "#64748B",
     tabIconDefault: "#94A3B8",
-    tabIconSelected: "#0D9488",
+    tabIconSelected: "#3B82F6",
     statusBar: "dark" as const,
   },
 } as const;
@@ -162,59 +189,58 @@ export const Spacing = {
   "6xl": 80,
 } as const;
 
-// ─── Border Radius ───────────────────────────────────────────────────────────
+// ─── Border Radius — aggressive round ────────────────────────────────────────
 
 export const Radius = {
-  sm: 6,
-  md: 10,
-  lg: 14,
-  xl: 20,
-  "2xl": 28,
+  sm: 12,
+  md: 20,
+  lg: 24,
+  xl: 28,
+  "2xl": 32,
   full: 9999,
 } as const;
 
-// ─── Shadows ─────────────────────────────────────────────────────────────────
+// ─── Shadows — NONE for premium flat aesthetic ───────────────────────────────
 
 export const Shadows = {
   sm: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   md: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   lg: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  glow: (color: string) => ({
-    shadowColor: color,
+    shadowColor: "transparent",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  glow: (_color: string) => ({
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   }),
 } as const;
 
-// ─── Gradients (for LinearGradient usage) ────────────────────────────────────
+// ─── Gradients ───────────────────────────────────────────────────────────────
 
 export const Gradients = {
-  primary: [Palette.cyan, Palette.teal],
+  primary: [Palette.blue, Palette.blueDim],
   accent: [Palette.violet, Palette.indigo],
-  surface: [Palette.obsidian, Palette.graphite],
-  card: [Palette.white05, Palette.white08],
-  cyanGlow: [Palette.cyan20, "transparent"],
-  violetGlow: [Palette.violet20, "transparent"],
+  surface: [Palette.graphite, Palette.slate],
+  card: [Palette.white02, Palette.white04],
+  blueGlow: [Palette.blue12, "transparent"],
 } as const;
 
 // ─── Animation Durations ─────────────────────────────────────────────────────

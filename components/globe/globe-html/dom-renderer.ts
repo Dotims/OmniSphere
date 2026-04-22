@@ -53,8 +53,8 @@ var LOG100 = Math.log(100);
 
 function stakeToVisual(stakeNorm) {
   var t = Math.log(1 + stakeNorm * 99) / LOG100;
-  // hue:     200 (cool blue) → 260 (blue-violet) for high stake
-  var hue     = Math.round(200 + t * 60);
+  // hue:     210 (subtle blue) → 225 (vibrant blue) for high stake
+  var hue     = Math.round(210 + t * 15);
   // lightness: 42% (dim) → 78% (bright)
   var light   = Math.round(42 + t * 36);
   // opacity:  0.45 (faint) → 1.0 (fully opaque)
@@ -175,15 +175,11 @@ function updateMarkerAnchors(force, renderPhi, renderTheta, renderScale) {
     return;
   }
 
-  var p = renderPhi !== undefined ? renderPhi : phi;
-  var t = renderTheta !== undefined ? renderTheta : theta;
-  var s = renderScale !== undefined ? renderScale : scale;
-
-  var cosPhi = Math.cos(p);
-  var sinPhi = Math.sin(p);
-  var cosTheta = Math.cos(t);
-  var sinTheta = Math.sin(t);
-  var radius = cssSize * 0.4 * s;
+  var cosPhi = Math.cos(phi);
+  var sinPhi = Math.sin(phi);
+  var cosTheta = Math.cos(theta);
+  var sinTheta = Math.sin(theta);
+  var radius = cssSize * 0.4 * scale;
   var centerX = viewportW / 2;
   var centerY = viewportH / 2;
 

@@ -8,7 +8,7 @@
  *  - `types.ts`     — shared interfaces
  */
 
-import React, { useMemo, useRef, useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, AppStateStatus, Platform, StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 
@@ -102,8 +102,8 @@ export default function GlobeView({
         key={webViewKey}
         ref={webviewRef}
         source={htmlSource}
-        style={[styles.webview, { backgroundColor: "#05060A" }]}
-        containerStyle={{ backgroundColor: "#05060A" }}
+        style={[styles.webview, { backgroundColor: "#0A0A0C" }]}
+        containerStyle={{ backgroundColor: "#0A0A0C" }}
         onMessage={handleNativeMessage}
         onContentProcessDidTerminate={handleCrash}
         onRenderProcessGone={handleCrash}
@@ -134,10 +134,10 @@ export default function GlobeView({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#05060A",
+    backgroundColor: "#0A0A0C",
   },
   webview: {
     flex: 1,
-    backgroundColor: "#05060A",
+    backgroundColor: "#0A0A0C",
   },
 });

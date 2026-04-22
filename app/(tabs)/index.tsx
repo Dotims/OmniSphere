@@ -1,16 +1,17 @@
-// main home screen — COBE globe with IOTA validator visualization
+// main home screen — COBE globe (top 50%) + Network Dashboard (bottom 50%)
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { NetworkDashboard } from "@/components/dashboard";
 import {
     GlobeLoader,
     GlobeView,
     ValidatorClusterOverlay,
     ValidatorOverlay,
 } from "@/components/globe";
-import { FontSize, FontWeight, Palette, Spacing } from "@/constants/theme";
+import { FontSize, FontWeight, Palette, Radius, Spacing } from "@/constants/theme";
 import { useValidatorLocations } from "@/hooks/use-validator-locations";
 import { useValidators } from "@/hooks/use-validators";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
@@ -113,8 +114,8 @@ export default function HomeScreen() {
         <Text style={styles.title}>OmniSphere</Text>
       </View>
 
-      {/* COBE globe */}
-      <View style={styles.canvasWrapper}>
+      {/* ── Top half: Globe ──────────────────────────────── */}
+      <View style={styles.globeSection}>
         <GlobeView
           validators={validators}
           coordinatesById={coordinatesById}
@@ -125,6 +126,21 @@ export default function HomeScreen() {
           <View style={styles.badgeDot} />
           <Text style={styles.badgeText}>{validators.length} validators</Text>
         </View>
+      </View>
+
+      {/* ── Bottom half: Dashboard ───────────────────────── */}
+      <View style={styles.dashboardSection}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.dashboardContent,
+            { paddingBottom: 82 + insets.bottom },
+          ]}
+        >
+          {data?.systemState && (
+            <NetworkDashboard systemState={data.systemState} apys={apys} />
+          )}
+        </ScrollView>
       </View>
 
       {/* validator info overlay */}
@@ -157,35 +173,48 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   title: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.xl,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.extrabold,
     letterSpacing: -0.5,
   },
-  canvasWrapper: {
+
+  // Globe: top ~50% — strictly edge-to-edge
+  globeSection: {
     flex: 1,
     position: "relative",
+    marginHorizontal: 0,
+    paddingHorizontal: 0,
   },
+
+  // Dashboard: bottom ~50% — no border
+  dashboardSection: {
+    flex: 1,
+  },
+  dashboardContent: {
+    paddingBottom: Spacing.base,
+  },
+
   overlayBadge: {
     position: "absolute",
-    bottom: Spacing.xl,
-    right: Spacing.xl,
+    bottom: Spacing.sm,
+    right: Spacing.lg,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Palette.white08,
+    backgroundColor: Palette.slate,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: 100,
+    paddingVertical: Spacing.xs + 2,
+    borderRadius: Radius.full,
     gap: 6,
   },
   badgeDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Palette.cyan,
+    backgroundColor: Palette.blue,
   },
   badgeText: {
     color: Palette.silver,
@@ -204,7 +233,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
   },
   errorTitle: {
-    color: Palette.snow,
+    color: Palette.white,
     fontSize: FontSize.lg,
     fontWeight: FontWeight.semibold,
     marginBottom: Spacing.sm,
