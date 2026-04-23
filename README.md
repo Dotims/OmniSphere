@@ -1,50 +1,49 @@
-# Welcome to your Expo app 👋
+# OmniSphere
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+OmniSphere is a professional, beautifully designed application featuring a 3D interactive globe and real-time network node monitoring. Built with Expo, React Native, and Reanimated for a premium user experience.
 
-## Get started
+## Screenshots
 
-1. Install dependencies
+<div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;">
+  <img src="./screenshots/home_light.png" width="200" alt="Home Screen (Light Mode)" />
+  <img src="./screenshots/home_dark.png" width="200" alt="Home Screen (Dark Mode)" />
+  <img src="./screenshots/globe_cluster.png" width="200" alt="Globe Node Cluster" />
+  <img src="./screenshots/validators.png" width="200" alt="Validators List" />
+  <img src="./screenshots/analytics.png" width="200" alt="Analytics Dashboard" />
+</div>
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+- **Interactive 3D Globe**: A smooth, gesture-controlled globe visualization.
+- **Node & Validator Tracking**: Real-time stats and list of network nodes.
+- **Premium Animations**: Fluid transitions and bottom sheet interactions.
+- **Custom Branding**: Fully customized splash screen, animations, and app icons.
 
-   ```bash
-   npx expo start
-   ```
+## Getting Started
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Install Dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Start the Application
 
-## Learn more
+```bash
+npm start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+In the output, you'll find options to open the app in an:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Android emulator (press `a`)
+- iOS simulator (press `i`)
+- Web browser (press `w`)
 
-## Join the community
+## Technology Stack
 
-Join our community of developers creating universal apps.
+- [Expo](https://expo.dev/)
+- React Native & Reanimated
+- React Navigation
+- React Query
+- Cobe (3D Globe)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
