@@ -35,6 +35,7 @@ export default function GlobeView({
   coordinatesById,
   selectedValidatorIds,
   onSelectValidator,
+  onReady,
 }: GlobeViewProps) {
   const webviewRef = useRef<WebView>(null);
   const iframeRef = useRef<any>(null);
@@ -70,6 +71,7 @@ export default function GlobeView({
   // Handle messages coming back from the WebView
   const { handleNativeMessage } = useGlobeMessages({
     onSelectValidator,
+    onReady,
     bridgeData,
     pendingDataRef,
     isReadyRef,

@@ -1,34 +1,42 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs } from "expo-router";
+import React from "react";
+import { Platform } from "react-native";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Palette } from '@/constants/theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HapticTab } from "@/components/haptic-tab";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { TabBarBackground } from '@/components/ui/TabBarBackground';
-import { useSettings } from '@/hooks/use-settings';
+import { TabBarBackground } from "@/components/ui/TabBarBackground";
+import { useSettings } from "@/hooks/use-settings";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const R = 28; // Radius of the concave horns
   const baseHeight = 54;
   const totalHeight = baseHeight + insets.bottom + R;
+  const tabAnimation = Platform.OS === "ios" ? "fade" : "none";
 
   const { activeColors } = useSettings();
 
   return (
     <Tabs
+      detachInactiveScreens={false}
       screenOptions={{
+        animation: tabAnimation,
+        freezeOnBlur: false,
+        lazy: false,
+        sceneStyle: {
+          backgroundColor: activeColors.background,
+        },
         tabBarActiveTintColor: activeColors.tint,
         tabBarInactiveTintColor: activeColors.tabIconDefault,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: () => <TabBarBackground />,
         tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: 'transparent',
-          borderTopColor: 'transparent',
+          position: "absolute",
+          backgroundColor: "transparent",
+          borderTopColor: "transparent",
           borderTopWidth: 0,
           elevation: 0,
           height: totalHeight,
@@ -38,36 +46,44 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 10,
-          fontWeight: '600',
+          fontWeight: "600",
           letterSpacing: 0.3,
         },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Globe',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="globe" color={color} />,
+          title: "Globe",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="globe" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="validators"
         options={{
-          title: 'Nodes',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="server.rack" color={color} />,
+          title: "Nodes",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="server.rack" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="analytics"
         options={{
-          title: 'Analytics',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="waveform.path.ecg" color={color} />,
+          title: "Analytics",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="waveform.path.ecg" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="slider.horizontal.3" color={color} />,
+          title: "Settings",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="slider.horizontal.3" color={color} />
+          ),
         }}
       />
     </Tabs>

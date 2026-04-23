@@ -1,7 +1,8 @@
 // main home screen — COBE globe (top 50%) + Network Dashboard (bottom 50%)
 
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NetworkDashboard } from "@/components/dashboard";
@@ -19,15 +20,19 @@ import {
   Spacing,
 } from "@/constants/theme";
 import { useSettings } from "@/hooks/use-settings";
+import { useStartupReadiness } from "@/hooks/use-startup-readiness";
 import { useValidatorLocations } from "@/hooks/use-validator-locations";
 import { useValidators } from "@/hooks/use-validators";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const { data, isLoading, error } = useValidators();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isGlobeMountedReady, setIsGlobeMountedReady] = useState(false);
   const { activeColors } = useSettings();
+  const { setInitialDataResolved, setGlobeReady } = useStartupReadiness();
 
   // extract validators — the API route unwraps V2
   const validators = useMemo<ValidatorSummary[]>(() => {
@@ -93,11 +98,30 @@ export default function HomeScreen() {
     setSelectedIds(ids);
   }, []);
 
+  const handleGlobeReady = useCallback(() => {
+    setIsGlobeMountedReady(true);
+  }, []);
+
   useEffect(() => {
     setSelectedIds((previous) =>
       previous.filter((validatorId) => validatorsById.has(validatorId)),
     );
   }, [validatorsById]);
+
+  useEffect(() => {
+    const isInitialDataResolved = !isLoading;
+    setInitialDataResolved(isInitialDataResolved);
+
+    if (error) {
+      setGlobeReady(true);
+    }
+  }, [isLoading, error, setInitialDataResolved, setGlobeReady]);
+
+  useEffect(() => {
+    if (isGlobeMountedReady) {
+      setGlobeReady(true);
+    }
+  }, [isGlobeMountedReady, setGlobeReady]);
 
   if (isLoading) {
     return <GlobeLoader />;
@@ -143,6 +167,7 @@ export default function HomeScreen() {
             coordinatesById={coordinatesById}
             selectedValidatorIds={selectedIds}
             onSelectValidator={handleSelect}
+            onReady={handleGlobeReady}
           />
         </View>
         <View
@@ -161,17 +186,10 @@ export default function HomeScreen() {
       </View>
 
       {/* ── Bottom section: Dashboard ─────────────────────── */}
-      <View style={styles.dashboardSection}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.dashboardContent,
-            { paddingBottom: 82 + insets.bottom },
-          ]}>
-          {data?.systemState && (
-            <NetworkDashboard systemState={data.systemState} apys={apys} />
-          )}
-        </ScrollView>
+      <View style={[styles.dashboardSection, { paddingBottom: tabBarHeight }]}>
+        {data?.systemState && (
+          <NetworkDashboard systemState={data.systemState} apys={apys} />
+        )}
       </View>
 
       {/* validator info overlay */}
@@ -235,9 +253,7 @@ const styles = StyleSheet.create({
   // Dashboard gets a larger share so Epoch/Stake/APY cards surface sooner.
   dashboardSection: {
     flex: 1.22,
-  },
-  dashboardContent: {
-    paddingBottom: Spacing.base,
+    minHeight: 0,
   },
 
   overlayBadge: {

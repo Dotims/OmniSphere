@@ -6,6 +6,7 @@ export interface GlobeViewProps {
   coordinatesById?: ValidatorCoordinatesMap;
   selectedValidatorIds?: string[];
   onSelectValidator?: (ids: string[]) => void;
+  onReady?: () => void;
 }
 
 /** Payload shape sent to the WebView for each validator marker. */

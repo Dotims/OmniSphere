@@ -27,9 +27,31 @@ const defaultSettings: SettingsState = {
   autoRotation: true,
 };
 
+const VALID_REFRESH_INTERVALS: RefreshInterval[] = [15000, 30000, 60000];
+
+function normalizeSettings(
+  raw: Partial<SettingsState> | null | undefined,
+): SettingsState {
+  const source = raw ?? {};
+
+  return {
+    theme: source.theme === "light" ? "light" : "dark",
+    refreshInterval: VALID_REFRESH_INTERVALS.includes(
+      source.refreshInterval as RefreshInterval,
+    )
+      ? (source.refreshInterval as RefreshInterval)
+      : defaultSettings.refreshInterval,
+    autoRotation:
+      typeof source.autoRotation === "boolean"
+        ? source.autoRotation
+        : defaultSettings.autoRotation,
+  };
+}
+
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-const SETTINGS_FILE_PATH = FileSystem.documentDirectory + "omnisphere_settings.json";
+const SETTINGS_FILE_PATH =
+  FileSystem.documentDirectory + "omnisphere_settings.json";
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<SettingsState>(defaultSettings);
@@ -40,9 +62,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       try {
         const info = await FileSystem.getInfoAsync(SETTINGS_FILE_PATH);
         if (info.exists) {
-          const content = await FileSystem.readAsStringAsync(SETTINGS_FILE_PATH);
-          const parsed = JSON.parse(content);
-          setSettings((prev) => ({ ...prev, ...parsed }));
+          const content =
+            await FileSystem.readAsStringAsync(SETTINGS_FILE_PATH);
+          const parsed = JSON.parse(content) as Partial<SettingsState>;
+          const normalized = normalizeSettings(parsed);
+          setSettings(normalized);
+
+          if (JSON.stringify(parsed) !== JSON.stringify(normalized)) {
+            await FileSystem.writeAsStringAsync(
+              SETTINGS_FILE_PATH,
+              JSON.stringify(normalized),
+            );
+          }
         }
       } catch (err) {
         console.log("Failed to load settings", err);
@@ -54,15 +85,22 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const saveSettings = async (newSettings: SettingsState) => {
-    setSettings(newSettings);
+    const normalized = normalizeSettings(newSettings);
+    setSettings(normalized);
     try {
-      await FileSystem.writeAsStringAsync(SETTINGS_FILE_PATH, JSON.stringify(newSettings));
+      await FileSystem.writeAsStringAsync(
+        SETTINGS_FILE_PATH,
+        JSON.stringify(normalized),
+      );
     } catch (err) {
       console.log("Failed to save settings", err);
     }
   };
 
-  const updateSetting = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
+  const updateSetting = <K extends keyof SettingsState>(
+    key: K,
+    value: SettingsState[K],
+  ) => {
     saveSettings({ ...settings, [key]: value });
   };
 
@@ -90,8 +128,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         clearCache,
         activePalette,
         activeColors,
-      }}
-    >
+      }}>
       {children}
     </SettingsContext.Provider>
   );
