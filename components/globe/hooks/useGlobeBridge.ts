@@ -21,7 +21,8 @@ interface UseGlobeBridgeOptions {
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   isReadyRef: React.MutableRefObject<boolean>;
   autoRotation: boolean;
-  reduceAnimations: boolean;
+  theme: "dark" | "light";
+  activeColors: any;
 }
 
 function normalizeLatLon(lat: number, lon: number): [number, number] | null {
@@ -49,7 +50,8 @@ export function useGlobeBridge({
   iframeRef,
   isReadyRef,
   autoRotation,
-  reduceAnimations,
+  theme,
+  activeColors,
 }: UseGlobeBridgeOptions) {
   const pendingDataRef = useRef(false);
 
@@ -162,10 +164,10 @@ export function useGlobeBridge({
     sendBridgeMessage(
       JSON.stringify({
         type: "settings",
-        payload: { autoRotation, reduceAnimations },
+        payload: { autoRotation, theme, activeColors },
       }),
     );
-  }, [webviewRef, iframeRef, isReadyRef, sendBridgeMessage, autoRotation, reduceAnimations]);
+  }, [webviewRef, iframeRef, isReadyRef, sendBridgeMessage, autoRotation, theme, activeColors]);
 
   const bridgeData = useCallback(() => {
     bridgeValidators();

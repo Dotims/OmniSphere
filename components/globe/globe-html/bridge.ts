@@ -81,14 +81,49 @@ function handleMessage(event) {
       if (typeof settingsPayload.autoRotation === 'boolean') {
         isAutoRotationEnabled = settingsPayload.autoRotation;
       }
-      if (typeof settingsPayload.reduceAnimations === 'boolean') {
-        isReduceAnimations = settingsPayload.reduceAnimations;
+      
+      var themeChanged = false;
+      if (settingsPayload.theme) {
+        var isDark = settingsPayload.theme !== "light";
+        var newDarkMode = isDark ? 1 : 0;
+        if (globeDarkMode !== newDarkMode) {
+           globeDarkMode = newDarkMode;
+           themeChanged = true;
+           
+           if (!isDark) {
+             // Light mode: vibrant colors
+             // baseColor determines both the ocean and the continent hue.
+             globeBaseColor = [0.85, 0.88, 0.95]; // light ocean
+             globeMarkerColor = hexToRgbNorm(settingsPayload.activeColors.tint || "#3B82F6"); 
+             globeGlowColor = [1, 1, 1];
+           } else {
+             // Dark mode
+             globeBaseColor = [0.2, 0.24, 0.4];
+             globeMarkerColor = hexToRgbNorm(settingsPayload.activeColors.tint || "#3B82F6");
+             globeGlowColor = [0.04, 0.08, 0.16];
+           }
+        }
+      }
+      
+      if (themeChanged) {
+        // Update the HTML background to match the native container
+        var bgColor = isDark ? '#0A0A0C' : (settingsPayload.activeColors.background || '#F5F5F7');
+        document.body.style.backgroundColor = bgColor;
+        document.documentElement.style.backgroundColor = bgColor;
+        var spaceBg = document.querySelector('.space-bg');
+        if (spaceBg) {
+          spaceBg.style.backgroundColor = bgColor;
+          spaceBg.style.opacity = isDark ? '0.22' : '0';
+        }
+        var glowEl = document.querySelector('.glow');
+        if (glowEl) {
+          glowEl.style.opacity = isDark ? '1' : '0';
+        }
+        initGlobe();
       }
     }
   } catch(e) {}
 }
-
-var isReduceAnimations = false;
 
 document.addEventListener('message', handleMessage);
 window.addEventListener('message', handleMessage);

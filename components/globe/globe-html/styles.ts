@@ -12,7 +12,7 @@ html, body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: #0A0A0C;
+  background-color: transparent;
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
@@ -31,7 +31,7 @@ html, body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-color: #0A0A0C;
+  background-color: transparent;
   background-image:
     radial-gradient(circle at 30px 40px, rgba(156, 185, 221, 0.16) 0.8px, transparent 1.4px),
     radial-gradient(circle at 90px 120px, rgba(132, 165, 206, 0.12) 0.7px, transparent 1.3px),

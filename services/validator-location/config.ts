@@ -1,4 +1,4 @@
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 
 export const DOMAIN_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 export const GEO_CACHE_TTL_MS = 60 * 24 * 60 * 60 * 1000;

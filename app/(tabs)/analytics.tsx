@@ -18,9 +18,10 @@ import Svg, { G, Circle, Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AnimatedRN, { FadeInDown } from "react-native-reanimated";
 
-import { FontSize, FontWeight, Palette, Radius, Spacing } from "@/constants/theme";
+import { Fonts, FontSize, FontWeight, Radius, Spacing } from "@/constants/theme";
 import { useValidators } from "@/hooks/use-validators";
 import type { ValidatorSummary } from "@/services/validators";
+import { useSettings } from "@/hooks/use-settings";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_PADDING = Spacing.xl;
@@ -48,7 +49,7 @@ function truncate(str: string, max: number): string {
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
-function SkeletonBlock({ width, height, style }: { width?: number | string; height: number; style?: object }) {
+function SkeletonBlock({ width, height, style, activeColors }: { width?: number | string; height: number; style?: object; activeColors: any }) {
   const shimmer = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -65,33 +66,33 @@ function SkeletonBlock({ width, height, style }: { width?: number | string; heig
   return (
     <Animated.View
       style={[
-        { width: width ?? "100%", height, borderRadius: Radius.sm, backgroundColor: Palette.ash, opacity },
+        { width: width ?? "100%", height, borderRadius: Radius.sm, backgroundColor: activeColors.border, opacity },
         style,
       ]}
     />
   );
 }
 
-function SkeletonChartCard() {
+function SkeletonChartCard({ activeColors }: { activeColors: any }) {
   return (
-    <View style={styles.chartCard}>
-      <SkeletonBlock width={100} height={12} style={{ marginBottom: 8 }} />
-      <SkeletonBlock width={160} height={20} style={{ marginBottom: Spacing.xl }} />
-      <SkeletonBlock height={200} style={{ borderRadius: Radius.full, width: 200, alignSelf: "center" }} />
+    <View style={[styles.chartCard, { backgroundColor: activeColors.surfaceElevated }]}>
+      <SkeletonBlock width={100} height={12} style={{ marginBottom: 8 }} activeColors={activeColors} />
+      <SkeletonBlock width={160} height={20} style={{ marginBottom: Spacing.xl }} activeColors={activeColors} />
+      <SkeletonBlock height={200} style={{ borderRadius: Radius.full, width: 200, alignSelf: "center" }} activeColors={activeColors} />
     </View>
   );
 }
 
 // ─── Error State ──────────────────────────────────────────────────────────────
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorState({ message, onRetry, activeColors }: { message: string; onRetry: () => void; activeColors: any }) {
   return (
     <View style={styles.errorContainer}>
-      <Text style={styles.errorIcon}>⚠</Text>
-      <Text style={styles.errorTitle}>Connection Failed</Text>
-      <Text style={styles.errorMessage}>{message}</Text>
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
-        <Text style={styles.retryBtnText}>Retry Connection</Text>
+      <Text style={[styles.errorIcon, { color: activeColors.textSecondary }]}>⚠</Text>
+      <Text style={[styles.errorTitle, { color: activeColors.text }]}>Connection Failed</Text>
+      <Text style={[styles.errorMessage, { color: activeColors.textSecondary }]}>{message}</Text>
+      <Pressable style={[styles.retryBtn, { backgroundColor: activeColors.border }]} onPress={onRetry}>
+        <Text style={[styles.retryBtnText, { color: activeColors.text }]}>Retry Connection</Text>
       </Pressable>
     </View>
   );
@@ -112,10 +113,12 @@ function CustomDonutChart({
   data,
   activeSlice,
   onSlicePress,
+  activeColors,
 }: {
   data: PieSlice[];
   activeSlice: PieSlice | null;
   onSlicePress: (slice: PieSlice) => void;
+  activeColors: any;
 }) {
   const size = 260;
   const strokeWidth = 32;
@@ -201,20 +204,20 @@ function CustomDonutChart({
             ...(activeData.tooltipY < size / 2
               ? { bottom: size - activeData.tooltipY }
               : { top: activeData.tooltipY }),
-            backgroundColor: "#202024", // Premium soft dark card
+            backgroundColor: activeColors.background, // Premium soft dark/light card
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: Radius.md,
             borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.05)",
+            borderColor: activeColors.border,
             zIndex: 100,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.5,
+            shadowOpacity: 0.1,
             shadowRadius: 8,
           }}
         >
-          <Text style={{ color: Palette.white, fontSize: 11, fontWeight: "bold" }}>
+          <Text style={{ fontFamily: Fonts.sans, color: activeColors.text, fontSize: 11, fontWeight: "bold" }}>
             {activeData.name}
           </Text>
         </AnimatedRN.View>
@@ -224,22 +227,22 @@ function CustomDonutChart({
       <View style={[StyleSheet.absoluteFillObject, { justifyContent: "center", alignItems: "center", padding: 40 }]} pointerEvents="none">
         {activeSlice ? (
           <AnimatedRN.View entering={FadeInDown.duration(200)} style={{ alignItems: "center" }}>
-            <Text style={{ color: Palette.steel, fontSize: 10, fontWeight: "bold", textTransform: "uppercase", marginBottom: 4, textAlign: "center" }} numberOfLines={1}>
+            <Text style={{ fontFamily: Fonts.sans, color: activeColors.textSecondary, fontSize: 10, fontWeight: "bold", textTransform: "uppercase", marginBottom: 4, textAlign: "center" }} numberOfLines={1}>
               {activeSlice.name}
             </Text>
-            <Text style={{ color: Palette.blue, fontSize: 32, fontWeight: "800", letterSpacing: -1 }}>
+            <Text style={{ fontFamily: Fonts.sans, color: activeColors.tint, fontSize: 32, fontWeight: "800", letterSpacing: -1 }}>
               {activeSlice.votingPower.toFixed(2)}%
             </Text>
-            <Text style={{ color: Palette.white, fontSize: 13, fontWeight: "600", marginTop: 4 }}>
+            <Text style={{ fontFamily: Fonts.sans, color: activeColors.text, fontSize: 13, fontWeight: "600", marginTop: 4 }}>
               {activeSlice.stakeFormatted}
             </Text>
           </AnimatedRN.View>
         ) : (
           <AnimatedRN.View style={{ alignItems: "center" }}>
-            <Text style={{ color: Palette.steel, fontSize: 10, fontWeight: "bold", textTransform: "uppercase", marginBottom: 4 }}>
+            <Text style={{ fontFamily: Fonts.sans, color: activeColors.textSecondary, fontSize: 10, fontWeight: "bold", textTransform: "uppercase", marginBottom: 4 }}>
               Total Network
             </Text>
-            <Text style={{ color: Palette.white, fontSize: 18, fontWeight: "800", letterSpacing: -0.5, textAlign: "center" }}>
+            <Text style={{ fontFamily: Fonts.sans, color: activeColors.text, fontSize: 18, fontWeight: "800", letterSpacing: -0.5, textAlign: "center" }}>
               Tap a slice
             </Text>
           </AnimatedRN.View>
@@ -254,6 +257,7 @@ function CustomDonutChart({
 export default function AnalyticsScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading, isError, error, refetch } = useValidators();
+  const { activeColors } = useSettings();
   
   const [activeSlice, setActiveSlice] = useState<PieSlice | null>(null);
   const [isManualRefresh, setIsManualRefresh] = useState(false);
@@ -278,19 +282,37 @@ export default function AnalyticsScreen() {
     const top10 = sorted.slice(0, 10);
     const rest = sorted.slice(10);
     
-    // Premium Soft Dark Palette for slices
+    // Convert hex to rgb string format
+    const hexToRgba = (hex: string, alpha: number) => {
+        let r = 0, g = 0, b = 0;
+        if (hex.length === 4) {
+          r = parseInt(hex[1] + hex[1], 16);
+          g = parseInt(hex[2] + hex[2], 16);
+          b = parseInt(hex[3] + hex[3], 16);
+        } else if (hex.length === 7) {
+          r = parseInt(hex[1] + hex[2], 16);
+          g = parseInt(hex[3] + hex[4], 16);
+          b = parseInt(hex[5] + hex[6], 16);
+        }
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+    
+    // Premium theme colors
+    const primaryColor = activeColors.tint || "#3B82F6";
+    const textSecondary = activeColors.textSecondary || "#A1A1AA";
+
     const slices: PieSlice[] = top10.map((v, i) => {
-      let color = Palette.blue;
-      if (i === 0) color = Palette.blue; // Primary IOTA Blue for lead slice
-      else if (i === 1) color = "rgba(59, 130, 246, 0.75)";
-      else if (i === 2) color = "rgba(59, 130, 246, 0.45)";
-      else if (i === 3) color = "rgba(255, 255, 255, 0.5)"; // Deep grays / muted accents
-      else if (i === 4) color = "rgba(255, 255, 255, 0.4)";
-      else if (i === 5) color = "rgba(255, 255, 255, 0.3)";
-      else if (i === 6) color = "rgba(255, 255, 255, 0.2)";
-      else if (i === 7) color = "rgba(255, 255, 255, 0.15)";
-      else if (i === 8) color = "rgba(255, 255, 255, 0.1)";
-      else if (i === 9) color = "rgba(255, 255, 255, 0.05)";
+      let color = primaryColor;
+      if (i === 0) color = primaryColor; // Lead slice
+      else if (i === 1) color = hexToRgba(primaryColor, 0.75);
+      else if (i === 2) color = hexToRgba(primaryColor, 0.45);
+      else if (i === 3) color = hexToRgba(textSecondary, 0.5); // Deep grays / muted accents
+      else if (i === 4) color = hexToRgba(textSecondary, 0.4);
+      else if (i === 5) color = hexToRgba(textSecondary, 0.3);
+      else if (i === 6) color = hexToRgba(textSecondary, 0.2);
+      else if (i === 7) color = hexToRgba(textSecondary, 0.15);
+      else if (i === 8) color = hexToRgba(textSecondary, 0.1);
+      else if (i === 9) color = hexToRgba(textSecondary, 0.05);
 
       return {
         name: truncate(v.name || "Unknown", 14),
@@ -306,11 +328,11 @@ export default function AnalyticsScreen() {
         name: "Others",
         votingPower: rest.reduce((s, v) => s + Number(v.votingPower ?? 0), 0) / 100,
         stakeFormatted: formatIota(combinedStake.toString()) + " IOTA",
-        color: "rgba(255, 255, 255, 0.04)", // Visually subtle darker shade
+        color: hexToRgba(textSecondary, 0.04), // Visually subtle shade
       });
     }
     return slices;
-  }, [activeValidators]);
+  }, [activeValidators, activeColors]);
 
   // Set default active slice when data loads
   React.useEffect(() => {
@@ -321,8 +343,6 @@ export default function AnalyticsScreen() {
 
   // ── APY Leaderboard ─────────────────────────────────────────────────────────
 
-
-  // ── APY Leaderboard ─────────────────────────────────────────────────────────
   const apyLeaderboard = useMemo(() => {
     if (!activeValidators.length || !apys.length) return [];
     const topByStake = [...activeValidators]
@@ -349,16 +369,16 @@ export default function AnalyticsScreen() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: activeColors.background, paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Analytics</Text>
-          <Text style={styles.subtitle}>Network Statistics · Live</Text>
+          <Text style={[styles.title, { color: activeColors.text }]}>Analytics</Text>
+          <Text style={[styles.subtitle, { color: activeColors.textSecondary }]}>Network Statistics · Live</Text>
         </View>
         <View style={styles.livePill}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveText}>LIVE</Text>
+          <View style={[styles.liveDot, { backgroundColor: activeColors.tint }]} />
+          <Text style={[styles.liveText, { color: activeColors.tint }]}>LIVE</Text>
         </View>
       </View>
 
@@ -366,6 +386,7 @@ export default function AnalyticsScreen() {
         <ErrorState
           message={error?.message ?? "Unable to reach the IOTA RPC endpoint."}
           onRetry={handleRetry}
+          activeColors={activeColors}
         />
       )}
 
@@ -377,19 +398,19 @@ export default function AnalyticsScreen() {
             <RefreshControl
               refreshing={isManualRefresh}
               onRefresh={handleRetry}
-              tintColor={Palette.blue}
-              colors={[Palette.blue]}
+              tintColor={activeColors.tint}
+              colors={[activeColors.tint]}
             />
           }
         >
           {/* 1. Voting Power Chart (Donut) */}
           {isInitialLoad ? (
-            <SkeletonChartCard />
+            <SkeletonChartCard activeColors={activeColors} />
           ) : (
-            <AnimatedRN.View entering={FadeInDown.duration(300).delay(100)} style={styles.chartCard}>
+            <AnimatedRN.View entering={FadeInDown.duration(300).delay(100)} style={[styles.chartCard, { backgroundColor: activeColors.surfaceElevated }]}>
               <View style={styles.cardHeader}>
-                <Text style={styles.cardSectionLabel}>VOTING POWER</Text>
-                <Text style={styles.cardTitle}>Network Consensus</Text>
+                <Text style={[styles.cardSectionLabel, { color: activeColors.textSecondary }]}>VOTING POWER</Text>
+                <Text style={[styles.cardTitle, { color: activeColors.text }]}>Network Consensus</Text>
               </View>
               {pieChartData.length > 0 ? (
                 <View style={styles.pieChartContainer}>
@@ -397,10 +418,11 @@ export default function AnalyticsScreen() {
                     data={pieChartData}
                     activeSlice={activeSlice}
                     onSlicePress={setActiveSlice}
+                    activeColors={activeColors}
                   />
                 </View>
               ) : (
-                <Text style={styles.mutedText}>No validator data available</Text>
+                <Text style={[styles.mutedText, { color: activeColors.textSecondary }]}>No validator data available</Text>
               )}
             </AnimatedRN.View>
           )}
@@ -408,7 +430,7 @@ export default function AnalyticsScreen() {
           {/* 3. Premium Legend Cards */}
           {!isInitialLoad && pieChartData.length > 0 && (
             <View style={styles.legendSection}>
-              <Text style={styles.sectionLabel}>VALIDATOR LEADERBOARD</Text>
+              <Text style={[styles.sectionLabel, { color: activeColors.textSecondary }]}>VALIDATOR LEADERBOARD</Text>
               <View style={styles.legendList}>
                 {(isLegendExpanded ? pieChartData : pieChartData.slice(0, 3)).map((slice, index) => {
                   const isActive = activeSlice?.name === slice.name;
@@ -417,21 +439,22 @@ export default function AnalyticsScreen() {
                       <Pressable
                         style={({ pressed }) => [
                           styles.legendCard,
-                          isActive && styles.legendCardActive,
+                          { backgroundColor: activeColors.surfaceElevated },
+                          isActive && { borderColor: activeColors.tint, backgroundColor: activeColors.background },
                           pressed && styles.cardPressed
                         ]}
                         onPress={() => setActiveSlice(isActive ? null : slice)}
                       >
                         <View style={[styles.legendDot, { backgroundColor: slice.color }]} />
                         <View style={styles.legendTextWrap}>
-                          <Text style={styles.legendName} numberOfLines={1}>{slice.name}</Text>
-                          <Text style={styles.legendSub}>
+                          <Text style={[styles.legendName, { color: activeColors.text }]} numberOfLines={1}>{slice.name}</Text>
+                          <Text style={[styles.legendSub, { color: activeColors.textSecondary }]}>
                             {slice.name === "Others" ? "Combined voting power" : `Rank ${index + 1}`}
                           </Text>
                         </View>
                         <View style={{ alignItems: "flex-end" }}>
-                          <Text style={styles.legendValue}>{slice.votingPower.toFixed(2)}%</Text>
-                          <Text style={styles.legendSubRight}>{slice.stakeFormatted}</Text>
+                          <Text style={[styles.legendValue, { color: activeColors.tint }]}>{slice.votingPower.toFixed(2)}%</Text>
+                          <Text style={[styles.legendSubRight, { color: activeColors.textSecondary }]}>{slice.stakeFormatted}</Text>
                         </View>
                       </Pressable>
                     </AnimatedRN.View>
@@ -440,10 +463,10 @@ export default function AnalyticsScreen() {
               </View>
               {pieChartData.length > 3 && (
                 <Pressable
-                  style={styles.expandButton}
+                  style={[styles.expandButton, { backgroundColor: activeColors.border }]}
                   onPress={() => setIsLegendExpanded(!isLegendExpanded)}
                 >
-                  <Text style={styles.expandButtonText}>
+                  <Text style={[styles.expandButtonText, { color: activeColors.text }]}>
                     {isLegendExpanded ? "Show Less" : `Show All Validators (${pieChartData.length})`}
                   </Text>
                 </Pressable>
@@ -454,7 +477,7 @@ export default function AnalyticsScreen() {
           {/* 4. APY Horizontal Carousel */}
           {!isInitialLoad && apyLeaderboard.length > 0 && (
             <View style={styles.apySection}>
-              <Text style={[styles.sectionLabel, { paddingHorizontal: Spacing.base }]}>HIGHEST YIELD (APY)</Text>
+              <Text style={[styles.sectionLabel, { paddingHorizontal: Spacing.base, color: activeColors.textSecondary }]}>HIGHEST YIELD (APY)</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -464,14 +487,14 @@ export default function AnalyticsScreen() {
               >
                 {apyLeaderboard.map((item, index) => (
                   <AnimatedRN.View key={item.id} entering={FadeInDown.duration(300).delay(200 + index * 50)}>
-                    <View style={styles.apyCard}>
+                    <View style={[styles.apyCard, { backgroundColor: activeColors.surfaceElevated }]}>
                       <View style={styles.apyHeader}>
-                        <Text style={styles.apyRank}>#{index + 1}</Text>
-                        <Text style={styles.apyValue}>{item.displayValue}</Text>
+                        <Text style={[styles.apyRank, { color: activeColors.textSecondary }]}>#{index + 1}</Text>
+                        <Text style={[styles.apyValue, { color: activeColors.tint }]}>{item.displayValue}</Text>
                       </View>
-                      <Text style={styles.apyName} numberOfLines={1}>{item.name}</Text>
-                      <View style={styles.barTrack}>
-                        <View style={[styles.barFill, { width: `${item.percentageOfMax}%` as unknown as number }]} />
+                      <Text style={[styles.apyName, { color: activeColors.text }]} numberOfLines={1}>{item.name}</Text>
+                      <View style={[styles.barTrack, { backgroundColor: activeColors.border }]}>
+                        <View style={[styles.barFill, { backgroundColor: activeColors.tint, width: `${item.percentageOfMax}%` as unknown as number }]} />
                       </View>
                     </View>
                   </AnimatedRN.View>
@@ -489,7 +512,7 @@ export default function AnalyticsScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Palette.void },
+  container: { flex: 1 },
 
   header: {
     paddingHorizontal: Spacing.lg,
@@ -498,8 +521,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  title: { color: Palette.white, fontSize: FontSize.xl, fontWeight: FontWeight.extrabold, letterSpacing: -0.5 },
-  subtitle: { color: Palette.steel, fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: 2 },
+  title: { fontFamily: Fonts.sans, fontSize: FontSize.xl, fontWeight: FontWeight.extrabold, letterSpacing: -0.5 },
+  subtitle: { fontFamily: Fonts.sans, fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: 2 },
 
   livePill: {
     flexDirection: "row",
@@ -510,31 +533,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: 6,
   },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Palette.blue },
-  liveText: { color: Palette.blue, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1 },
+  liveDot: { width: 6, height: 6, borderRadius: 3 },
+  liveText: { fontFamily: Fonts.sans, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1 },
 
   content: { paddingVertical: Spacing.md, gap: Spacing.xl },
   
   sectionLabel: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: 11,
     fontWeight: FontWeight.bold,
     letterSpacing: 1.5,
     textTransform: "uppercase",
     marginBottom: Spacing.md,
   },
-  mutedText: { color: Palette.steel, fontSize: FontSize.sm, paddingVertical: Spacing.lg, textAlign: "center" },
+  mutedText: { fontFamily: Fonts.sans, fontSize: FontSize.sm, paddingVertical: Spacing.lg, textAlign: "center" },
 
   // Primary Chart Cards
   chartCard: {
-    backgroundColor: Palette.slate,
     borderRadius: Radius["2xl"],
     padding: CARD_PADDING,
     marginHorizontal: Spacing.base,
   },
   cardHeader: { marginBottom: Spacing.xl },
-  cardSectionLabel: { color: Palette.steel, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, textTransform: "uppercase" },
-  cardTitle: { color: Palette.white, fontSize: FontSize.lg, fontWeight: FontWeight.extrabold, marginTop: 4 },
+  cardSectionLabel: { fontFamily: Fonts.sans, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, textTransform: "uppercase" },
+  cardTitle: { fontFamily: Fonts.sans, fontSize: FontSize.lg, fontWeight: FontWeight.extrabold, marginTop: 4 },
 
   pieChartContainer: { alignItems: "center", justifyContent: "center", marginVertical: Spacing.sm },
 
@@ -544,7 +566,6 @@ const styles = StyleSheet.create({
   legendCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Palette.slate,
     borderRadius: Radius["2xl"],
     padding: Spacing.lg,
     gap: Spacing.lg,
@@ -556,54 +577,47 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
-    backgroundColor: "rgba(255,255,255,0.05)",
     borderRadius: Radius.full,
   },
   expandButtonText: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,
-  },
-  legendCardActive: {
-    borderColor: "rgba(59, 130, 246, 0.3)",
-    backgroundColor: "#202024",
   },
   cardPressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
   legendDot: { width: 14, height: 14, borderRadius: 7 },
   legendTextWrap: { flex: 1 },
-  legendName: { color: Palette.white, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  legendSub: { color: Palette.steel, fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: 4 },
-  legendSubRight: { color: Palette.steel, fontSize: FontSize.xs, fontWeight: FontWeight.medium, marginTop: 4 },
-  legendValue: { color: Palette.blue, fontSize: FontSize["2xl"], fontWeight: FontWeight.extrabold, letterSpacing: -0.5 },
+  legendName: { fontFamily: Fonts.sans, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  legendSub: { fontFamily: Fonts.sans, fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: 4 },
+  legendSubRight: { fontFamily: Fonts.sans, fontSize: FontSize.xs, fontWeight: FontWeight.medium, marginTop: 4 },
+  legendValue: { fontFamily: Fonts.sans, fontSize: FontSize["2xl"], fontWeight: FontWeight.extrabold, letterSpacing: -0.5 },
 
   // APY Horizontal Carousel
   apySection: { marginTop: Spacing.md },
   apyCarousel: { paddingHorizontal: Spacing.base, gap: Spacing.md },
   apyCard: {
-    backgroundColor: Palette.slate,
     borderRadius: Radius["2xl"],
     padding: Spacing.xl,
     width: 200,
     justifyContent: "space-between",
   },
   apyHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.sm },
-  apyRank: { color: Palette.steel, fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  apyValue: { color: Palette.blue, fontSize: FontSize.lg, fontWeight: FontWeight.extrabold },
-  apyName: { color: Palette.white, fontSize: FontSize.md, fontWeight: FontWeight.bold, marginBottom: Spacing.lg },
-  barTrack: { height: 6, backgroundColor: Palette.ash, borderRadius: 3, overflow: "hidden" },
-  barFill: { height: "100%", backgroundColor: Palette.blue, borderRadius: 3 },
+  apyRank: { fontFamily: Fonts.sans, fontSize: FontSize.sm, fontWeight: FontWeight.bold },
+  apyValue: { fontFamily: Fonts.sans, fontSize: FontSize.lg, fontWeight: FontWeight.extrabold },
+  apyName: { fontFamily: Fonts.sans, fontSize: FontSize.md, fontWeight: FontWeight.bold, marginBottom: Spacing.lg },
+  barTrack: { height: 6, borderRadius: 3, overflow: "hidden" },
+  barFill: { height: "100%", borderRadius: 3 },
 
   // Error
   errorContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing["3xl"], gap: Spacing.md },
-  errorIcon: { fontSize: 48, color: Palette.steel },
-  errorTitle: { color: Palette.white, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  errorMessage: { color: Palette.steel, fontSize: FontSize.base, textAlign: "center", lineHeight: 22 },
+  errorIcon: { fontSize: 48 },
+  errorTitle: { fontFamily: Fonts.sans, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  errorMessage: { fontFamily: Fonts.sans, fontSize: FontSize.base, textAlign: "center", lineHeight: 22 },
   retryBtn: {
     marginTop: Spacing.lg,
-    backgroundColor: Palette.ash,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
   },
-  retryBtnText: { color: Palette.white, fontSize: FontSize.base, fontWeight: FontWeight.bold },
+  retryBtnText: { fontFamily: Fonts.sans, fontSize: FontSize.base, fontWeight: FontWeight.bold },
 });

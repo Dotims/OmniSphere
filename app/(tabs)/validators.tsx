@@ -12,18 +12,20 @@ import {
   TextInput,
   View,
 } from "react-native";
+
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 
 import {
+  Fonts,
   FontSize,
   FontWeight,
-  Palette,
   Radius,
   Spacing,
 } from "@/constants/theme";
 import { useValidators } from "@/hooks/use-validators";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
+import { useSettings } from "@/hooks/use-settings";
 
 // ── Sort keys ───────────────────────────────────────────────
 
@@ -72,8 +74,11 @@ function truncateAddress(address: string): string {
 function ValidatorRow({
   validator,
   apy,
+  isFirst,
+  isLast,
   isExpanded,
   onToggle,
+  activeColors,
 }: {
   validator: ValidatorSummary;
   apy?: ValidatorApy;
@@ -81,6 +86,7 @@ function ValidatorRow({
   isLast: boolean;
   isExpanded: boolean;
   onToggle: () => void;
+  activeColors: any;
 }) {
   const stake = formatStake(validator.stakingPoolIotaBalance);
   const nextStake = formatStake(validator.nextEpochStake);
@@ -92,37 +98,42 @@ function ValidatorRow({
     <Animated.View layout={LinearTransition.duration(200)}>
       <Pressable
         onPress={onToggle}
-        style={[styles.row, isExpanded && styles.rowExpanded]}
+        style={[
+          styles.row,
+          { backgroundColor: activeColors.surfaceElevated },
+          isExpanded && styles.rowExpanded
+        ]}
       >
-        <View style={styles.rowDot} />
+        <View style={[styles.rowDot, { backgroundColor: activeColors.tint }]} />
         <View style={styles.rowTextWrap}>
-          <Text style={styles.rowName} numberOfLines={1}>
+          <Text style={[styles.rowName, { color: activeColors.text }]} numberOfLines={1}>
             {validator.name || "Unknown Validator"}
           </Text>
-          <Text style={styles.rowAddress} numberOfLines={1}>
+          <Text style={[styles.rowAddress, { color: activeColors.textSecondary }]} numberOfLines={1}>
             {truncateAddress(validator.iotaAddress)}
           </Text>
         </View>
-        <Text style={styles.rowStakeHint} numberOfLines={1}>
+        <Text style={[styles.rowStakeHint, { color: activeColors.textSecondary }]} numberOfLines={1}>
           {stake}
         </Text>
-        <Text style={styles.chevron}>{isExpanded ? "▴" : "▾"}</Text>
+        <Text style={[styles.chevron, { color: activeColors.border }]}>{isExpanded ? "▴" : "▾"}</Text>
       </Pressable>
 
       {isExpanded && (
         <Animated.View
           entering={FadeInDown.duration(150)}
-          style={styles.expandedPanel}
+          style={[styles.expandedPanel, { backgroundColor: activeColors.surfaceElevated }]}
         >
           <View style={styles.metricsGrid}>
-            <MetricCell label="STAKE" value={`${stake} IOTA`} />
-            <MetricCell label="APY" value={apyPercent} accent />
-            <MetricCell label="VOTING POWER" value={votingPower} />
-            <MetricCell label="COMMISSION" value={commission} />
-            <MetricCell label="NEXT EPOCH STAKE" value={`${nextStake} IOTA`} />
+            <MetricCell label="STAKE" value={`${stake} IOTA`} activeColors={activeColors} />
+            <MetricCell label="APY" value={apyPercent} accent activeColors={activeColors} />
+            <MetricCell label="VOTING POWER" value={votingPower} activeColors={activeColors} />
+            <MetricCell label="COMMISSION" value={commission} activeColors={activeColors} />
+            <MetricCell label="NEXT EPOCH STAKE" value={`${nextStake} IOTA`} activeColors={activeColors} />
             <MetricCell
               label="NEXT COMMISSION"
               value={formatPercent(validator.nextEpochCommissionRate)}
+              activeColors={activeColors}
             />
           </View>
         </Animated.View>
@@ -135,15 +146,17 @@ function MetricCell({
   label,
   value,
   accent,
+  activeColors,
 }: {
   label: string;
   value: string;
   accent?: boolean;
+  activeColors: any;
 }) {
   return (
-    <View style={styles.metricCell}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={[styles.metricValue, accent && styles.metricAccent]}>
+    <View style={[styles.metricCell, { backgroundColor: activeColors.border }]}>
+      <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>{label}</Text>
+      <Text style={[styles.metricValue, { color: accent ? activeColors.tint : activeColors.text }]}>
         {value}
       </Text>
     </View>
@@ -155,6 +168,7 @@ function MetricCell({
 export default function ValidatorsScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading } = useValidators();
+  const { activeColors } = useSettings();
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("stake");
   const [sortAsc, setSortAsc] = useState(false);
@@ -254,9 +268,10 @@ export default function ValidatorsScreen() {
         isLast={index === filteredValidators.length - 1}
         isExpanded={expandedId === item.iotaAddress}
         onToggle={() => handleToggle(item.iotaAddress)}
+        activeColors={activeColors}
       />
     ),
-    [apyByAddress, expandedId, filteredValidators.length, handleToggle],
+    [apyByAddress, expandedId, filteredValidators.length, handleToggle, activeColors],
   );
 
   const keyExtractor = useCallback(
@@ -265,12 +280,12 @@ export default function ValidatorsScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: activeColors.background, paddingTop: insets.top }]}>
       {/* ── Header ─────────────────────────────────────── */}
       <View style={styles.header}>
-        <Text style={styles.title}>Validators</Text>
-        <View style={styles.countBadgeWrap}>
-          <Text style={styles.countBadge}>
+        <Text style={[styles.title, { color: activeColors.text }]}>Validators</Text>
+        <View style={[styles.countBadgeWrap, { backgroundColor: activeColors.surfaceElevated }]}>
+          <Text style={[styles.countBadge, { color: activeColors.tint }]}>
             {filteredValidators.length}
             {search ? ` / ${validators.length}` : ""}
           </Text>
@@ -280,9 +295,9 @@ export default function ValidatorsScreen() {
       {/* ── Search ─────────────────────────────────────── */}
       <View style={styles.searchWrap}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { backgroundColor: activeColors.surfaceElevated, color: activeColors.text }]}
           placeholder="Search by name or address…"
-          placeholderTextColor={Palette.steel}
+          placeholderTextColor={activeColors.textSecondary}
           value={search}
           onChangeText={setSearch}
           autoCapitalize="none"
@@ -299,12 +314,17 @@ export default function ValidatorsScreen() {
             <Pressable
               key={opt.key}
               onPress={() => handleSort(opt.key)}
-              style={[styles.sortPill, active && styles.sortPillActive]}
+              style={[
+                styles.sortPill,
+                { backgroundColor: activeColors.surfaceElevated },
+                active && { backgroundColor: activeColors.tint }
+              ]}
             >
               <Text
                 style={[
                   styles.sortPillText,
-                  active && styles.sortPillTextActive,
+                  { color: activeColors.textSecondary },
+                  active && { color: activeColors.background },
                 ]}
               >
                 {opt.label}
@@ -318,7 +338,7 @@ export default function ValidatorsScreen() {
       {/* ── List ───────────────────────────────────────── */}
       {isLoading ? (
         <View style={styles.centerWrap}>
-          <Text style={styles.mutedText}>Loading validators…</Text>
+          <Text style={[styles.mutedText, { color: activeColors.textSecondary }]}>Loading validators…</Text>
         </View>
       ) : (
         <FlatList
@@ -332,7 +352,7 @@ export default function ValidatorsScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.centerWrap}>
-              <Text style={styles.mutedText}>No validators found</Text>
+              <Text style={[styles.mutedText, { color: activeColors.textSecondary }]}>No validators found</Text>
             </View>
           }
         />
@@ -346,7 +366,6 @@ export default function ValidatorsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.void,
   },
   header: {
     flexDirection: "row",
@@ -356,19 +375,18 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   title: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xl,
     fontWeight: FontWeight.extrabold,
     letterSpacing: -0.5,
   },
   countBadgeWrap: {
-    backgroundColor: Palette.slate,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing["2xs"] + 1,
   },
   countBadge: {
-    color: Palette.blue,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,
   },
@@ -379,11 +397,10 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.sm,
   },
   searchInput: {
-    backgroundColor: Palette.slate,
+    fontFamily: Fonts.sans,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md + 2,
-    color: Palette.white,
     fontSize: FontSize.sm,
   },
 
@@ -398,18 +415,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md + 2,
     paddingVertical: Spacing.xs + 3,
     borderRadius: Radius.full,
-    backgroundColor: Palette.slate,
-  },
-  sortPillActive: {
-    backgroundColor: Palette.blue,
   },
   sortPillText: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xs,
     fontWeight: FontWeight.semibold,
-  },
-  sortPillTextActive: {
-    color: Palette.void,
   },
 
   // List
@@ -425,7 +435,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing["3xl"],
   },
   mutedText: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.sm,
   },
 
@@ -436,7 +446,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md + 4,
-    backgroundColor: Palette.slate,
     borderRadius: Radius.lg,
   },
   rowExpanded: {
@@ -447,31 +456,29 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Palette.blue,
   },
   rowTextWrap: {
     flex: 1,
   },
   rowName: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.semibold,
   },
   rowAddress: {
-    color: Palette.steel,
     fontSize: 10,
     marginTop: 2,
     fontFamily: "monospace",
   },
   rowStakeHint: {
-    color: Palette.mist,
+    fontFamily: Fonts.sans,
     fontSize: 11,
     fontWeight: FontWeight.bold,
     maxWidth: 80,
     textAlign: "right",
   },
   chevron: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xs,
     marginLeft: Spacing.xs,
   },
@@ -481,7 +488,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.lg,
-    backgroundColor: Palette.slate,
     borderBottomLeftRadius: Radius.lg,
     borderBottomRightRadius: Radius.lg,
   },
@@ -493,13 +499,12 @@ const styles = StyleSheet.create({
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
-    backgroundColor: Palette.ash,
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 4,
   },
   metricLabel: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: 9,
     fontWeight: FontWeight.semibold,
     letterSpacing: 1,
@@ -507,11 +512,8 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   metricValue: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.base,
     fontWeight: FontWeight.bold,
-  },
-  metricAccent: {
-    color: Palette.blue,
   },
 });
