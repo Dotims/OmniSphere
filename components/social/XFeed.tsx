@@ -6,7 +6,8 @@
  * which often triggers during local development/hot-reloading.
  */
 
-import { FontSize, FontWeight, Palette, Radius, Spacing } from "@/constants/theme";
+import { useSettings } from "@/hooks/use-settings";
+import { FontSize, FontWeight, Radius, Spacing } from "@/constants/theme";
 import { useState } from "react";
 import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
@@ -14,7 +15,7 @@ import { WebView } from "react-native-webview";
 const SYNDICATION_URL =
   "https://x.com/srv/timeline-profile/screen-name/iota?theme=dark&transparent=true&noheader=true&nofooter=true&noborders=true&hideTweetMedia=false&tweetLimit=1";
 
-const HTML_CONTENT = `
+const getHtmlContent = (bgColor: string) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -24,7 +25,7 @@ const HTML_CONTENT = `
     body, html {
       margin: 0;
       padding: 0;
-      background-color: #0A0A0C;
+      background-color: ${bgColor};
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -66,6 +67,7 @@ const HTML_CONTENT = `
 `;
 
 export default function XFeed() {
+  const { activeColors } = useSettings();
   const [isLoading, setIsLoading] = useState(true);
   const [isRateLimited, setIsRateLimited] = useState(false);
 
@@ -85,18 +87,18 @@ export default function XFeed() {
 
   if (isRateLimited) {
     return (
-      <View style={styles.errorContainer}>
-        <View style={styles.errorCard}>
+      <View style={[styles.errorContainer, { backgroundColor: activeColors.background }]}>
+        <View style={[styles.errorCard, { backgroundColor: activeColors.surfaceElevated }]}>
           <Text style={styles.errorIcon}>⏱️</Text>
-          <Text style={styles.errorTitle}>Rate Limit Exceeded</Text>
-          <Text style={styles.errorMessage}>
+          <Text style={[styles.errorTitle, { color: activeColors.text }]}>Rate Limit Exceeded</Text>
+          <Text style={[styles.errorMessage, { color: activeColors.textSecondary }]}>
             Twitter's embed service is temporarily rate-limiting this device due to too many requests (common during development reloads).
           </Text>
           <Pressable
-            style={styles.openXBtn}
+            style={[styles.openXBtn, { backgroundColor: activeColors.tint }]}
             onPress={() => Linking.openURL("https://x.com/iota")}
           >
-            <Text style={styles.openXBtnText}>View Feed on X</Text>
+            <Text style={[styles.openXBtnText, { color: activeColors.background }]}>View Feed on X</Text>
           </Pressable>
         </View>
       </View>
@@ -104,19 +106,19 @@ export default function XFeed() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: activeColors.background }]}>
       {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="small" color={Palette.blue} />
-          <Text style={styles.loadingText}>Loading feed…</Text>
+        <View style={[styles.loadingOverlay, { backgroundColor: activeColors.background }]}>
+          <ActivityIndicator size="small" color={activeColors.tint} />
+          <Text style={[styles.loadingText, { color: activeColors.textSecondary }]}>Loading feed…</Text>
         </View>
       )}
       <WebView
         source={{ 
-          html: HTML_CONTENT, 
+          html: getHtmlContent(activeColors.background), 
           baseUrl: "https://twitter.com" 
         }}
-        style={[styles.webview, isLoading && styles.webviewHidden]}
+        style={[styles.webview, { backgroundColor: activeColors.background }, isLoading && styles.webviewHidden]}
         javaScriptEnabled={true}
         domStorageEnabled={true}
         onMessage={handleMessage}
@@ -129,7 +131,7 @@ export default function XFeed() {
           `;
           return injectedJS;
         }}
-        backgroundColor={Palette.void}
+        backgroundColor={activeColors.background}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -139,11 +141,9 @@ export default function XFeed() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.void,
   },
   webview: {
     flex: 1,
-    backgroundColor: Palette.void,
   },
   webviewHidden: {
     opacity: 0,
@@ -157,11 +157,9 @@ const styles = StyleSheet.create({
     zIndex: 10,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Palette.void,
     gap: 12,
   },
   loadingText: {
-    color: Palette.steel,
     fontSize: 13,
     fontWeight: "500",
     letterSpacing: 0.3,
@@ -172,11 +170,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: Spacing["2xl"],
-    backgroundColor: Palette.void,
   },
   errorCard: {
-    backgroundColor: Palette.slate,
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.xl,
     alignItems: "center",
     width: "100%",
@@ -186,20 +182,17 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
   },
   errorTitle: {
-    color: Palette.white,
     fontSize: FontSize.lg,
     fontWeight: FontWeight.semibold,
     marginBottom: Spacing.sm,
   },
   errorMessage: {
-    color: Palette.steel,
     fontSize: FontSize.sm,
     textAlign: "center",
     lineHeight: 22,
     marginBottom: Spacing.xl,
   },
   openXBtn: {
-    backgroundColor: Palette.blue,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
@@ -207,7 +200,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   openXBtnText: {
-    color: Palette.white,
     fontSize: FontSize.base,
     fontWeight: FontWeight.bold,
   },

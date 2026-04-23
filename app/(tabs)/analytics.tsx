@@ -211,7 +211,7 @@ function CustomDonutChart({
             borderWidth: 1,
             borderColor: activeColors.border,
             zIndex: 100,
-            shadowColor: "#000",
+            shadowColor: activeColors.text,
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.1,
             shadowRadius: 8,
@@ -298,11 +298,11 @@ export default function AnalyticsScreen() {
     };
     
     // Premium theme colors
-    const primaryColor = activeColors.tint || "#3B82F6";
-    const textSecondary = activeColors.textSecondary || "#A1A1AA";
+    const primaryColor: string = activeColors.tint || "#3B82F6";
+    const textSecondary: string = activeColors.textSecondary || "#A1A1AA";
 
     const slices: PieSlice[] = top10.map((v, i) => {
-      let color = primaryColor;
+      let color: string = primaryColor;
       if (i === 0) color = primaryColor; // Lead slice
       else if (i === 1) color = hexToRgba(primaryColor, 0.75);
       else if (i === 2) color = hexToRgba(primaryColor, 0.45);
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
 
   header: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     flexDirection: "row",
     alignItems: "center",
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   liveDot: { width: 6, height: 6, borderRadius: 3 },
   liveText: { fontFamily: Fonts.sans, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1 },
 
-  content: { paddingVertical: Spacing.md, gap: Spacing.xl },
+  content: { paddingVertical: Spacing.md, gap: Spacing.md },
   
   sectionLabel: {
     fontFamily: Fonts.sans,
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
 
   // Primary Chart Cards
   chartCard: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: CARD_PADDING,
     marginHorizontal: Spacing.base,
   },
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
   legendCard: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.lg,
     gap: Spacing.lg,
     borderWidth: 1,
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
   apySection: { marginTop: Spacing.md },
   apyCarousel: { paddingHorizontal: Spacing.base, gap: Spacing.md },
   apyCard: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.xl,
     width: 200,
     justifyContent: "space-between",

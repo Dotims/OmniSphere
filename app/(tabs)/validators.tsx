@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
   },
   title: {
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing["2xl"],
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   centerWrap: {
     flex: 1,
@@ -494,12 +494,12 @@ const styles = StyleSheet.create({
   metricsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 4,
   },

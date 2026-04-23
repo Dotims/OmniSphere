@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
 
   // ── Epoch card ─────────────────────────────────────────────
   epochCard: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
   },

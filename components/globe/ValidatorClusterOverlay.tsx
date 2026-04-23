@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
   // Elevated card
   card: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.xl,
     paddingTop: Spacing.base,
     // Subtle outer glow for boundary definition
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   },
   // Inner list container
   listContainer: {
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     overflow: "hidden",
   },
   // ── Row styles ────────────────────────────────────────────
@@ -363,14 +363,14 @@ const styles = StyleSheet.create({
   metricsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderRadius: Radius.sm,
+    borderRadius: Radius.lg,
     paddingHorizontal: Spacing.sm + 4,
     paddingVertical: Spacing.xs + 4,
   },
