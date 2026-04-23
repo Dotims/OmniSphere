@@ -15,7 +15,7 @@ async function paceRequests(): Promise<void> {
 // fetch JSON from a URL with throttling and timeout
 export async function fetchJsonThrottled(url: string): Promise<unknown | null> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 4000);
 
   try {
     await paceRequests();

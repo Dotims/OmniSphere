@@ -16,6 +16,7 @@ import { COBE_BUNDLE_JS } from "./cobe-source";
 import { buildGlobeHTML } from "./globe-html";
 import { useGlobeBridge, useGlobeMessages } from "./hooks";
 import type { GlobeViewProps } from "./types";
+import { useSettings } from "@/hooks/use-settings";
 
 export default function GlobeView({
   validators,
@@ -27,6 +28,8 @@ export default function GlobeView({
   const iframeRef = useRef<any>(null);
   const isReadyRef = useRef(false);
   const [webViewKey, setWebViewKey] = useState(0);
+
+  const { autoRotation, reduceAnimations, activePalette } = useSettings();
 
   const handleCrash = useCallback(() => {
     console.warn("[GlobeView] WebView process terminated. Remounting...");
@@ -47,6 +50,8 @@ export default function GlobeView({
     webviewRef,
     iframeRef,
     isReadyRef,
+    autoRotation,
+    reduceAnimations,
   });
 
   // Handle messages coming back from the WebView
@@ -85,11 +90,11 @@ export default function GlobeView({
   // ── Web: iframe renderer ─────────────────────────────────
   if (Platform.OS === "web") {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: activePalette.void }]}>
         <iframe
           ref={iframeRef}
           srcDoc={htmlSource.html}
-          style={{ flex: 1, border: "none", width: "100%", height: "100%" }}
+          style={{ flex: 1, border: "none", width: "100%", height: "100%", backgroundColor: activePalette.void }}
         />
       </View>
     );
@@ -97,13 +102,13 @@ export default function GlobeView({
 
   // ── Native: WebView renderer ─────────────────────────────
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: activePalette.void }]}>
       <WebView
         key={webViewKey}
         ref={webviewRef}
         source={htmlSource}
-        style={[styles.webview, { backgroundColor: "#0A0A0C" }]}
-        containerStyle={{ backgroundColor: "#0A0A0C" }}
+        style={[styles.webview, { backgroundColor: activePalette.void }]}
+        containerStyle={{ backgroundColor: activePalette.void }}
         onMessage={handleNativeMessage}
         onContentProcessDidTerminate={handleCrash}
         onRenderProcessGone={handleCrash}
@@ -134,10 +139,9 @@ export default function GlobeView({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0A0A0C",
   },
   webview: {
     flex: 1,
-    backgroundColor: "#0A0A0C",
+    backgroundColor: "transparent",
   },
 });

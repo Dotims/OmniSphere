@@ -121,6 +121,7 @@ canvas:active { cursor: grabbing; }
   background: hsl(var(--cobe-stake-hue, 210), 72%, var(--cobe-stake-light, 58%));
   border: none;
   box-shadow: none;
+  transition: opacity 200ms ease;
   will-change: transform, opacity;
 }
 /* Remove the heavy pseudo-element glow entirely in base state */
@@ -145,7 +146,7 @@ canvas:active { cursor: grabbing; }
   transform: translate(-50%, -50%) translate(var(--cobe-marker-x, -9999px), var(--cobe-marker-y, -9999px)) scale(1.1);
   border: none;
   box-shadow: 0 0 8px hsla(var(--cobe-stake-hue, 210), 80%, 65%, 0.35);
-  transition: box-shadow 120ms ease;
+  transition: box-shadow 120ms ease, opacity 200ms ease;
 }
 .validator-marker.is-selected::after {
   opacity: 0.3;
@@ -154,8 +155,15 @@ canvas:active { cursor: grabbing; }
 .validator-marker.is-hidden,
 .validator-marker.is-hidden::after {
   opacity: 0;
+  transition: none;
 }
 .validator-marker.is-hidden::after {
   animation: none;
+}
+/* Crossfade class: used when coordinate data updates to smoothly
+   fade markers out before repositioning, then fade them back in. */
+.validator-marker.is-crossfading {
+  opacity: 0 !important;
+  transition: opacity 150ms ease-out !important;
 }
 `;

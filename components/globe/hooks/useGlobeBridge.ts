@@ -20,6 +20,8 @@ interface UseGlobeBridgeOptions {
   webviewRef: React.RefObject<WebView | null>;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   isReadyRef: React.MutableRefObject<boolean>;
+  autoRotation: boolean;
+  reduceAnimations: boolean;
 }
 
 function normalizeLatLon(lat: number, lon: number): [number, number] | null {
@@ -46,6 +48,8 @@ export function useGlobeBridge({
   webviewRef,
   iframeRef,
   isReadyRef,
+  autoRotation,
+  reduceAnimations,
 }: UseGlobeBridgeOptions) {
   const pendingDataRef = useRef(false);
 
@@ -102,6 +106,11 @@ export function useGlobeBridge({
     )
       return;
 
+    // Wait for real coordinates before sending any validator data.
+    // This prevents markers from appearing at wrong hashToLatLon()
+    // fallback positions during the initial coordinate resolution.
+    if (!coordinatesById) return;
+
     const stakes = validators.map((v) => {
       try {
         return Number(BigInt(v.stakingPoolIotaBalance || "0"));
@@ -142,11 +151,28 @@ export function useGlobeBridge({
     sendBridgeMessage,
   ]);
 
+  const bridgeSettings = useCallback(() => {
+    if (
+      (Platform.OS !== "web" && !webviewRef.current) ||
+      (Platform.OS === "web" && !iframeRef.current) ||
+      !isReadyRef.current
+    )
+      return;
+
+    sendBridgeMessage(
+      JSON.stringify({
+        type: "settings",
+        payload: { autoRotation, reduceAnimations },
+      }),
+    );
+  }, [webviewRef, iframeRef, isReadyRef, sendBridgeMessage, autoRotation, reduceAnimations]);
+
   const bridgeData = useCallback(() => {
     bridgeValidators();
     bridgeSelection();
+    bridgeSettings();
     pendingDataRef.current = false;
-  }, [bridgeValidators, bridgeSelection]);
+  }, [bridgeValidators, bridgeSelection, bridgeSettings]);
 
   // Push new data whenever validators or coordinates change
   useEffect(() => {
@@ -162,6 +188,12 @@ export function useGlobeBridge({
     if (!isReadyRef.current) return;
     bridgeSelection();
   }, [bridgeSelection, isReadyRef]);
+
+  // Push settings updates
+  useEffect(() => {
+    if (!isReadyRef.current) return;
+    bridgeSettings();
+  }, [bridgeSettings, isReadyRef]);
 
   return { bridgeData, pendingDataRef };
 }

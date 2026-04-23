@@ -52,8 +52,8 @@ export interface ValidatorsResponse {
 }
 
 //  service function
-export async function fetchValidators(): Promise<
+export async function fetchValidators(options?: RequestInit): Promise<
   ApiResult<ValidatorsResponse>
 > {
-  return apiFetch<ValidatorsResponse>("/api/validators");
+  return apiFetch<ValidatorsResponse>("/api/validators", options);
 }

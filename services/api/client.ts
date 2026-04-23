@@ -38,18 +38,30 @@ export type ApiResult<T> = ApiResponse<T> | ApiError;
  */
 export async function apiFetch<T>(
   endpoint: string,
-  options?: RequestInit,
+  options?: RequestInit & { timeoutMs?: number },
 ): Promise<ApiResult<T>> {
   const url = `${BASE_URL}${endpoint}`;
+  const timeoutMs = options?.timeoutMs ?? 15000; // 15 seconds default timeout
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+
+  // If caller provided a signal, link them
+  if (options?.signal) {
+    options.signal.addEventListener('abort', () => controller.abort());
+  }
 
   try {
     const response = await fetch(url, {
+      ...options,
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,
       },
-      ...options,
+      signal: controller.signal,
     });
+    
+    clearTimeout(id);
 
     if (!response.ok) {
       return {
@@ -63,7 +75,19 @@ export async function apiFetch<T>(
     const data: T = await response.json();
     return { data };
   } catch (err) {
+    clearTimeout(id);
     const message = err instanceof Error ? err.message : 'Unknown network error';
+    
+    // Check if it was an abort timeout
+    if (err instanceof Error && err.name === 'AbortError') {
+      return {
+        error: {
+          message: 'Network request timed out',
+          status: 408,
+        },
+      };
+    }
+
     return {
       error: {
         message,

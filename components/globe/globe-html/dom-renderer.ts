@@ -175,6 +175,14 @@ function updateMarkerAnchors(force, renderPhi, renderTheta, renderScale) {
     return;
   }
 
+  // Hydration barrier: don't reveal any markers until the globe's
+  // onRender loop has completed at least one frame, ensuring phi,
+  // theta, scale, and cssSize all hold real, rendered values.
+  if (!globeRenderedFirstFrame) {
+    projectedMarkerList = [];
+    return;
+  }
+
   var cosPhi = Math.cos(phi);
   var sinPhi = Math.sin(phi);
   var cosTheta = Math.cos(theta);
