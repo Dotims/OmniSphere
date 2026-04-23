@@ -183,11 +183,18 @@ function updateMarkerAnchors(force, renderPhi, renderTheta, renderScale) {
     return;
   }
 
-  var cosPhi = Math.cos(phi);
-  var sinPhi = Math.sin(phi);
-  var cosTheta = Math.cos(theta);
-  var sinTheta = Math.sin(theta);
-  var radius = cssSize * 0.4 * scale;
+  // Use the frame state supplied by the render loop when available.
+  // This keeps DOM markers locked to the exact globe frame that was just drawn,
+  // even while pointer events mutate live phi/theta between render ticks.
+  var anchorPhi = (typeof renderPhi === 'number' && isFinite(renderPhi)) ? renderPhi : phi;
+  var anchorTheta = (typeof renderTheta === 'number' && isFinite(renderTheta)) ? renderTheta : theta;
+  var anchorScale = (typeof renderScale === 'number' && isFinite(renderScale)) ? renderScale : scale;
+
+  var cosPhi = Math.cos(anchorPhi);
+  var sinPhi = Math.sin(anchorPhi);
+  var cosTheta = Math.cos(anchorTheta);
+  var sinTheta = Math.sin(anchorTheta);
+  var radius = cssSize * 0.4 * anchorScale;
   var centerX = viewportW / 2;
   var centerY = viewportH / 2;
 
