@@ -8,21 +8,34 @@
  *  - `types.ts`     — shared interfaces
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AppState, AppStateStatus, Platform, StyleSheet, View } from "react-native";
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
+import {
+    AppState,
+    AppStateStatus,
+    Platform,
+    StyleSheet,
+    View,
+} from "react-native";
 import { WebView } from "react-native-webview";
 
+import { useSettings } from "@/hooks/use-settings";
 import { COBE_BUNDLE_JS } from "./cobe-source";
 import { buildGlobeHTML } from "./globe-html";
 import { useGlobeBridge, useGlobeMessages } from "./hooks";
 import type { GlobeViewProps } from "./types";
-import { useSettings } from "@/hooks/use-settings";
 
 export default function GlobeView({
   validators,
   coordinatesById,
   selectedValidatorIds,
   onSelectValidator,
+  onReady,
 }: GlobeViewProps) {
   const webviewRef = useRef<WebView>(null);
   const iframeRef = useRef<any>(null);
@@ -58,6 +71,7 @@ export default function GlobeView({
   // Handle messages coming back from the WebView
   const { handleNativeMessage } = useGlobeMessages({
     onSelectValidator,
+    onReady,
     bridgeData,
     pendingDataRef,
     isReadyRef,
@@ -91,11 +105,21 @@ export default function GlobeView({
   // ── Web: iframe renderer ─────────────────────────────────
   if (Platform.OS === "web") {
     return (
-      <View style={[styles.container, { backgroundColor: activeColors.background }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: activeColors.background },
+        ]}>
         <iframe
           ref={iframeRef}
           srcDoc={htmlSource.html}
-          style={{ flex: 1, border: "none", width: "100%", height: "100%", backgroundColor: activeColors.background }}
+          style={{
+            flex: 1,
+            border: "none",
+            width: "100%",
+            height: "100%",
+            backgroundColor: activeColors.background,
+          }}
         />
       </View>
     );
@@ -103,7 +127,8 @@ export default function GlobeView({
 
   // ── Native: WebView renderer ─────────────────────────────
   return (
-    <View style={[styles.container, { backgroundColor: activeColors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: activeColors.background }]}>
       <WebView
         key={webViewKey}
         ref={webviewRef}
@@ -140,9 +165,18 @@ export default function GlobeView({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
+    height: "100%",
+    minWidth: 1,
+    minHeight: 1,
   },
   webview: {
     flex: 1,
+    width: "100%",
+    height: "100%",
+    minWidth: 1,
+    minHeight: 1,
+    opacity: 1,
     backgroundColor: "transparent",
   },
 });

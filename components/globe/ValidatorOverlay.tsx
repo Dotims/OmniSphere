@@ -3,21 +3,21 @@
 // Theme-aware — elevated surface, tint glow border, dimmed backdrop
 
 import {
-  Fonts,
-  FontSize,
-  FontWeight,
-  Radius,
-  Spacing,
+    Fonts,
+    FontSize,
+    FontWeight,
+    Radius,
+    Spacing,
 } from "@/constants/theme";
 import { useSettings } from "@/hooks/use-settings";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeOut,
-  FadeOutDown,
+    FadeIn,
+    FadeInDown,
+    FadeOut,
+    FadeOutDown,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -69,8 +69,7 @@ export default function ValidatorOverlay({
       <Animated.View
         entering={FadeIn.duration(200)}
         exiting={FadeOut.duration(150)}
-        style={styles.scrim}
-      >
+        style={styles.scrim}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
 
@@ -78,47 +77,134 @@ export default function ValidatorOverlay({
       <Animated.View
         entering={FadeInDown.duration(300).springify()}
         exiting={FadeOutDown.duration(200)}
-        style={[styles.container, { paddingBottom: 82 + insets.bottom + Spacing.lg }]}>
-        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated, borderColor: activeColors.border, shadowColor: activeColors.tint }]}>
+        style={[
+          styles.container,
+          { paddingBottom: 82 + insets.bottom + Spacing.lg },
+        ]}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: activeColors.surfaceElevated,
+              borderColor: activeColors.border,
+            },
+          ]}>
           {/* Stylistic Top Edge Notch */}
-          <View style={[styles.notch, { backgroundColor: activeColors.background, borderColor: activeColors.border }]} />
-          
+          <View
+            style={[
+              styles.notch,
+              {
+                backgroundColor: activeColors.background,
+                borderColor: activeColors.border,
+              },
+            ]}
+          />
+
           {/* drag handle */}
-          <View style={[styles.handle, { backgroundColor: activeColors.border }]} />
+          <View style={styles.handleContainer}>
+            <View
+              style={[styles.handle, { backgroundColor: activeColors.border }]}
+            />
+          </View>
 
           {/* header */}
           <View style={styles.header}>
-            <View style={[styles.indicator, { backgroundColor: activeColors.tint }]} />
+            <View
+              style={[styles.indicator, { backgroundColor: activeColors.tint }]}
+            />
             <View style={styles.headerText}>
-              <Text style={[styles.name, { color: activeColors.text }]} numberOfLines={1}>
+              <Text
+                style={[styles.name, { color: activeColors.text }]}
+                numberOfLines={1}>
                 {validator.name || "Unknown Validator"}
               </Text>
-              <Text style={[styles.address, { color: activeColors.textSecondary }]}>{truncatedAddress}</Text>
+              <Text
+                style={[styles.address, { color: activeColors.textSecondary }]}>
+                {truncatedAddress}
+              </Text>
             </View>
-            <Pressable onPress={onClose} style={[styles.closeBtn, { backgroundColor: activeColors.border }]} hitSlop={12}>
-              <Text style={[styles.closeBtnText, { color: activeColors.textSecondary }]}>✕</Text>
+            <Pressable
+              onPress={onClose}
+              style={[
+                styles.closeBtn,
+                { backgroundColor: activeColors.border },
+              ]}
+              hitSlop={12}>
+              <Text
+                style={[
+                  styles.closeBtnText,
+                  { color: activeColors.textSecondary },
+                ]}>
+                ✕
+              </Text>
             </Pressable>
           </View>
 
           {/* stats grid */}
           <View style={styles.statsGrid}>
-            <View style={[styles.statItem, { backgroundColor: activeColors.background }]}>
-              <Text style={[styles.statLabel, { color: activeColors.textSecondary }]}>Stake</Text>
-              <Text style={[styles.statValue, { color: activeColors.text }]}>{stake}</Text>
+            <View
+              style={[
+                styles.statItem,
+                { backgroundColor: activeColors.background },
+              ]}>
+              <Text
+                style={[
+                  styles.statLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                Stake
+              </Text>
+              <Text style={[styles.statValue, { color: activeColors.text }]}>
+                {stake}
+              </Text>
             </View>
-            <View style={[styles.statItem, { backgroundColor: activeColors.background }]}>
-              <Text style={[styles.statLabel, { color: activeColors.textSecondary }]}>APY</Text>
-              <Text style={[styles.statValue, { color: activeColors.tint }]}>
+            <View
+              style={[
+                styles.statItem,
+                { backgroundColor: activeColors.background },
+              ]}>
+              <Text
+                style={[
+                  styles.statLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                APY
+              </Text>
+              <Text style={[styles.statValue, { color: activeColors.text }]}>
                 {apyPercent}
               </Text>
             </View>
-            <View style={[styles.statItem, { backgroundColor: activeColors.background }]}>
-              <Text style={[styles.statLabel, { color: activeColors.textSecondary }]}>Commission</Text>
-              <Text style={[styles.statValue, { color: activeColors.text }]}>{commission}</Text>
+            <View
+              style={[
+                styles.statItem,
+                { backgroundColor: activeColors.background },
+              ]}>
+              <Text
+                style={[
+                  styles.statLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                Commission
+              </Text>
+              <Text style={[styles.statValue, { color: activeColors.text }]}>
+                {commission}
+              </Text>
             </View>
-            <View style={[styles.statItem, { backgroundColor: activeColors.background }]}>
-              <Text style={[styles.statLabel, { color: activeColors.textSecondary }]}>Voting Power</Text>
-              <Text style={[styles.statValue, { color: activeColors.text }]}>{votingPower}</Text>
+            <View
+              style={[
+                styles.statItem,
+                { backgroundColor: activeColors.background },
+              ]}>
+              <Text
+                style={[
+                  styles.statLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                Voting Power
+              </Text>
+              <Text style={[styles.statValue, { color: activeColors.text }]}>
+                {votingPower}
+              </Text>
             </View>
           </View>
         </View>
@@ -163,9 +249,9 @@ const styles = StyleSheet.create({
   },
   // Elevated card
   card: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.xl,
-    paddingTop: Spacing.base,
+    paddingTop: Spacing.lg,
     // Subtle outer glow for boundary definition
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.12,
@@ -174,12 +260,16 @@ const styles = StyleSheet.create({
     // Thin hairline border for additional separation
     borderWidth: 1,
   },
+  handleContainer: {
+    alignItems: "center",
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.sm,
+  },
   handle: {
     width: 36,
     height: 4,
     borderRadius: 2,
     alignSelf: "center",
-    marginBottom: Spacing.md,
   },
   header: {
     flexDirection: "row",
@@ -219,12 +309,12 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   statItem: {
     flex: 1,
     minWidth: "40%" as unknown as number,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.md + 4,
   },
   statLabel: {

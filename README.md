@@ -28,17 +28,6 @@ OmniSphere focuses on operational visibility of the validator network:
 - An analytics tab for voting power distribution and APY comparisons.
 - A settings system for theme, auto-rotation, refresh interval, and cache management.
 
-## Screenshots
-
-<div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;">
-  <img src="./assets/images/globe-light.png" width="200" alt="Globe (Light Mode)" />
-  <img src="./assets/images/globe-dark.png" width="200" alt="Globe (Dark Mode)" />
-  <img src="./assets/images/globe-clusters.png" width="200" alt="Globe Node Cluster" />
-  <img src="./assets/images/nodes.png" width="200" alt="Validators List" />
-  <img src="./assets/images/analytics.png" width="200" alt="Analytics Dashboard" />
-  <img src="./assets/images/settings.png" width="200" alt="Settings" />
-</div>
-
 ## Core features
 
 ### 3D globe experience
@@ -127,118 +116,31 @@ utils/
 4. Geolocation pipeline resolves validator hosts to IPv4 and GeoIP coordinates.
 5. Globe bridge pushes normalized marker payloads to the WebView renderer.
 
-## Getting started
+## Getting Started
 
-### Prerequisites
-
-- Node.js LTS (18+ recommended)
-- npm (bundled with Node)
-- For simulators/emulators:
-  - Android Studio (Android)
-  - Xcode (iOS, macOS only)
-
-### Install dependencies
+### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### Start the development server
+### 2. Start the Application
 
 ```bash
-npm run start
+npm start
 ```
 
-Then choose one of the Expo targets:
+In the output, you'll find options to open the app in an:
 
-- Android emulator/device
-- iOS simulator/device
-- Web
+- Android emulator (press `a`)
+- iOS simulator (press `i`)
+- Web browser (press `w`)
 
-### Platform-specific shortcuts
+## Technology Stack
 
-```bash
-npm run android
-npm run ios
-npm run web
-```
+- [Expo](https://expo.dev/)
+- React Native & Reanimated
+- React Navigation
+- React Query
+- Cobe (3D Globe)
 
-## Configuration
-
-### IOTA RPC endpoint
-
-The app reads the RPC URL from `app.json`:
-
-```json
-{
-  "expo": {
-    "extra": {
-      "iotaRpcUrl": "https://api.mainnet.iota.cafe"
-    }
-  }
-}
-```
-
-Notes:
-
-- API route enforces secure endpoints (`https://` / `wss://`).
-- If the endpoint is unavailable, the app surfaces a connection error state.
-
-## Available scripts
-
-| Script            | Description                   |
-| ----------------- | ----------------------------- |
-| `npm run start`   | Start Expo development server |
-| `npm run android` | Launch Android target         |
-| `npm run ios`     | Launch iOS target             |
-| `npm run web`     | Launch web target             |
-| `npm run lint`    | Run ESLint checks             |
-
-## Caching and refresh behavior
-
-### React Query
-
-- Validator query refresh interval is user-configurable via Settings.
-- Query retries with exponential backoff on transient failures.
-
-### Geolocation cache
-
-- Domain -> IP and IP -> geo mappings are cached.
-- Web: localStorage-backed cache.
-- Native: file-backed cache (Expo file system).
-- Cache can be cleared from the Settings screen.
-
-## Troubleshooting
-
-### "Connection Failed" on Home/Analytics
-
-- Verify internet access to the configured IOTA RPC endpoint.
-- Ensure endpoint is HTTPS/WSS.
-- Confirm the API route returns valid JSON.
-
-### Validators are missing geolocation
-
-- Some validators may not expose resolvable host data.
-- In unresolved cases, deterministic fallback coordinates may be used.
-- Use "Clear Location Cache" in Settings to force a fresh resolution cycle.
-
-### X feed shows rate limit
-
-- The embedded X timeline can return temporary 429/rate-limit responses.
-- Use the fallback action in the UI to open the feed directly on X.
-
-## Development notes
-
-- TypeScript strict mode is enabled.
-- Alias `@/*` maps to the repository root.
-- Expo Router typed routes are enabled.
-- New architecture is enabled in Expo config.
-
----
-
-If you are onboarding to the project, start with:
-
-1. `app/_layout.tsx`
-2. `app/(tabs)/index.tsx`
-3. `components/globe/`
-4. `app/api/validators+api.ts`

@@ -5,27 +5,30 @@
 
 import React, { useCallback, useMemo, useState } from "react";
 import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    FlatList,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 
+import Animated, {
+    FadeInDown,
+    LinearTransition,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 
 import {
-  Fonts,
-  FontSize,
-  FontWeight,
-  Radius,
-  Spacing,
+    Fonts,
+    FontSize,
+    FontWeight,
+    Radius,
+    Spacing,
 } from "@/constants/theme";
+import { useSettings } from "@/hooks/use-settings";
 import { useValidators } from "@/hooks/use-validators";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
-import { useSettings } from "@/hooks/use-settings";
 
 // ── Sort keys ───────────────────────────────────────────────
 
@@ -101,35 +104,65 @@ function ValidatorRow({
         style={[
           styles.row,
           { backgroundColor: activeColors.surfaceElevated },
-          isExpanded && styles.rowExpanded
-        ]}
-      >
+          isExpanded && styles.rowExpanded,
+        ]}>
         <View style={[styles.rowDot, { backgroundColor: activeColors.tint }]} />
         <View style={styles.rowTextWrap}>
-          <Text style={[styles.rowName, { color: activeColors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.rowName, { color: activeColors.text }]}
+            numberOfLines={1}>
             {validator.name || "Unknown Validator"}
           </Text>
-          <Text style={[styles.rowAddress, { color: activeColors.textSecondary }]} numberOfLines={1}>
+          <Text
+            style={[styles.rowAddress, { color: activeColors.textSecondary }]}
+            numberOfLines={1}>
             {truncateAddress(validator.iotaAddress)}
           </Text>
         </View>
-        <Text style={[styles.rowStakeHint, { color: activeColors.textSecondary }]} numberOfLines={1}>
+        <Text
+          style={[styles.rowStakeHint, { color: activeColors.textSecondary }]}
+          numberOfLines={1}>
           {stake}
         </Text>
-        <Text style={[styles.chevron, { color: activeColors.border }]}>{isExpanded ? "▴" : "▾"}</Text>
+        <Text style={[styles.chevron, { color: activeColors.border }]}>
+          {isExpanded ? "▴" : "▾"}
+        </Text>
       </Pressable>
 
       {isExpanded && (
         <Animated.View
           entering={FadeInDown.duration(150)}
-          style={[styles.expandedPanel, { backgroundColor: activeColors.surfaceElevated }]}
-        >
+          style={[
+            styles.expandedPanel,
+            { backgroundColor: activeColors.surfaceElevated },
+          ]}>
           <View style={styles.metricsGrid}>
-            <MetricCell label="STAKE" value={`${stake} IOTA`} activeColors={activeColors} />
-            <MetricCell label="APY" value={apyPercent} accent activeColors={activeColors} />
-            <MetricCell label="VOTING POWER" value={votingPower} activeColors={activeColors} />
-            <MetricCell label="COMMISSION" value={commission} activeColors={activeColors} />
-            <MetricCell label="NEXT EPOCH STAKE" value={`${nextStake} IOTA`} activeColors={activeColors} />
+            <MetricCell
+              label="STAKE"
+              value={`${stake} IOTA`}
+              activeColors={activeColors}
+            />
+            <MetricCell
+              label="APY"
+              value={apyPercent}
+              accent
+              activeColors={activeColors}
+            />
+            <MetricCell
+              label="VOTING POWER"
+              value={votingPower}
+              activeColors={activeColors}
+            />
+            <MetricCell
+              label="COMMISSION"
+              value={commission}
+              activeColors={activeColors}
+            />
+            <MetricCell
+              label="NEXT EPOCH STAKE"
+              value={`${nextStake} IOTA`}
+              activeColors={activeColors}
+            />
             <MetricCell
               label="NEXT COMMISSION"
               value={formatPercent(validator.nextEpochCommissionRate)}
@@ -155,8 +188,14 @@ function MetricCell({
 }) {
   return (
     <View style={[styles.metricCell, { backgroundColor: activeColors.border }]}>
-      <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>{label}</Text>
-      <Text style={[styles.metricValue, { color: accent ? activeColors.tint : activeColors.text }]}>
+      <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>
+        {label}
+      </Text>
+      <Text
+        style={[
+          styles.metricValue,
+          { color: accent ? activeColors.tint : activeColors.text },
+        ]}>
         {value}
       </Text>
     </View>
@@ -254,13 +293,7 @@ export default function ValidatorsScreen() {
   }, []);
 
   const renderItem = useCallback(
-    ({
-      item,
-      index,
-    }: {
-      item: ValidatorSummary;
-      index: number;
-    }) => (
+    ({ item, index }: { item: ValidatorSummary; index: number }) => (
       <ValidatorRow
         validator={item}
         apy={apyByAddress.get(item.iotaAddress)}
@@ -271,7 +304,13 @@ export default function ValidatorsScreen() {
         activeColors={activeColors}
       />
     ),
-    [apyByAddress, expandedId, filteredValidators.length, handleToggle, activeColors],
+    [
+      apyByAddress,
+      expandedId,
+      filteredValidators.length,
+      handleToggle,
+      activeColors,
+    ],
   );
 
   const keyExtractor = useCallback(
@@ -280,11 +319,21 @@ export default function ValidatorsScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: activeColors.background, paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: activeColors.background, paddingTop: insets.top },
+      ]}>
       {/* ── Header ─────────────────────────────────────── */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: activeColors.text }]}>Validators</Text>
-        <View style={[styles.countBadgeWrap, { backgroundColor: activeColors.surfaceElevated }]}>
+        <Text style={[styles.title, { color: activeColors.text }]}>
+          Validators
+        </Text>
+        <View
+          style={[
+            styles.countBadgeWrap,
+            { backgroundColor: activeColors.surfaceElevated },
+          ]}>
           <Text style={[styles.countBadge, { color: activeColors.tint }]}>
             {filteredValidators.length}
             {search ? ` / ${validators.length}` : ""}
@@ -295,7 +344,13 @@ export default function ValidatorsScreen() {
       {/* ── Search ─────────────────────────────────────── */}
       <View style={styles.searchWrap}>
         <TextInput
-          style={[styles.searchInput, { backgroundColor: activeColors.surfaceElevated, color: activeColors.text }]}
+          style={[
+            styles.searchInput,
+            {
+              backgroundColor: activeColors.surfaceElevated,
+              color: activeColors.text,
+            },
+          ]}
           placeholder="Search by name or address…"
           placeholderTextColor={activeColors.textSecondary}
           value={search}
@@ -317,16 +372,14 @@ export default function ValidatorsScreen() {
               style={[
                 styles.sortPill,
                 { backgroundColor: activeColors.surfaceElevated },
-                active && { backgroundColor: activeColors.tint }
-              ]}
-            >
+                active && { backgroundColor: activeColors.tint },
+              ]}>
               <Text
                 style={[
                   styles.sortPillText,
                   { color: activeColors.textSecondary },
                   active && { color: activeColors.background },
-                ]}
-              >
+                ]}>
                 {opt.label}
                 {active ? (sortAsc ? " ↑" : " ↓") : ""}
               </Text>
@@ -335,10 +388,12 @@ export default function ValidatorsScreen() {
         })}
       </View>
 
-      {/* ── List ───────────────────────────────────────── */}
       {isLoading ? (
         <View style={styles.centerWrap}>
-          <Text style={[styles.mutedText, { color: activeColors.textSecondary }]}>Loading validators…</Text>
+          <Text
+            style={[styles.mutedText, { color: activeColors.textSecondary }]}>
+            Loading validators…
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -352,7 +407,13 @@ export default function ValidatorsScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.centerWrap}>
-              <Text style={[styles.mutedText, { color: activeColors.textSecondary }]}>No validators found</Text>
+              <Text
+                style={[
+                  styles.mutedText,
+                  { color: activeColors.textSecondary },
+                ]}>
+                No validators found
+              </Text>
             </View>
           }
         />
@@ -371,7 +432,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
   },
   title: {
@@ -426,7 +487,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: Spacing.base,
     paddingBottom: Spacing["2xl"],
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   centerWrap: {
     flex: 1,
@@ -494,12 +555,12 @@ const styles = StyleSheet.create({
   metricsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm + 4,
   },

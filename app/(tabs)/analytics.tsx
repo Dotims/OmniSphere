@@ -5,23 +5,29 @@
 
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
-  Animated,
-  Dimensions,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Animated,
+    Dimensions,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
-import Svg, { G, Circle, Path } from "react-native-svg";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AnimatedRN, { FadeInDown } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 
-import { Fonts, FontSize, FontWeight, Radius, Spacing } from "@/constants/theme";
+import {
+    Fonts,
+    FontSize,
+    FontWeight,
+    Radius,
+    Spacing,
+} from "@/constants/theme";
+import { useSettings } from "@/hooks/use-settings";
 import { useValidators } from "@/hooks/use-validators";
 import type { ValidatorSummary } from "@/services/validators";
-import { useSettings } from "@/hooks/use-settings";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_PADDING = Spacing.xl;
@@ -49,24 +55,51 @@ function truncate(str: string, max: number): string {
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
-function SkeletonBlock({ width, height, style, activeColors }: { width?: number | string; height: number; style?: object; activeColors: any }) {
+function SkeletonBlock({
+  width,
+  height,
+  style,
+  activeColors,
+}: {
+  width?: number | string;
+  height: number;
+  style?: object;
+  activeColors: any;
+}) {
   const shimmer = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
-        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
-      ])
+        Animated.timing(shimmer, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmer, {
+          toValue: 0,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+      ]),
     ).start();
   }, [shimmer]);
 
-  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.7] });
+  const opacity = shimmer.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
 
   return (
     <Animated.View
       style={[
-        { width: width ?? "100%", height, borderRadius: Radius.sm, backgroundColor: activeColors.border, opacity },
+        {
+          width: width ?? "100%",
+          height,
+          borderRadius: Radius.sm,
+          backgroundColor: activeColors.border,
+          opacity,
+        },
         style,
       ]}
     />
@@ -75,24 +108,61 @@ function SkeletonBlock({ width, height, style, activeColors }: { width?: number 
 
 function SkeletonChartCard({ activeColors }: { activeColors: any }) {
   return (
-    <View style={[styles.chartCard, { backgroundColor: activeColors.surfaceElevated }]}>
-      <SkeletonBlock width={100} height={12} style={{ marginBottom: 8 }} activeColors={activeColors} />
-      <SkeletonBlock width={160} height={20} style={{ marginBottom: Spacing.xl }} activeColors={activeColors} />
-      <SkeletonBlock height={200} style={{ borderRadius: Radius.full, width: 200, alignSelf: "center" }} activeColors={activeColors} />
+    <View
+      style={[
+        styles.chartCard,
+        { backgroundColor: activeColors.surfaceElevated },
+      ]}>
+      <SkeletonBlock
+        width={100}
+        height={12}
+        style={{ marginBottom: 8 }}
+        activeColors={activeColors}
+      />
+      <SkeletonBlock
+        width={160}
+        height={20}
+        style={{ marginBottom: Spacing.xl }}
+        activeColors={activeColors}
+      />
+      <SkeletonBlock
+        height={200}
+        style={{ borderRadius: Radius.full, width: 200, alignSelf: "center" }}
+        activeColors={activeColors}
+      />
     </View>
   );
 }
 
 // ─── Error State ──────────────────────────────────────────────────────────────
 
-function ErrorState({ message, onRetry, activeColors }: { message: string; onRetry: () => void; activeColors: any }) {
+function ErrorState({
+  message,
+  onRetry,
+  activeColors,
+}: {
+  message: string;
+  onRetry: () => void;
+  activeColors: any;
+}) {
   return (
     <View style={styles.errorContainer}>
-      <Text style={[styles.errorIcon, { color: activeColors.textSecondary }]}>⚠</Text>
-      <Text style={[styles.errorTitle, { color: activeColors.text }]}>Connection Failed</Text>
-      <Text style={[styles.errorMessage, { color: activeColors.textSecondary }]}>{message}</Text>
-      <Pressable style={[styles.retryBtn, { backgroundColor: activeColors.border }]} onPress={onRetry}>
-        <Text style={[styles.retryBtnText, { color: activeColors.text }]}>Retry Connection</Text>
+      <Text style={[styles.errorIcon, { color: activeColors.textSecondary }]}>
+        ⚠
+      </Text>
+      <Text style={[styles.errorTitle, { color: activeColors.text }]}>
+        Connection Failed
+      </Text>
+      <Text
+        style={[styles.errorMessage, { color: activeColors.textSecondary }]}>
+        {message}
+      </Text>
+      <Pressable
+        style={[styles.retryBtn, { backgroundColor: activeColors.border }]}
+        onPress={onRetry}>
+        <Text style={[styles.retryBtnText, { color: activeColors.text }]}>
+          Retry Connection
+        </Text>
       </Pressable>
     </View>
   );
@@ -129,20 +199,43 @@ function CustomDonutChart({
   let currentPercentage = 0;
 
   // Helpers for exact SVG Path hit-testing
-  const polarToCartesian = (centerX: number, centerY: number, r: number, angleInDegrees: number) => {
-    const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+  const polarToCartesian = (
+    centerX: number,
+    centerY: number,
+    r: number,
+    angleInDegrees: number,
+  ) => {
+    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
     return {
       x: centerX + r * Math.cos(angleInRadians),
       y: centerY + r * Math.sin(angleInRadians),
     };
   };
 
-  const describeArc = (x: number, y: number, r: number, startAngle: number, endAngle: number) => {
+  const describeArc = (
+    x: number,
+    y: number,
+    r: number,
+    startAngle: number,
+    endAngle: number,
+  ) => {
     if (endAngle - startAngle >= 360) endAngle = startAngle + 359.99;
     const start = polarToCartesian(x, y, r, endAngle);
     const end = polarToCartesian(x, y, r, startAngle);
     const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-    return ["M", start.x, start.y, "A", r, r, 0, largeArcFlag, 0, end.x, end.y].join(" ");
+    return [
+      "M",
+      start.x,
+      start.y,
+      "A",
+      r,
+      r,
+      0,
+      largeArcFlag,
+      0,
+      end.x,
+      end.y,
+    ].join(" ");
   };
 
   const slicesWithAngles = data.map((slice) => {
@@ -154,7 +247,7 @@ function CustomDonutChart({
 
     let startAngle = startPercentage * 360;
     let endAngle = endPercentage * 360;
-    
+
     // Create a visual gap between slices (except if there's only 1)
     if (data.length > 1) {
       endAngle = Math.max(startAngle + 0.1, endAngle - 1.5);
@@ -163,7 +256,13 @@ function CustomDonutChart({
     const midAngleRad = (midPercentage * 360 - 90) * (Math.PI / 180);
     const tooltipX = size / 2 + tooltipRadius * Math.cos(midAngleRad);
     const tooltipY = size / 2 + tooltipRadius * Math.sin(midAngleRad);
-    const pathData = describeArc(size / 2, size / 2, radius, startAngle, endAngle);
+    const pathData = describeArc(
+      size / 2,
+      size / 2,
+      radius,
+      startAngle,
+      endAngle,
+    );
 
     return { ...slice, pathData, tooltipX, tooltipY };
   });
@@ -171,12 +270,19 @@ function CustomDonutChart({
   const activeData = slicesWithAngles.find((s) => s.name === activeSlice?.name);
 
   return (
-    <View style={{ width: size, height: size, alignSelf: "center", justifyContent: "center", alignItems: "center" }}>
+    <View
+      style={{
+        width: size,
+        height: size,
+        alignSelf: "center",
+        justifyContent: "center",
+        alignItems: "center",
+      }}>
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         {slicesWithAngles.map((slice) => {
           const isActive = activeData?.name === slice.name;
           const currentStrokeWidth = isActive ? strokeWidth + 6 : strokeWidth;
-          
+
           return (
             <Path
               key={slice.name}
@@ -211,38 +317,88 @@ function CustomDonutChart({
             borderWidth: 1,
             borderColor: activeColors.border,
             zIndex: 100,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-          }}
-        >
-          <Text style={{ fontFamily: Fonts.sans, color: activeColors.text, fontSize: 11, fontWeight: "bold" }}>
+            shadowOpacity: 0,
+            elevation: 0,
+          }}>
+          <Text
+            style={{
+              fontFamily: Fonts.sans,
+              color: activeColors.text,
+              fontSize: 11,
+              fontWeight: "bold",
+            }}>
             {activeData.name}
           </Text>
         </AnimatedRN.View>
       )}
 
       {/* Dynamic Center Hole Data */}
-      <View style={[StyleSheet.absoluteFillObject, { justifyContent: "center", alignItems: "center", padding: 40 }]} pointerEvents="none">
+      <View
+        style={[
+          StyleSheet.absoluteFillObject,
+          { justifyContent: "center", alignItems: "center", padding: 40 },
+        ]}
+        pointerEvents="none">
         {activeSlice ? (
-          <AnimatedRN.View entering={FadeInDown.duration(200)} style={{ alignItems: "center" }}>
-            <Text style={{ fontFamily: Fonts.sans, color: activeColors.textSecondary, fontSize: 10, fontWeight: "bold", textTransform: "uppercase", marginBottom: 4, textAlign: "center" }} numberOfLines={1}>
+          <AnimatedRN.View
+            entering={FadeInDown.duration(200)}
+            style={{ alignItems: "center" }}>
+            <Text
+              style={{
+                fontFamily: Fonts.sans,
+                color: activeColors.textSecondary,
+                fontSize: 10,
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                marginBottom: 4,
+                textAlign: "center",
+              }}
+              numberOfLines={1}>
               {activeSlice.name}
             </Text>
-            <Text style={{ fontFamily: Fonts.sans, color: activeColors.tint, fontSize: 32, fontWeight: "800", letterSpacing: -1 }}>
+            <Text
+              style={{
+                fontFamily: Fonts.sans,
+                color: activeColors.tint,
+                fontSize: 32,
+                fontWeight: "800",
+                letterSpacing: -1,
+              }}>
               {activeSlice.votingPower.toFixed(2)}%
             </Text>
-            <Text style={{ fontFamily: Fonts.sans, color: activeColors.text, fontSize: 13, fontWeight: "600", marginTop: 4 }}>
+            <Text
+              style={{
+                fontFamily: Fonts.sans,
+                color: activeColors.text,
+                fontSize: 13,
+                fontWeight: "600",
+                marginTop: 4,
+              }}>
               {activeSlice.stakeFormatted}
             </Text>
           </AnimatedRN.View>
         ) : (
           <AnimatedRN.View style={{ alignItems: "center" }}>
-            <Text style={{ fontFamily: Fonts.sans, color: activeColors.textSecondary, fontSize: 10, fontWeight: "bold", textTransform: "uppercase", marginBottom: 4 }}>
+            <Text
+              style={{
+                fontFamily: Fonts.sans,
+                color: activeColors.textSecondary,
+                fontSize: 10,
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                marginBottom: 4,
+              }}>
               Total Network
             </Text>
-            <Text style={{ fontFamily: Fonts.sans, color: activeColors.text, fontSize: 18, fontWeight: "800", letterSpacing: -0.5, textAlign: "center" }}>
+            <Text
+              style={{
+                fontFamily: Fonts.sans,
+                color: activeColors.text,
+                fontSize: 18,
+                fontWeight: "800",
+                letterSpacing: -0.5,
+                textAlign: "center",
+              }}>
               Tap a slice
             </Text>
           </AnimatedRN.View>
@@ -258,7 +414,7 @@ export default function AnalyticsScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading, isError, error, refetch } = useValidators();
   const { activeColors } = useSettings();
-  
+
   const [activeSlice, setActiveSlice] = useState<PieSlice | null>(null);
   const [isManualRefresh, setIsManualRefresh] = useState(false);
   const isInitialLoad = isLoading && !data;
@@ -271,42 +427,50 @@ export default function AnalyticsScreen() {
   const activeValidators = useMemo<ValidatorSummary[]>(() => {
     if (!systemState) return [];
     const raw = systemState as unknown as Record<string, unknown>;
-    const av = raw.activeValidators ?? (raw.V2 as Record<string, unknown> | undefined)?.activeValidators;
+    const av =
+      raw.activeValidators ??
+      (raw.V2 as Record<string, unknown> | undefined)?.activeValidators;
     return Array.isArray(av) ? (av as ValidatorSummary[]) : [];
   }, [systemState]);
 
   // ── Pie Chart Data ──────────────────────────────────────────────────────────
   const pieChartData = useMemo<PieSlice[]>(() => {
     if (!activeValidators.length) return [];
-    const sorted = [...activeValidators].sort((a, b) => Number(b.votingPower ?? 0) - Number(a.votingPower ?? 0));
+    const sorted = [...activeValidators].sort(
+      (a, b) => Number(b.votingPower ?? 0) - Number(a.votingPower ?? 0),
+    );
     const top10 = sorted.slice(0, 10);
     const rest = sorted.slice(10);
-    
+
     // Convert hex to rgb string format
     const hexToRgba = (hex: string, alpha: number) => {
-        let r = 0, g = 0, b = 0;
-        if (hex.length === 4) {
-          r = parseInt(hex[1] + hex[1], 16);
-          g = parseInt(hex[2] + hex[2], 16);
-          b = parseInt(hex[3] + hex[3], 16);
-        } else if (hex.length === 7) {
-          r = parseInt(hex[1] + hex[2], 16);
-          g = parseInt(hex[3] + hex[4], 16);
-          b = parseInt(hex[5] + hex[6], 16);
-        }
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      let r = 0,
+        g = 0,
+        b = 0;
+      if (hex.length === 4) {
+        r = parseInt(hex[1] + hex[1], 16);
+        g = parseInt(hex[2] + hex[2], 16);
+        b = parseInt(hex[3] + hex[3], 16);
+      } else if (hex.length === 7) {
+        r = parseInt(hex[1] + hex[2], 16);
+        g = parseInt(hex[3] + hex[4], 16);
+        b = parseInt(hex[5] + hex[6], 16);
+      }
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     };
-    
+
     // Premium theme colors
-    const primaryColor = activeColors.tint || "#3B82F6";
-    const textSecondary = activeColors.textSecondary || "#A1A1AA";
+    const primaryColor: string = activeColors.tint || "#3B82F6";
+    const textSecondary: string = activeColors.textSecondary || "#A1A1AA";
 
     const slices: PieSlice[] = top10.map((v, i) => {
-      let color = primaryColor;
-      if (i === 0) color = primaryColor; // Lead slice
+      let color: string = primaryColor;
+      if (i === 0)
+        color = primaryColor; // Lead slice
       else if (i === 1) color = hexToRgba(primaryColor, 0.75);
       else if (i === 2) color = hexToRgba(primaryColor, 0.45);
-      else if (i === 3) color = hexToRgba(textSecondary, 0.5); // Deep grays / muted accents
+      else if (i === 3)
+        color = hexToRgba(textSecondary, 0.5); // Deep grays / muted accents
       else if (i === 4) color = hexToRgba(textSecondary, 0.4);
       else if (i === 5) color = hexToRgba(textSecondary, 0.3);
       else if (i === 6) color = hexToRgba(textSecondary, 0.2);
@@ -323,10 +487,14 @@ export default function AnalyticsScreen() {
     });
 
     if (rest.length) {
-      const combinedStake = rest.reduce((s, v) => s + BigInt(v.stakingPoolIotaBalance || "0"), 0n);
+      const combinedStake = rest.reduce(
+        (s, v) => s + BigInt(v.stakingPoolIotaBalance || "0"),
+        0n,
+      );
       slices.push({
         name: "Others",
-        votingPower: rest.reduce((s, v) => s + Number(v.votingPower ?? 0), 0) / 100,
+        votingPower:
+          rest.reduce((s, v) => s + Number(v.votingPower ?? 0), 0) / 100,
         stakeFormatted: formatIota(combinedStake.toString()) + " IOTA",
         color: hexToRgba(textSecondary, 0.04), // Visually subtle shade
       });
@@ -346,12 +514,20 @@ export default function AnalyticsScreen() {
   const apyLeaderboard = useMemo(() => {
     if (!activeValidators.length || !apys.length) return [];
     const topByStake = [...activeValidators]
-      .sort((a, b) => Number(BigInt(b.stakingPoolIotaBalance || "0")) - Number(BigInt(a.stakingPoolIotaBalance || "0")))
+      .sort(
+        (a, b) =>
+          Number(BigInt(b.stakingPoolIotaBalance || "0")) -
+          Number(BigInt(a.stakingPoolIotaBalance || "0")),
+      )
       .slice(0, 10);
     const withApy = topByStake
       .map((v) => {
         const apyObj = apys.find((a) => a.address === v.iotaAddress);
-        return { id: v.iotaAddress, name: v.name || truncate(v.iotaAddress, 10), apy: apyObj?.apy ?? 0 };
+        return {
+          id: v.iotaAddress,
+          name: v.name || truncate(v.iotaAddress, 10),
+          apy: apyObj?.apy ?? 0,
+        };
       })
       .sort((a, b) => b.apy - a.apy);
     const maxApy = Math.max(...withApy.map((v) => v.apy), 0.0001);
@@ -369,16 +545,29 @@ export default function AnalyticsScreen() {
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <View style={[styles.container, { backgroundColor: activeColors.background, paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: activeColors.background, paddingTop: insets.top },
+      ]}>
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={[styles.title, { color: activeColors.text }]}>Analytics</Text>
-          <Text style={[styles.subtitle, { color: activeColors.textSecondary }]}>Network Statistics · Live</Text>
+          <Text style={[styles.title, { color: activeColors.text }]}>
+            Analytics
+          </Text>
+          <Text
+            style={[styles.subtitle, { color: activeColors.textSecondary }]}>
+            Network Statistics · Live
+          </Text>
         </View>
         <View style={styles.livePill}>
-          <View style={[styles.liveDot, { backgroundColor: activeColors.tint }]} />
-          <Text style={[styles.liveText, { color: activeColors.tint }]}>LIVE</Text>
+          <View
+            style={[styles.liveDot, { backgroundColor: activeColors.tint }]}
+          />
+          <Text style={[styles.liveText, { color: activeColors.tint }]}>
+            LIVE
+          </Text>
         </View>
       </View>
 
@@ -393,7 +582,10 @@ export default function AnalyticsScreen() {
       {!isError && (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.content, { paddingBottom: 100 + insets.bottom }]}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: 100 + insets.bottom },
+          ]}
           refreshControl={
             <RefreshControl
               refreshing={isManualRefresh}
@@ -401,16 +593,28 @@ export default function AnalyticsScreen() {
               tintColor={activeColors.tint}
               colors={[activeColors.tint]}
             />
-          }
-        >
+          }>
           {/* 1. Voting Power Chart (Donut) */}
           {isInitialLoad ? (
             <SkeletonChartCard activeColors={activeColors} />
           ) : (
-            <AnimatedRN.View entering={FadeInDown.duration(300).delay(100)} style={[styles.chartCard, { backgroundColor: activeColors.surfaceElevated }]}>
+            <AnimatedRN.View
+              entering={FadeInDown.duration(300).delay(100)}
+              style={[
+                styles.chartCard,
+                { backgroundColor: activeColors.surfaceElevated },
+              ]}>
               <View style={styles.cardHeader}>
-                <Text style={[styles.cardSectionLabel, { color: activeColors.textSecondary }]}>VOTING POWER</Text>
-                <Text style={[styles.cardTitle, { color: activeColors.text }]}>Network Consensus</Text>
+                <Text
+                  style={[
+                    styles.cardSectionLabel,
+                    { color: activeColors.textSecondary },
+                  ]}>
+                  VOTING POWER
+                </Text>
+                <Text style={[styles.cardTitle, { color: activeColors.text }]}>
+                  Network Consensus
+                </Text>
               </View>
               {pieChartData.length > 0 ? (
                 <View style={styles.pieChartContainer}>
@@ -422,7 +626,13 @@ export default function AnalyticsScreen() {
                   />
                 </View>
               ) : (
-                <Text style={[styles.mutedText, { color: activeColors.textSecondary }]}>No validator data available</Text>
+                <Text
+                  style={[
+                    styles.mutedText,
+                    { color: activeColors.textSecondary },
+                  ]}>
+                  No validator data available
+                </Text>
               )}
             </AnimatedRN.View>
           )}
@@ -430,31 +640,76 @@ export default function AnalyticsScreen() {
           {/* 3. Premium Legend Cards */}
           {!isInitialLoad && pieChartData.length > 0 && (
             <View style={styles.legendSection}>
-              <Text style={[styles.sectionLabel, { color: activeColors.textSecondary }]}>VALIDATOR LEADERBOARD</Text>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                VALIDATOR LEADERBOARD
+              </Text>
               <View style={styles.legendList}>
-                {(isLegendExpanded ? pieChartData : pieChartData.slice(0, 3)).map((slice, index) => {
+                {(isLegendExpanded
+                  ? pieChartData
+                  : pieChartData.slice(0, 3)
+                ).map((slice, index) => {
                   const isActive = activeSlice?.name === slice.name;
                   return (
-                    <AnimatedRN.View key={slice.name} entering={FadeInDown.duration(300).delay(150 + index * 30)}>
+                    <AnimatedRN.View
+                      key={slice.name}
+                      entering={FadeInDown.duration(300).delay(
+                        150 + index * 30,
+                      )}>
                       <Pressable
                         style={({ pressed }) => [
                           styles.legendCard,
                           { backgroundColor: activeColors.surfaceElevated },
-                          isActive && { borderColor: activeColors.tint, backgroundColor: activeColors.background },
-                          pressed && styles.cardPressed
+                          isActive && {
+                            borderColor: activeColors.tint,
+                            backgroundColor: activeColors.background,
+                          },
+                          pressed && styles.cardPressed,
                         ]}
-                        onPress={() => setActiveSlice(isActive ? null : slice)}
-                      >
-                        <View style={[styles.legendDot, { backgroundColor: slice.color }]} />
+                        onPress={() => setActiveSlice(isActive ? null : slice)}>
+                        <View
+                          style={[
+                            styles.legendDot,
+                            { backgroundColor: slice.color },
+                          ]}
+                        />
                         <View style={styles.legendTextWrap}>
-                          <Text style={[styles.legendName, { color: activeColors.text }]} numberOfLines={1}>{slice.name}</Text>
-                          <Text style={[styles.legendSub, { color: activeColors.textSecondary }]}>
-                            {slice.name === "Others" ? "Combined voting power" : `Rank ${index + 1}`}
+                          <Text
+                            style={[
+                              styles.legendName,
+                              { color: activeColors.text },
+                            ]}
+                            numberOfLines={1}>
+                            {slice.name}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.legendSub,
+                              { color: activeColors.textSecondary },
+                            ]}>
+                            {slice.name === "Others"
+                              ? "Combined voting power"
+                              : `Rank ${index + 1}`}
                           </Text>
                         </View>
                         <View style={{ alignItems: "flex-end" }}>
-                          <Text style={[styles.legendValue, { color: activeColors.tint }]}>{slice.votingPower.toFixed(2)}%</Text>
-                          <Text style={[styles.legendSubRight, { color: activeColors.textSecondary }]}>{slice.stakeFormatted}</Text>
+                          <Text
+                            style={[
+                              styles.legendValue,
+                              { color: activeColors.tint },
+                            ]}>
+                            {slice.votingPower.toFixed(2)}%
+                          </Text>
+                          <Text
+                            style={[
+                              styles.legendSubRight,
+                              { color: activeColors.textSecondary },
+                            ]}>
+                            {slice.stakeFormatted}
+                          </Text>
                         </View>
                       </Pressable>
                     </AnimatedRN.View>
@@ -463,11 +718,19 @@ export default function AnalyticsScreen() {
               </View>
               {pieChartData.length > 3 && (
                 <Pressable
-                  style={[styles.expandButton, { backgroundColor: activeColors.border }]}
-                  onPress={() => setIsLegendExpanded(!isLegendExpanded)}
-                >
-                  <Text style={[styles.expandButtonText, { color: activeColors.text }]}>
-                    {isLegendExpanded ? "Show Less" : `Show All Validators (${pieChartData.length})`}
+                  style={[
+                    styles.expandButton,
+                    { backgroundColor: activeColors.border },
+                  ]}
+                  onPress={() => setIsLegendExpanded(!isLegendExpanded)}>
+                  <Text
+                    style={[
+                      styles.expandButtonText,
+                      { color: activeColors.text },
+                    ]}>
+                    {isLegendExpanded
+                      ? "Show Less"
+                      : `Show All Validators (${pieChartData.length})`}
                   </Text>
                 </Pressable>
               )}
@@ -477,7 +740,16 @@ export default function AnalyticsScreen() {
           {/* 4. APY Horizontal Carousel */}
           {!isInitialLoad && apyLeaderboard.length > 0 && (
             <View style={styles.apySection}>
-              <Text style={[styles.sectionLabel, { paddingHorizontal: Spacing.base, color: activeColors.textSecondary }]}>HIGHEST YIELD (APY)</Text>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  {
+                    paddingHorizontal: Spacing.base,
+                    color: activeColors.textSecondary,
+                  },
+                ]}>
+                HIGHEST YIELD (APY)
+              </Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -486,15 +758,50 @@ export default function AnalyticsScreen() {
                 snapToInterval={216} // 200 width + 16 gap
               >
                 {apyLeaderboard.map((item, index) => (
-                  <AnimatedRN.View key={item.id} entering={FadeInDown.duration(300).delay(200 + index * 50)}>
-                    <View style={[styles.apyCard, { backgroundColor: activeColors.surfaceElevated }]}>
+                  <AnimatedRN.View
+                    key={item.id}
+                    entering={FadeInDown.duration(300).delay(200 + index * 50)}>
+                    <View
+                      style={[
+                        styles.apyCard,
+                        { backgroundColor: activeColors.surfaceElevated },
+                      ]}>
                       <View style={styles.apyHeader}>
-                        <Text style={[styles.apyRank, { color: activeColors.textSecondary }]}>#{index + 1}</Text>
-                        <Text style={[styles.apyValue, { color: activeColors.tint }]}>{item.displayValue}</Text>
+                        <Text
+                          style={[
+                            styles.apyRank,
+                            { color: activeColors.textSecondary },
+                          ]}>
+                          #{index + 1}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.apyValue,
+                            { color: activeColors.tint },
+                          ]}>
+                          {item.displayValue}
+                        </Text>
                       </View>
-                      <Text style={[styles.apyName, { color: activeColors.text }]} numberOfLines={1}>{item.name}</Text>
-                      <View style={[styles.barTrack, { backgroundColor: activeColors.border }]}>
-                        <View style={[styles.barFill, { backgroundColor: activeColors.tint, width: `${item.percentageOfMax}%` as unknown as number }]} />
+                      <Text
+                        style={[styles.apyName, { color: activeColors.text }]}
+                        numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                      <View
+                        style={[
+                          styles.barTrack,
+                          { backgroundColor: activeColors.border },
+                        ]}>
+                        <View
+                          style={[
+                            styles.barFill,
+                            {
+                              backgroundColor: activeColors.tint,
+                              width:
+                                `${item.percentageOfMax}%` as unknown as number,
+                            },
+                          ]}
+                        />
                       </View>
                     </View>
                   </AnimatedRN.View>
@@ -502,7 +809,6 @@ export default function AnalyticsScreen() {
               </ScrollView>
             </View>
           )}
-
         </ScrollView>
       )}
     </View>
@@ -515,14 +821,24 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
 
   header: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  title: { fontFamily: Fonts.sans, fontSize: FontSize.xl, fontWeight: FontWeight.extrabold, letterSpacing: -0.5 },
-  subtitle: { fontFamily: Fonts.sans, fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: 2 },
+  title: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.xl,
+    fontWeight: FontWeight.extrabold,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+    marginTop: 2,
+  },
 
   livePill: {
     flexDirection: "row",
@@ -534,10 +850,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   liveDot: { width: 6, height: 6, borderRadius: 3 },
-  liveText: { fontFamily: Fonts.sans, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1 },
+  liveText: {
+    fontFamily: Fonts.sans,
+    fontSize: 10,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 1,
+  },
 
-  content: { paddingVertical: Spacing.md, gap: Spacing.xl },
-  
+  content: { paddingVertical: Spacing.md, gap: Spacing.md },
+
   sectionLabel: {
     fontFamily: Fonts.sans,
     fontSize: 11,
@@ -546,19 +867,39 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: Spacing.md,
   },
-  mutedText: { fontFamily: Fonts.sans, fontSize: FontSize.sm, paddingVertical: Spacing.lg, textAlign: "center" },
+  mutedText: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.sm,
+    paddingVertical: Spacing.lg,
+    textAlign: "center",
+  },
 
   // Primary Chart Cards
   chartCard: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: CARD_PADDING,
     marginHorizontal: Spacing.base,
   },
   cardHeader: { marginBottom: Spacing.xl },
-  cardSectionLabel: { fontFamily: Fonts.sans, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, textTransform: "uppercase" },
-  cardTitle: { fontFamily: Fonts.sans, fontSize: FontSize.lg, fontWeight: FontWeight.extrabold, marginTop: 4 },
+  cardSectionLabel: {
+    fontFamily: Fonts.sans,
+    fontSize: 10,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+  },
+  cardTitle: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.extrabold,
+    marginTop: 4,
+  },
 
-  pieChartContainer: { alignItems: "center", justifyContent: "center", marginVertical: Spacing.sm },
+  pieChartContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: Spacing.sm,
+  },
 
   // Premium Legend Cards
   legendSection: { paddingHorizontal: Spacing.base },
@@ -566,7 +907,7 @@ const styles = StyleSheet.create({
   legendCard: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.lg,
     gap: Spacing.lg,
     borderWidth: 1,
@@ -587,37 +928,93 @@ const styles = StyleSheet.create({
   cardPressed: { opacity: 0.8, transform: [{ scale: 0.98 }] },
   legendDot: { width: 14, height: 14, borderRadius: 7 },
   legendTextWrap: { flex: 1 },
-  legendName: { fontFamily: Fonts.sans, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  legendSub: { fontFamily: Fonts.sans, fontSize: FontSize.sm, fontWeight: FontWeight.medium, marginTop: 4 },
-  legendSubRight: { fontFamily: Fonts.sans, fontSize: FontSize.xs, fontWeight: FontWeight.medium, marginTop: 4 },
-  legendValue: { fontFamily: Fonts.sans, fontSize: FontSize["2xl"], fontWeight: FontWeight.extrabold, letterSpacing: -0.5 },
+  legendName: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+  },
+  legendSub: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.medium,
+    marginTop: 4,
+  },
+  legendSubRight: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.medium,
+    marginTop: 4,
+  },
+  legendValue: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize["2xl"],
+    fontWeight: FontWeight.extrabold,
+    letterSpacing: -0.5,
+  },
 
   // APY Horizontal Carousel
   apySection: { marginTop: Spacing.md },
   apyCarousel: { paddingHorizontal: Spacing.base, gap: Spacing.md },
   apyCard: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.xl,
     width: 200,
     justifyContent: "space-between",
   },
-  apyHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.sm },
-  apyRank: { fontFamily: Fonts.sans, fontSize: FontSize.sm, fontWeight: FontWeight.bold },
-  apyValue: { fontFamily: Fonts.sans, fontSize: FontSize.lg, fontWeight: FontWeight.extrabold },
-  apyName: { fontFamily: Fonts.sans, fontSize: FontSize.md, fontWeight: FontWeight.bold, marginBottom: Spacing.lg },
+  apyHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+  },
+  apyRank: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold,
+  },
+  apyValue: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.extrabold,
+  },
+  apyName: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.bold,
+    marginBottom: Spacing.lg,
+  },
   barTrack: { height: 6, borderRadius: 3, overflow: "hidden" },
   barFill: { height: "100%", borderRadius: 3 },
 
   // Error
-  errorContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing["3xl"], gap: Spacing.md },
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing["3xl"],
+    gap: Spacing.md,
+  },
   errorIcon: { fontSize: 48 },
-  errorTitle: { fontFamily: Fonts.sans, fontSize: FontSize.lg, fontWeight: FontWeight.bold },
-  errorMessage: { fontFamily: Fonts.sans, fontSize: FontSize.base, textAlign: "center", lineHeight: 22 },
+  errorTitle: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold,
+  },
+  errorMessage: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.base,
+    textAlign: "center",
+    lineHeight: 22,
+  },
   retryBtn: {
     marginTop: Spacing.lg,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
   },
-  retryBtnText: { fontFamily: Fonts.sans, fontSize: FontSize.base, fontWeight: FontWeight.bold },
+  retryBtnText: {
+    fontFamily: Fonts.sans,
+    fontSize: FontSize.base,
+    fontWeight: FontWeight.bold,
+  },
 });

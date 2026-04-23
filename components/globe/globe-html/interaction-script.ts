@@ -18,9 +18,15 @@ export const INTERACTION_SCRIPT = `
 var currentMarkers = [];
 var validatorData = [];   // full validator payload for hit detection
 var validatorById = Object.create(null);
-var phi = 0.3;
-var theta = 0.15;
-var scale = 1.0;          // zoom level
+var DEFAULT_GLOBE_PHI = 0.3;
+var DEFAULT_GLOBE_THETA = 0.15;
+var DEFAULT_GLOBE_SCALE = 0.92;
+var MIN_GLOBE_SCALE = 0.72;
+var MAX_GLOBE_SCALE = 2.5;
+
+var phi = DEFAULT_GLOBE_PHI;
+var theta = DEFAULT_GLOBE_THETA;
+var scale = DEFAULT_GLOBE_SCALE; // zoom level
 var dragStart = null;
 var touchDragStart = null;
 var multiTouchCenter = null;
@@ -40,7 +46,7 @@ var TAP_THRESHOLD_MS = 500;  // max duration to still count as tap
 
 // ── Pinch-to-zoom state ─────────────────────────────────────
 var pinchStartDist = 0;
-var pinchStartScale = 1.0;
+var pinchStartScale = DEFAULT_GLOBE_SCALE;
 var isPinching = false;
 
 // ── Auto-rotation state ───────────────────────────────────
@@ -225,7 +231,7 @@ canvas.addEventListener('touchmove', function(e) {
   if (e.touches.length === 2 && isPinching) {
     var currentDist = getTouchDist(e.touches);
     var ratio = pinchStartDist > 0 ? (currentDist / pinchStartDist) : 1;
-    scale = Math.max(0.8, Math.min(2.5, pinchStartScale * ratio));
+    scale = clamp(pinchStartScale * ratio, MIN_GLOBE_SCALE, MAX_GLOBE_SCALE);
 
     var center = getTouchCenter(e.touches);
     if (multiTouchCenter) {

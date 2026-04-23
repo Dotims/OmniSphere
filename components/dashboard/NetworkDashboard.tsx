@@ -9,11 +9,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import {
-  Fonts,
-  FontSize,
-  FontWeight,
-  Radius,
-  Spacing,
+    Fonts,
+    FontSize,
+    FontWeight,
+    Radius,
+    Spacing,
 } from "@/constants/theme";
 import { useSettings } from "@/hooks/use-settings";
 import type { SystemState, ValidatorApy } from "@/services/validators";
@@ -120,19 +120,40 @@ export default function NetworkDashboard({
   return (
     <View style={styles.container}>
       {/* ── Epoch Card ────────────────────────────────── */}
-      <View style={[styles.epochCard, { backgroundColor: activeColors.surfaceElevated }]}>
+      <View
+        style={[
+          styles.epochCard,
+          { backgroundColor: activeColors.surfaceElevated },
+        ]}>
         <View style={styles.epochHeader}>
-          <Text style={[styles.epochLabel, { color: activeColors.textSecondary }]}>EPOCH</Text>
-          <View style={[styles.epochBadge, { backgroundColor: activeColors.tint }]}>
-            <Text style={[styles.epochBadgeText, { color: activeColors.background }]}>#{systemState.epoch}</Text>
+          <Text
+            style={[styles.epochLabel, { color: activeColors.textSecondary }]}>
+            EPOCH
+          </Text>
+          <View
+            style={[styles.epochBadge, { backgroundColor: activeColors.tint }]}>
+            <Text
+              style={[
+                styles.epochBadgeText,
+                { color: activeColors.background },
+              ]}>
+              #{systemState.epoch}
+            </Text>
           </View>
         </View>
 
-        <View style={[styles.progressTrack, { backgroundColor: activeColors.border }]}>
+        <View
+          style={[
+            styles.progressTrack,
+            { backgroundColor: activeColors.border },
+          ]}>
           <View
             style={[
               styles.progressFill,
-              { backgroundColor: activeColors.tint, width: `${(progress * 100).toFixed(1)}%` as unknown as number },
+              {
+                backgroundColor: activeColors.tint,
+                width: `${(progress * 100).toFixed(1)}%` as unknown as number,
+              },
             ]}
           />
         </View>
@@ -141,33 +162,93 @@ export default function NetworkDashboard({
           <Text style={[styles.epochProgress, { color: activeColors.tint }]}>
             {(progress * 100).toFixed(0)}%
           </Text>
-          <Text style={[styles.epochRemaining, { color: activeColors.textSecondary }]}>{remaining} left</Text>
+          <Text
+            style={[
+              styles.epochRemaining,
+              { color: activeColors.textSecondary },
+            ]}>
+            {remaining} left
+          </Text>
         </View>
       </View>
 
       {/* ── Metric Grid ────────────────────────────────── */}
       <View style={styles.grid}>
-        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated }]}>
-          <Text style={[styles.label, { color: activeColors.textSecondary }]}>TOTAL STAKE</Text>
-          <Text style={[styles.valueHuge, { color: activeColors.text }]}>{totalStake}</Text>
-          <Text style={[styles.unit, { color: activeColors.textSecondary }]}>IOTA</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: activeColors.surfaceElevated },
+          ]}>
+          <Text style={[styles.label, { color: activeColors.textSecondary }]}>
+            TOTAL STAKE
+          </Text>
+          <Text
+            style={[styles.valueHuge, { color: activeColors.text }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            minimumFontScale={0.55}>
+            {totalStake}
+          </Text>
+          <Text style={[styles.unit, { color: activeColors.textSecondary }]}>
+            IOTA
+          </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated }]}>
-          <Text style={[styles.label, { color: activeColors.textSecondary }]}>AVG APY</Text>
-          <Text style={[styles.valueHuge, { color: activeColors.tint }]}>{avgApy}</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: activeColors.surfaceElevated },
+          ]}>
+          <Text style={[styles.label, { color: activeColors.textSecondary }]}>
+            AVG APY
+          </Text>
+          <Text
+            style={[styles.valueHuge, { color: activeColors.tint }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            minimumFontScale={0.55}>
+            {avgApy}
+          </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated }]}>
-          <Text style={[styles.label, { color: activeColors.textSecondary }]}>VALIDATORS</Text>
-          <Text style={[styles.valueHuge, { color: activeColors.text }]}>{validatorCount}</Text>
-          <Text style={[styles.unit, { color: activeColors.textSecondary }]}>active</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: activeColors.surfaceElevated },
+          ]}>
+          <Text style={[styles.label, { color: activeColors.textSecondary }]}>
+            VALIDATORS
+          </Text>
+          <Text
+            style={[styles.valueHuge, { color: activeColors.text }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            minimumFontScale={0.55}>
+            {validatorCount}
+          </Text>
+          <Text style={[styles.unit, { color: activeColors.textSecondary }]}>
+            active
+          </Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated }]}>
-          <Text style={[styles.label, { color: activeColors.textSecondary }]}>GAS PRICE</Text>
-          <Text style={[styles.valueHuge, { color: activeColors.text }]}>{gasPrice}</Text>
-          <Text style={[styles.unit, { color: activeColors.textSecondary }]}>MIST</Text>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: activeColors.surfaceElevated },
+          ]}>
+          <Text style={[styles.label, { color: activeColors.textSecondary }]}>
+            GAS PRICE
+          </Text>
+          <Text
+            style={[styles.valueHuge, { color: activeColors.text }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            minimumFontScale={0.55}>
+            {gasPrice}
+          </Text>
+          <Text style={[styles.unit, { color: activeColors.textSecondary }]}>
+            MIST
+          </Text>
         </View>
       </View>
     </View>
@@ -178,6 +259,8 @@ export default function NetworkDashboard({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    minHeight: 0,
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
@@ -186,9 +269,10 @@ const styles = StyleSheet.create({
 
   // ── Epoch card ─────────────────────────────────────────────
   epochCard: {
-    borderRadius: Radius["2xl"],
+    flexShrink: 1,
+    borderRadius: Radius.lg,
     paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.md + 2,
   },
   epochHeader: {
     flexDirection: "row",
@@ -241,18 +325,25 @@ const styles = StyleSheet.create({
 
   // ── Metric Grid ────────────────────────────────────────────
   grid: {
+    flex: 1,
+    minHeight: 0,
     flexDirection: "row",
     flexWrap: "wrap",
+    alignContent: "stretch",
     gap: Spacing.md,
   },
 
   // Shared card — no border, no shadow
   card: {
-    flex: 1,
-    minWidth: "46%" as unknown as number,
+    flexBasis: "48%",
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    minHeight: 0,
+    justifyContent: "center",
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
 
   // Labels — tiny, uppercase, muted

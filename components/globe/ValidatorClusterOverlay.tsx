@@ -1,22 +1,22 @@
 import {
-    Fonts,
-    FontSize,
-    FontWeight,
-    Radius,
-    Spacing,
+  Fonts,
+  FontSize,
+  FontWeight,
+  Radius,
+  Spacing,
 } from "@/constants/theme";
 import { useSettings } from "@/hooks/use-settings";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 import React, { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeOut,
-    FadeOutDown,
-    LinearTransition,
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  FadeOutDown,
+  LinearTransition,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ValidatorClusterOverlayProps {
   validators: ValidatorSummary[];
@@ -82,19 +82,30 @@ function ValidatorRow({
         onPress={onToggle}
         style={[
           styles.row,
-          !isLast && !isExpanded && { borderBottomWidth: 1, borderBottomColor: activeColors.border },
-        ]}
-      >
-        <View style={[styles.rowMarker, { backgroundColor: activeColors.tint }]} />
+          !isLast &&
+            !isExpanded && {
+              borderBottomWidth: 1,
+              borderBottomColor: activeColors.border,
+            },
+        ]}>
+        <View
+          style={[styles.rowMarker, { backgroundColor: activeColors.tint }]}
+        />
         <View style={styles.rowTextWrap}>
-          <Text style={[styles.rowName, { color: activeColors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.rowName, { color: activeColors.text }]}
+            numberOfLines={1}>
             {validator.name || "Unknown Validator"}
           </Text>
-          <Text style={[styles.rowAddress, { color: activeColors.textSecondary }]} numberOfLines={1}>
+          <Text
+            style={[styles.rowAddress, { color: activeColors.textSecondary }]}
+            numberOfLines={1}>
             {truncateAddress(validator.iotaAddress)}
           </Text>
         </View>
-        <Text style={[styles.chevron, { color: activeColors.textSecondary }]}>{isExpanded ? "▴" : "▾"}</Text>
+        <Text style={[styles.chevron, { color: activeColors.textSecondary }]}>
+          {isExpanded ? "▴" : "▾"}
+        </Text>
       </Pressable>
 
       {isExpanded && (
@@ -103,35 +114,87 @@ function ValidatorRow({
           style={[
             styles.expandedPanel,
             { backgroundColor: activeColors.background },
-            !isLast && { borderBottomWidth: 1, borderBottomColor: activeColors.border },
-          ]}
-        >
+            !isLast && {
+              borderBottomWidth: 1,
+              borderBottomColor: activeColors.border,
+            },
+          ]}>
           <View style={styles.metricsGrid}>
-            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
-              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Stake</Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>{stake}</Text>
+            <View
+              style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text
+                style={[
+                  styles.metricLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                Stake
+              </Text>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
+                {stake}
+              </Text>
             </View>
-            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
-              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>APY</Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
+            <View
+              style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text
+                style={[
+                  styles.metricLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                APY
+              </Text>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
                 {apyPercent}
               </Text>
             </View>
-            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
-              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Voting Power</Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>{votingPower}</Text>
+            <View
+              style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text
+                style={[
+                  styles.metricLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                Voting Power
+              </Text>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
+                {votingPower}
+              </Text>
             </View>
-            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
-              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Commission</Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>{commission}</Text>
+            <View
+              style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text
+                style={[
+                  styles.metricLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                Commission
+              </Text>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
+                {commission}
+              </Text>
             </View>
-            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
-              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Next Epoch Stake</Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>{nextStake}</Text>
+            <View
+              style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text
+                style={[
+                  styles.metricLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                Next Epoch Stake
+              </Text>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
+                {nextStake}
+              </Text>
             </View>
-            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
-              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Next Commission</Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
+            <View
+              style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text
+                style={[
+                  styles.metricLabel,
+                  { color: activeColors.textSecondary },
+                ]}>
+                Next Commission
+              </Text>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
                 {formatPercent(validator.nextEpochCommissionRate)}
               </Text>
             </View>
@@ -162,12 +225,9 @@ export default function ValidatorClusterOverlay({
     return map;
   }, [apys]);
 
-  const handleToggle = useCallback(
-    (id: string) => {
-      setExpandedId((prev) => (prev === id ? null : id));
-    },
-    [],
-  );
+  const handleToggle = useCallback((id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  }, []);
 
   return (
     <>
@@ -175,8 +235,7 @@ export default function ValidatorClusterOverlay({
       <Animated.View
         entering={FadeIn.duration(200)}
         exiting={FadeOut.duration(150)}
-        style={styles.scrim}
-      >
+        style={styles.scrim}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
 
@@ -184,22 +243,54 @@ export default function ValidatorClusterOverlay({
       <Animated.View
         entering={FadeInDown.duration(300).springify()}
         exiting={FadeOutDown.duration(200)}
-        style={[styles.container, { paddingBottom: 82 + insets.bottom + Spacing.lg }]}>
-        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated, borderColor: activeColors.border, shadowColor: activeColors.tint }]}>
-          {/* Stylistic Top Edge Notch */}
-          <View style={[styles.notch, { backgroundColor: activeColors.background, borderColor: activeColors.border }]} />
-          
-          <View style={[styles.handle, { backgroundColor: activeColors.border }]} />
+        style={[
+          styles.container,
+          { paddingBottom: 82 + insets.bottom + Spacing.lg },
+        ]}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: activeColors.surfaceElevated,
+              borderColor: activeColors.border,
+            },
+          ]}>
+          <View style={styles.handleContainer}>
+            <View
+              style={[
+                styles.handle,
+                { backgroundColor: activeColors.textSecondary },
+              ]}
+            />
+          </View>
 
           <View style={styles.header}>
             <View style={styles.headerTextWrap}>
-              <Text style={[styles.title, { color: activeColors.text }]}>Dense Cluster</Text>
-              <Text style={[styles.subtitle, { color: activeColors.textSecondary }]}>
+              <Text style={[styles.title, { color: activeColors.text }]}>
+                Dense Cluster
+              </Text>
+              <Text
+                style={[
+                  styles.subtitle,
+                  { color: activeColors.textSecondary },
+                ]}>
                 {validators.length} validators in tap range
               </Text>
             </View>
-            <Pressable onPress={onClose} style={[styles.closeBtn, { backgroundColor: activeColors.border }]} hitSlop={12}>
-              <Text style={[styles.closeBtnText, { color: activeColors.textSecondary }]}>✕</Text>
+            <Pressable
+              onPress={onClose}
+              style={[
+                styles.closeBtn,
+                { backgroundColor: activeColors.border },
+              ]}
+              hitSlop={12}>
+              <Text
+                style={[
+                  styles.closeBtnText,
+                  { color: activeColors.textSecondary },
+                ]}>
+                ✕
+              </Text>
             </Pressable>
           </View>
 
@@ -207,7 +298,11 @@ export default function ValidatorClusterOverlay({
             style={styles.list}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}>
-            <View style={[styles.listContainer, { backgroundColor: activeColors.background }]}>
+            <View
+              style={[
+                styles.listContainer,
+                { backgroundColor: activeColors.background },
+              ]}>
               {validators.map((validator, idx) => (
                 <ValidatorRow
                   key={validator.iotaAddress}
@@ -249,22 +344,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     zIndex: 30,
   },
-  notch: {
-    position: "absolute",
-    top: -1,
-    alignSelf: "center",
-    width: 48,
-    height: 6,
-    borderBottomLeftRadius: 6,
-    borderBottomRightRadius: 6,
-    borderBottomWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    zIndex: 10,
-  },
   // Elevated card
   card: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.xl,
     paddingTop: Spacing.base,
     // Subtle outer glow for boundary definition
@@ -275,12 +357,18 @@ const styles = StyleSheet.create({
     // Thin hairline border for additional separation
     borderWidth: 1,
   },
+  handleContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.sm,
+  },
   handle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
+    width: 40,
+    height: 5,
+    borderRadius: Radius.full,
+    opacity: 0.55,
     alignSelf: "center",
-    marginBottom: Spacing.md,
   },
   header: {
     flexDirection: "row",
@@ -320,7 +408,7 @@ const styles = StyleSheet.create({
   },
   // Inner list container
   listContainer: {
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     overflow: "hidden",
   },
   // ── Row styles ────────────────────────────────────────────
@@ -363,14 +451,14 @@ const styles = StyleSheet.create({
   metricsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   metricCell: {
     minWidth: "46%" as unknown as number,
     flex: 1,
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderRadius: Radius.sm,
+    borderRadius: Radius.lg,
     paddingHorizontal: Spacing.sm + 4,
     paddingVertical: Spacing.xs + 4,
   },

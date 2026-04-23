@@ -20,6 +20,7 @@ html, body {
 #globe-container {
   width: 100vw;
   height: 100vh;
+  --cobe-center-y: 46%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -41,7 +42,7 @@ html, body {
 }
 #globe-viewport {
   position: absolute;
-  top: 50%;
+  top: var(--cobe-center-y, 50%);
   left: 50%;
   width: var(--cobe-viewport-w, 100vw);
   height: var(--cobe-viewport-h, 100vh);
@@ -63,7 +64,7 @@ canvas {
 canvas:active { cursor: grabbing; }
 .glow {
   position: absolute;
-  top: 50%; left: 50%;
+  top: var(--cobe-center-y, 50%); left: 50%;
   width: 60%; height: 60%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
