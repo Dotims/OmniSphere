@@ -129,7 +129,7 @@ function ValidatorRow({
                 ]}>
                 Stake
               </Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
                 {stake}
               </Text>
             </View>
@@ -142,7 +142,7 @@ function ValidatorRow({
                 ]}>
                 APY
               </Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
                 {apyPercent}
               </Text>
             </View>
@@ -155,7 +155,7 @@ function ValidatorRow({
                 ]}>
                 Voting Power
               </Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
                 {votingPower}
               </Text>
             </View>
@@ -168,7 +168,7 @@ function ValidatorRow({
                 ]}>
                 Commission
               </Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
                 {commission}
               </Text>
             </View>
@@ -181,7 +181,7 @@ function ValidatorRow({
                 ]}>
                 Next Epoch Stake
               </Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
                 {nextStake}
               </Text>
             </View>
@@ -194,7 +194,7 @@ function ValidatorRow({
                 ]}>
                 Next Commission
               </Text>
-              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
+              <Text style={[styles.metricValue, { color: activeColors.text }]}>
                 {formatPercent(validator.nextEpochCommissionRate)}
               </Text>
             </View>
@@ -253,7 +253,6 @@ export default function ValidatorClusterOverlay({
             {
               backgroundColor: activeColors.surfaceElevated,
               borderColor: activeColors.border,
-              shadowColor: activeColors.tint,
             },
           ]}>
           <View style={styles.handleContainer}>

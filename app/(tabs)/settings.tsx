@@ -15,13 +15,13 @@ import { useSettings, type ThemeType, type RefreshInterval } from "@/hooks/use-s
 function CustomSwitch({ value, onValueChange, activeColor, inactiveColor, activeColors }: { value: boolean, onValueChange: (val: boolean) => void, activeColor: string, inactiveColor: string, activeColors: any }) {
   const trackStyle = useAnimatedStyle(() => {
     return {
-      backgroundColor: withTiming(value ? activeColor : inactiveColor, { duration: 250 }),
+      backgroundColor: withTiming(value ? activeColor : inactiveColor, { duration: 150 }),
     };
   });
 
   const thumbStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateX: withSpring(value ? 24 : 2, { damping: 15, stiffness: 120 }) }],
+      transform: [{ translateX: withTiming(value ? 24 : 2, { duration: 150 }) }],
     };
   });
 
@@ -116,7 +116,7 @@ export default function SettingsScreen() {
             <Text style={[styles.cardTitle, { color: activeColors.text }]}>Appearance</Text>
           </View>
           
-          <View style={styles.row}>
+          <Pressable style={styles.row} onPress={() => setTheme(isLight ? "dark" : "light")}>
             <View>
               <Text style={[styles.label, { color: activeColors.text }]}>Theme</Text>
               <Text style={[styles.sublabel, { color: activeColors.textSecondary }]}>Toggle light or dark mode</Text>
@@ -128,7 +128,7 @@ export default function SettingsScreen() {
               inactiveColor={activePalette.ash}
               activeColors={activeColors}
             />
-          </View>
+          </Pressable>
         </View>
 
         {/* DATA & NETWORK */}
@@ -165,7 +165,7 @@ export default function SettingsScreen() {
             <Text style={[styles.cardTitle, { color: activeColors.text }]}>Experience</Text>
           </View>
 
-          <View style={styles.row}>
+          <Pressable style={styles.row} onPress={() => setAutoRotation(!autoRotation)}>
             <View style={styles.rowText}>
               <Text style={[styles.label, { color: activeColors.text }]}>Auto-Rotation</Text>
               <Text style={[styles.sublabel, { color: activeColors.textSecondary }]}>
@@ -179,7 +179,7 @@ export default function SettingsScreen() {
               inactiveColor={activePalette.ash}
               activeColors={activeColors}
             />
-          </View>
+          </Pressable>
         </View>
 
         {/* ADVANCED */}
