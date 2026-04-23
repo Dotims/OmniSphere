@@ -2,11 +2,32 @@ export const GLOBE_INIT_SCRIPT = `
 var globe = null;
 var lastFrameTs = Date.now();
 
+<<<<<<< Updated upstream
 // State currently rendered on the WebGL canvas (1 frame behind JS state)
 var renderedPhi = phi;
 var renderedTheta = theta;
 var renderedScale = scale;
 
+=======
+// Theme variables (updated via bridge)
+var globeDarkMode = 1;
+var globeBaseColor = [0.2, 0.24, 0.4];
+var globeMarkerColor = [0.23, 0.51, 0.96]; // #3B82F6
+var globeGlowColor = [0.04, 0.08, 0.16];
+
+// Helper to convert hex (#RRGGBB) to [R, G, B] array in 0-1 range
+function hexToRgbNorm(hex) {
+  var cleanHex = hex.replace('#', '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(function(c) { return c + c; }).join('');
+  }
+  var int = parseInt(cleanHex, 16);
+  var r = ((int >> 16) & 255) / 255;
+  var g = ((int >> 8) & 255) / 255;
+  var b = (int & 255) / 255;
+  return [r, g, b];
+}
+>>>>>>> Stashed changes
 
 function initGlobe() {
   // Reset hydration gate so markers stay hidden until the new
@@ -28,17 +49,14 @@ function initGlobe() {
       height: canvasHeight,
       phi: phi,
       theta: theta,
-      dark: 1,
+      dark: globeDarkMode,
       diffuse: 1.2, // Smoother light falloff for consistent brightness across the sphere
       scale: scale,
       mapSamples: 16000,
       mapBrightness: 8.0, // Overdriven multiplier makes dots highly luminous and opaque
-      // baseColor determines both the ocean and the continent hue.
-      // [0.2, 0.24, 0.4] * 0.1 (ocean lighting) ≈ #05060A.
-      // The continents multiply this by mapBrightness for luminous dots.
-      baseColor: [0.2, 0.24, 0.4],
-      markerColor: [0.23, 0.51, 0.96],  // vibrant blue #3B82F6 mapped to [0–1]
-      glowColor: [0.04, 0.08, 0.16],
+      baseColor: globeBaseColor,
+      markerColor: globeMarkerColor,
+      glowColor: globeGlowColor,
       markers: currentMarkers,
       onRender: function(state) {
         var now = Date.now();
@@ -70,11 +88,7 @@ function initGlobe() {
 
         // Unlock marker hydration only after the globe's render loop has
         // produced multiple frames AND the viewport has valid dimensions.
-        // This ensures phi, theta, scale, cssSize, viewportW, viewportH
-        // are all real values — preventing the initial "snap" of markers
-        // from wrong default coordinates.
         if (!globeRenderedFirstFrame) {
-          // If viewport is still 0 (container not laid out yet), re-measure.
           if (cssSize === 0 || viewportW === 0 || viewportH === 0) {
             resize();
           }

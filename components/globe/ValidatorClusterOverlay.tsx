@@ -1,10 +1,11 @@
 import {
+    Fonts,
     FontSize,
     FontWeight,
-    Palette,
     Radius,
     Spacing,
 } from "@/constants/theme";
+import { useSettings } from "@/hooks/use-settings";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 import React, { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -59,6 +60,7 @@ function ValidatorRow({
   isLast,
   isExpanded,
   onToggle,
+  activeColors,
 }: {
   validator: ValidatorSummary;
   apy?: ValidatorApy;
@@ -66,6 +68,7 @@ function ValidatorRow({
   isLast: boolean;
   isExpanded: boolean;
   onToggle: () => void;
+  activeColors: any;
 }) {
   const stake = formatStake(validator.stakingPoolIotaBalance);
   const nextStake = formatStake(validator.nextEpochStake);
@@ -79,19 +82,19 @@ function ValidatorRow({
         onPress={onToggle}
         style={[
           styles.row,
-          !isLast && !isExpanded && styles.rowBorder,
+          !isLast && !isExpanded && { borderBottomWidth: 1, borderBottomColor: activeColors.border },
         ]}
       >
-        <View style={styles.rowMarker} />
+        <View style={[styles.rowMarker, { backgroundColor: activeColors.tint }]} />
         <View style={styles.rowTextWrap}>
-          <Text style={styles.rowName} numberOfLines={1}>
+          <Text style={[styles.rowName, { color: activeColors.text }]} numberOfLines={1}>
             {validator.name || "Unknown Validator"}
           </Text>
-          <Text style={styles.rowAddress} numberOfLines={1}>
+          <Text style={[styles.rowAddress, { color: activeColors.textSecondary }]} numberOfLines={1}>
             {truncateAddress(validator.iotaAddress)}
           </Text>
         </View>
-        <Text style={styles.chevron}>{isExpanded ? "▴" : "▾"}</Text>
+        <Text style={[styles.chevron, { color: activeColors.textSecondary }]}>{isExpanded ? "▴" : "▾"}</Text>
       </Pressable>
 
       {isExpanded && (
@@ -99,35 +102,36 @@ function ValidatorRow({
           entering={FadeInDown.duration(150)}
           style={[
             styles.expandedPanel,
-            !isLast && styles.rowBorder,
+            { backgroundColor: activeColors.background },
+            !isLast && { borderBottomWidth: 1, borderBottomColor: activeColors.border },
           ]}
         >
           <View style={styles.metricsGrid}>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Stake</Text>
-              <Text style={styles.metricValue}>{stake}</Text>
+            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Stake</Text>
+              <Text style={[styles.metricValue, { color: activeColors.tint }]}>{stake}</Text>
             </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>APY</Text>
-              <Text style={styles.metricValue}>
+            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>APY</Text>
+              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
                 {apyPercent}
               </Text>
             </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Voting Power</Text>
-              <Text style={styles.metricValue}>{votingPower}</Text>
+            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Voting Power</Text>
+              <Text style={[styles.metricValue, { color: activeColors.tint }]}>{votingPower}</Text>
             </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Commission</Text>
-              <Text style={styles.metricValue}>{commission}</Text>
+            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Commission</Text>
+              <Text style={[styles.metricValue, { color: activeColors.tint }]}>{commission}</Text>
             </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Next Epoch Stake</Text>
-              <Text style={styles.metricValue}>{nextStake}</Text>
+            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Next Epoch Stake</Text>
+              <Text style={[styles.metricValue, { color: activeColors.tint }]}>{nextStake}</Text>
             </View>
-            <View style={styles.metricCell}>
-              <Text style={styles.metricLabel}>Next Commission</Text>
-              <Text style={styles.metricValue}>
+            <View style={[styles.metricCell, { borderColor: activeColors.border }]}>
+              <Text style={[styles.metricLabel, { color: activeColors.textSecondary }]}>Next Commission</Text>
+              <Text style={[styles.metricValue, { color: activeColors.tint }]}>
                 {formatPercent(validator.nextEpochCommissionRate)}
               </Text>
             </View>
@@ -146,6 +150,7 @@ export default function ValidatorClusterOverlay({
 }: ValidatorClusterOverlayProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
+  const { activeColors } = useSettings();
 
   const apyByAddress = React.useMemo(() => {
     const map = new Map<string, ValidatorApy>();
@@ -180,21 +185,21 @@ export default function ValidatorClusterOverlay({
         entering={FadeInDown.duration(300).springify()}
         exiting={FadeOutDown.duration(200)}
         style={[styles.container, { paddingBottom: 82 + insets.bottom + Spacing.lg }]}>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated, borderColor: activeColors.border, shadowColor: activeColors.tint }]}>
           {/* Stylistic Top Edge Notch */}
-          <View style={styles.notch} />
+          <View style={[styles.notch, { backgroundColor: activeColors.background, borderColor: activeColors.border }]} />
           
-          <View style={styles.handle} />
+          <View style={[styles.handle, { backgroundColor: activeColors.border }]} />
 
           <View style={styles.header}>
             <View style={styles.headerTextWrap}>
-              <Text style={styles.title}>Dense Cluster</Text>
-              <Text style={styles.subtitle}>
+              <Text style={[styles.title, { color: activeColors.text }]}>Dense Cluster</Text>
+              <Text style={[styles.subtitle, { color: activeColors.textSecondary }]}>
                 {validators.length} validators in tap range
               </Text>
             </View>
-            <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={12}>
-              <Text style={styles.closeBtnText}>✕</Text>
+            <Pressable onPress={onClose} style={[styles.closeBtn, { backgroundColor: activeColors.border }]} hitSlop={12}>
+              <Text style={[styles.closeBtnText, { color: activeColors.textSecondary }]}>✕</Text>
             </Pressable>
           </View>
 
@@ -202,7 +207,7 @@ export default function ValidatorClusterOverlay({
             style={styles.list}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}>
-            <View style={styles.listContainer}>
+            <View style={[styles.listContainer, { backgroundColor: activeColors.background }]}>
               {validators.map((validator, idx) => (
                 <ValidatorRow
                   key={validator.iotaAddress}
@@ -212,6 +217,7 @@ export default function ValidatorClusterOverlay({
                   isLast={idx === validators.length - 1}
                   isExpanded={expandedId === validator.iotaAddress}
                   onToggle={() => handleToggle(validator.iotaAddress)}
+                  activeColors={activeColors}
                 />
               ))}
             </View>
@@ -249,36 +255,30 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: 48,
     height: 6,
-    backgroundColor: Palette.void,
     borderBottomLeftRadius: 6,
     borderBottomRightRadius: 6,
     borderBottomWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: "rgba(59, 130, 246, 0.12)",
     zIndex: 10,
   },
-  // Elevated card — #242428 is distinctly lighter than the #1C1C1E dashboard cards
+  // Elevated card
   card: {
-    backgroundColor: "#242428",
     borderRadius: Radius["2xl"],
     padding: Spacing.xl,
     paddingTop: Spacing.base,
-    // Subtle blue outer glow for boundary definition
-    shadowColor: Palette.blue,
+    // Subtle outer glow for boundary definition
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.12,
     shadowRadius: 20,
     elevation: 8,
     // Thin hairline border for additional separation
     borderWidth: 1,
-    borderColor: "rgba(59, 130, 246, 0.12)",
   },
   handle: {
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Palette.ash,
     alignSelf: "center",
     marginBottom: Spacing.md,
   },
@@ -292,25 +292,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.md,
     fontWeight: FontWeight.bold,
   },
   subtitle: {
+    fontFamily: Fonts.sans,
     marginTop: 2,
-    color: Palette.steel,
     fontSize: FontSize.xs,
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Palette.ash,
     justifyContent: "center",
     alignItems: "center",
   },
   closeBtnText: {
-    color: Palette.mist,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.sm,
   },
   list: {
@@ -319,10 +318,9 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: Spacing.xs,
   },
-  // Inner list container — slightly darker than card for depth
+  // Inner list container
   listContainer: {
     borderRadius: Radius.md,
-    backgroundColor: Palette.slate, // #1C1C1E — darker than card's #242428
     overflow: "hidden",
   },
   // ── Row styles ────────────────────────────────────────────
@@ -333,32 +331,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md + 4,
     paddingVertical: Spacing.sm + 4,
   },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.06)",
-  },
   rowMarker: {
     width: 8,
     height: 8,
     borderRadius: 2,
-    backgroundColor: Palette.blue,
   },
   rowTextWrap: {
     flex: 1,
   },
   rowName: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.semibold,
   },
   rowAddress: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xs,
     marginTop: 1,
-    fontFamily: "monospace",
   },
   chevron: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xs,
     marginLeft: Spacing.xs,
   },
@@ -367,9 +359,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.xs,
     paddingBottom: Spacing.md,
-    backgroundColor: "#1C1C1E", // Slightly darker to create a nested effect
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.04)",
   },
   metricsGrid: {
     flexDirection: "row",
@@ -381,13 +370,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)", // Subtle inner border
     borderRadius: Radius.sm,
     paddingHorizontal: Spacing.sm + 4,
     paddingVertical: Spacing.xs + 4,
   },
   metricLabel: {
-    color: Palette.steel, // Muted gray for labels
+    fontFamily: Fonts.sans,
     fontSize: 10,
     fontWeight: FontWeight.medium,
     textTransform: "uppercase",
@@ -395,7 +383,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   metricValue: {
-    color: Palette.blue, // Large bold blue for metrics
+    fontFamily: Fonts.sans,
     fontSize: FontSize.lg,
     fontWeight: FontWeight.extrabold,
   },

@@ -3,6 +3,7 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Palette } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TabBarBackground } from '@/components/ui/TabBarBackground';
@@ -14,13 +15,13 @@ export default function TabLayout() {
   const baseHeight = 54;
   const totalHeight = baseHeight + insets.bottom + R;
 
-  const { activePalette } = useSettings();
+  const { activeColors } = useSettings();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: activePalette.blue,
-        tabBarInactiveTintColor: activePalette.steel,
+        tabBarActiveTintColor: activeColors.tint,
+        tabBarInactiveTintColor: activeColors.tabIconDefault,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: () => <TabBarBackground />,
@@ -60,13 +61,6 @@ export default function TabLayout() {
         options={{
           title: 'Analytics',
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="waveform.path.ecg" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="news"
-        options={{
-          title: 'Feed',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="bolt.fill" color={color} />,
         }}
       />
       <Tabs.Screen

@@ -1,6 +1,6 @@
 import { Colors, DarkPalette, LightPalette } from "@/constants/theme";
 import { persistLocationCache } from "@/services/validator-location/cache-store";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 export type ThemeType = "dark" | "light";
@@ -10,14 +10,12 @@ export interface SettingsState {
   theme: ThemeType;
   refreshInterval: RefreshInterval;
   autoRotation: boolean;
-  reduceAnimations: boolean;
 }
 
 export interface SettingsContextValue extends SettingsState {
   setTheme: (theme: ThemeType) => void;
   setRefreshInterval: (interval: RefreshInterval) => void;
   setAutoRotation: (auto: boolean) => void;
-  setReduceAnimations: (reduce: boolean) => void;
   clearCache: () => Promise<void>;
   activePalette: typeof DarkPalette;
   activeColors: typeof Colors.dark;
@@ -27,7 +25,6 @@ const defaultSettings: SettingsState = {
   theme: "dark",
   refreshInterval: 30000,
   autoRotation: true,
-  reduceAnimations: false,
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -90,7 +87,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setTheme: (t) => updateSetting("theme", t),
         setRefreshInterval: (r) => updateSetting("refreshInterval", r),
         setAutoRotation: (a) => updateSetting("autoRotation", a),
-        setReduceAnimations: (r) => updateSetting("reduceAnimations", r),
         clearCache,
         activePalette,
         activeColors,
