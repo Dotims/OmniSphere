@@ -14,6 +14,7 @@ import type { WebViewMessageEvent } from "react-native-webview";
 
 interface UseGlobeMessagesOptions {
   onSelectValidator?: (ids: string[]) => void;
+  onReady?: () => void;
   bridgeData: () => void;
   pendingDataRef: React.MutableRefObject<boolean>;
   isReadyRef: React.MutableRefObject<boolean>;
@@ -30,12 +31,14 @@ function processMessage(
     pendingDataRef,
     bridgeData,
     onSelectValidator,
+    onReady,
   }: UseGlobeMessagesOptions,
 ) {
   if (data.type === "ready") {
     isReadyRef.current = true;
     pendingDataRef.current = false;
     setTimeout(bridgeData, 300);
+    onReady?.();
   }
 
   if (data.type === "error") {
@@ -60,7 +63,8 @@ function processMessage(
 }
 
 export function useGlobeMessages(options: UseGlobeMessagesOptions) {
-  const { onSelectValidator, bridgeData, pendingDataRef, isReadyRef } = options;
+  const { onSelectValidator, onReady, bridgeData, pendingDataRef, isReadyRef } =
+    options;
 
   // Web: listen on window "message" events from the iframe
   useEffect(() => {
@@ -72,6 +76,7 @@ export function useGlobeMessages(options: UseGlobeMessagesOptions) {
         const data = JSON.parse(event.data);
         processMessage(data, {
           onSelectValidator,
+          onReady,
           bridgeData,
           pendingDataRef,
           isReadyRef,
@@ -84,7 +89,7 @@ export function useGlobeMessages(options: UseGlobeMessagesOptions) {
     window.addEventListener("message", handleWebMessage as EventListener);
     return () =>
       window.removeEventListener("message", handleWebMessage as EventListener);
-  }, [onSelectValidator, bridgeData, pendingDataRef, isReadyRef]);
+  }, [onSelectValidator, onReady, bridgeData, pendingDataRef, isReadyRef]);
 
   // Native: WebView onMessage callback
   const handleNativeMessage = useCallback(
@@ -93,6 +98,7 @@ export function useGlobeMessages(options: UseGlobeMessagesOptions) {
         const data = JSON.parse(event.nativeEvent.data);
         processMessage(data, {
           onSelectValidator,
+          onReady,
           bridgeData,
           pendingDataRef,
           isReadyRef,
@@ -101,7 +107,7 @@ export function useGlobeMessages(options: UseGlobeMessagesOptions) {
         // ignore
       }
     },
-    [onSelectValidator, bridgeData, pendingDataRef, isReadyRef],
+    [onSelectValidator, onReady, bridgeData, pendingDataRef, isReadyRef],
   );
 
   return { handleNativeMessage };
