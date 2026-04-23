@@ -28,6 +28,17 @@ OmniSphere focuses on operational visibility of the validator network:
 - An analytics tab for voting power distribution and APY comparisons.
 - A settings system for theme, auto-rotation, refresh interval, and cache management.
 
+## Screenshots
+
+<div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;">
+  <img src="./assets/images/globe-light.png" width="200" alt="Globe (Light Mode)" />
+  <img src="./assets/images/globe-dark.png" width="200" alt="Globe (Dark Mode)" />
+  <img src="./assets/images/globe-clusters.png" width="200" alt="Globe Node Cluster" />
+  <img src="./assets/images/nodes.png" width="200" alt="Validators List" />
+  <img src="./assets/images/analytics.png" width="200" alt="Analytics Dashboard" />
+  <img src="./assets/images/settings.png" width="200" alt="Settings" />
+</div>
+
 ## Core features
 
 ### 3D globe experience
