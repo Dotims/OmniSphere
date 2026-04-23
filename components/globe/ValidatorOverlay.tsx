@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   // Elevated card
   card: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.xl,
     paddingTop: Spacing.base,
     // Subtle outer glow for boundary definition
@@ -219,12 +219,12 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   statItem: {
     flex: 1,
     minWidth: "40%" as unknown as number,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.md + 4,
   },
   statLabel: {

@@ -6,15 +6,21 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { NetworkDashboard } from "@/components/dashboard";
 import {
-    GlobeLoader,
-    GlobeView,
-    ValidatorClusterOverlay,
-    ValidatorOverlay,
+  GlobeLoader,
+  GlobeView,
+  ValidatorClusterOverlay,
+  ValidatorOverlay,
 } from "@/components/globe";
-import { Fonts, FontSize, FontWeight, Radius, Spacing } from "@/constants/theme";
+import {
+  Fonts,
+  FontSize,
+  FontWeight,
+  Radius,
+  Spacing,
+} from "@/constants/theme";
+import { useSettings } from "@/hooks/use-settings";
 import { useValidatorLocations } from "@/hooks/use-validator-locations";
 import { useValidators } from "@/hooks/use-validators";
-import { useSettings } from "@/hooks/use-settings";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 
 export default function HomeScreen() {
@@ -99,10 +105,17 @@ export default function HomeScreen() {
 
   if (error) {
     return (
-      <View style={[styles.errorContainer, { backgroundColor: activeColors.background }]}>
+      <View
+        style={[
+          styles.errorContainer,
+          { backgroundColor: activeColors.background },
+        ]}>
         <Text style={styles.errorIcon}>⚠</Text>
-        <Text style={[styles.errorTitle, { color: activeColors.text }]}>Connection Failed</Text>
-        <Text style={[styles.errorMessage, { color: activeColors.textSecondary }]}>
+        <Text style={[styles.errorTitle, { color: activeColors.text }]}>
+          Connection Failed
+        </Text>
+        <Text
+          style={[styles.errorMessage, { color: activeColors.textSecondary }]}>
           {error.message || "Unable to fetch validator data"}
         </Text>
       </View>
@@ -110,35 +123,51 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: activeColors.background }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: activeColors.background },
+      ]}>
       {/* header */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: activeColors.text }]}>OmniSphere</Text>
+        <Text style={[styles.title, { color: activeColors.text }]}>
+          OmniSphere
+        </Text>
       </View>
 
-      {/* ── Top half: Globe ──────────────────────────────── */}
+      {/* ── Top section: Globe ────────────────────────────── */}
       <View style={styles.globeSection}>
-        <GlobeView
-          validators={validators}
-          coordinatesById={coordinatesById}
-          selectedValidatorIds={selectedIds}
-          onSelectValidator={handleSelect}
-        />
-        <View style={[styles.overlayBadge, { backgroundColor: activeColors.surfaceElevated }]}>
-          <View style={[styles.badgeDot, { backgroundColor: activeColors.tint }]} />
-          <Text style={[styles.badgeText, { color: activeColors.textSecondary }]}>{validators.length} validators</Text>
+        <View style={styles.globeViewport}>
+          <GlobeView
+            validators={validators}
+            coordinatesById={coordinatesById}
+            selectedValidatorIds={selectedIds}
+            onSelectValidator={handleSelect}
+          />
+        </View>
+        <View
+          style={[
+            styles.overlayBadge,
+            { backgroundColor: activeColors.surfaceElevated },
+          ]}>
+          <View
+            style={[styles.badgeDot, { backgroundColor: activeColors.tint }]}
+          />
+          <Text
+            style={[styles.badgeText, { color: activeColors.textSecondary }]}>
+            {validators.length} validators
+          </Text>
         </View>
       </View>
 
-      {/* ── Bottom half: Dashboard ───────────────────────── */}
+      {/* ── Bottom section: Dashboard ─────────────────────── */}
       <View style={styles.dashboardSection}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.dashboardContent,
             { paddingBottom: 82 + insets.bottom },
-          ]}
-        >
+          ]}>
           {data?.systemState && (
             <NetworkDashboard systemState={data.systemState} apys={apys} />
           )}
@@ -173,7 +202,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
   },
   title: {
@@ -183,17 +212,29 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
 
-  // Globe: top ~50% — strictly edge-to-edge
+  // Globe: compact top section to keep key dashboard cards in view.
   globeSection: {
-    flex: 1,
+    flex: 0.78,
     position: "relative",
-    marginHorizontal: 0,
-    paddingHorizontal: 0,
+    minHeight: 244,
+    maxHeight: 304,
+    margin: 0,
+    padding: 0,
+    overflow: "hidden",
+  },
+  globeViewport: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+    minHeight: 244,
+    margin: 0,
+    padding: 0,
+    opacity: 1,
   },
 
-  // Dashboard: bottom ~50% — no border
+  // Dashboard gets a larger share so Epoch/Stake/APY cards surface sooner.
   dashboardSection: {
-    flex: 1,
+    flex: 1.22,
   },
   dashboardContent: {
     paddingBottom: Spacing.base,

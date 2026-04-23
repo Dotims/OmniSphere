@@ -2,13 +2,11 @@ export const GLOBE_INIT_SCRIPT = `
 var globe = null;
 var lastFrameTs = Date.now();
 
-<<<<<<< Updated upstream
 // State currently rendered on the WebGL canvas (1 frame behind JS state)
 var renderedPhi = phi;
 var renderedTheta = theta;
 var renderedScale = scale;
 
-=======
 // Theme variables (updated via bridge)
 var globeDarkMode = 1;
 var globeBaseColor = [0.2, 0.24, 0.4];
@@ -17,6 +15,7 @@ var globeGlowColor = [0.04, 0.08, 0.16];
 
 // Helper to convert hex (#RRGGBB) to [R, G, B] array in 0-1 range
 function hexToRgbNorm(hex) {
+  if (typeof hex !== 'string') return [0, 0, 0];
   var cleanHex = hex.replace('#', '');
   if (cleanHex.length === 3) {
     cleanHex = cleanHex.split('').map(function(c) { return c + c; }).join('');
@@ -27,7 +26,6 @@ function hexToRgbNorm(hex) {
   var b = (int & 255) / 255;
   return [r, g, b];
 }
->>>>>>> Stashed changes
 
 function initGlobe() {
   // Reset hydration gate so markers stay hidden until the new

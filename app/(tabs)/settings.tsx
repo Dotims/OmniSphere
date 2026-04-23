@@ -12,7 +12,7 @@ import { Fonts, FontSize, FontWeight, Radius, Spacing } from "@/constants/theme"
 import { useSettings, type ThemeType, type RefreshInterval } from "@/hooks/use-settings";
 
 // Custom animated toggle switch
-function CustomSwitch({ value, onValueChange, activeColor, inactiveColor }: { value: boolean, onValueChange: (val: boolean) => void, activeColor: string, inactiveColor: string }) {
+function CustomSwitch({ value, onValueChange, activeColor, inactiveColor, activeColors }: { value: boolean, onValueChange: (val: boolean) => void, activeColor: string, inactiveColor: string, activeColors: any }) {
   const trackStyle = useAnimatedStyle(() => {
     return {
       backgroundColor: withTiming(value ? activeColor : inactiveColor, { duration: 250 }),
@@ -28,7 +28,7 @@ function CustomSwitch({ value, onValueChange, activeColor, inactiveColor }: { va
   return (
     <Pressable onPress={() => onValueChange(!value)} style={styles.switchContainer}>
       <Animated.View style={[styles.switchTrack, trackStyle]}>
-        <Animated.View style={[styles.switchThumb, thumbStyle]} />
+        <Animated.View style={[styles.switchThumb, thumbStyle, { backgroundColor: activeColors.background, shadowColor: activeColors.text }]} />
       </Animated.View>
     </Pressable>
   );
@@ -126,6 +126,7 @@ export default function SettingsScreen() {
               onValueChange={(val) => setTheme(val ? "light" : "dark")}
               activeColor={activeColors.tint}
               inactiveColor={activePalette.ash}
+              activeColors={activeColors}
             />
           </View>
         </View>
@@ -176,6 +177,7 @@ export default function SettingsScreen() {
               onValueChange={setAutoRotation}
               activeColor={activeColors.tint}
               inactiveColor={activePalette.ash}
+              activeColors={activeColors}
             />
           </View>
         </View>
@@ -195,7 +197,7 @@ export default function SettingsScreen() {
             ]}
             onPress={handleClearCache}
           >
-            <Text style={[styles.actionButtonText, { color: "#FFFFFF" }]}>
+            <Text style={[styles.actionButtonText, { color: activeColors.background }]}>
               {cacheCleared ? "Cache Cleared!" : "Clear Location Cache"}
             </Text>
           </Pressable>
@@ -213,7 +215,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.base,
   },
   title: {
@@ -223,11 +225,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   scrollContent: {
-    padding: Spacing.lg,
-    gap: Spacing.lg,
+    padding: Spacing.base,
+    gap: Spacing.md,
   },
   card: {
-    borderRadius: Radius["2xl"],
+    borderRadius: Radius.lg,
     padding: Spacing.xl,
     // Note: No shadows to maintain the premium flat aesthetic
   },
@@ -287,8 +289,6 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 2,
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: Spacing.sm,
     alignItems: "center",
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
   },
   segmentText: {
     fontFamily: Fonts.sans,

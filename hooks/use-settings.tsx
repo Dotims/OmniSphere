@@ -17,8 +17,8 @@ export interface SettingsContextValue extends SettingsState {
   setRefreshInterval: (interval: RefreshInterval) => void;
   setAutoRotation: (auto: boolean) => void;
   clearCache: () => Promise<void>;
-  activePalette: typeof DarkPalette;
-  activeColors: typeof Colors.dark;
+  activePalette: typeof DarkPalette | typeof LightPalette;
+  activeColors: typeof Colors.dark | typeof Colors.light;
 }
 
 const defaultSettings: SettingsState = {
@@ -69,7 +69,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const clearCache = async () => {
     try {
       // Clears the location cache
-      await persistLocationCache({ version: 1, domains: {}, geo: {} });
+      await persistLocationCache({ domains: {}, geo: {} } as any);
     } catch (err) {
       console.log("Failed to clear cache", err);
     }
