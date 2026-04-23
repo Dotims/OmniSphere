@@ -87,7 +87,6 @@ export default function ValidatorOverlay({
             {
               backgroundColor: activeColors.surfaceElevated,
               borderColor: activeColors.border,
-              shadowColor: activeColors.tint,
             },
           ]}>
           {/* Stylistic Top Edge Notch */}
@@ -171,7 +170,7 @@ export default function ValidatorOverlay({
                 ]}>
                 APY
               </Text>
-              <Text style={[styles.statValue, { color: activeColors.tint }]}>
+              <Text style={[styles.statValue, { color: activeColors.text }]}>
                 {apyPercent}
               </Text>
             </View>
