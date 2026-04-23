@@ -84,8 +84,6 @@ export default function SettingsScreen() {
     setRefreshInterval,
     autoRotation,
     setAutoRotation,
-    reduceAnimations,
-    setReduceAnimations,
     clearCache,
     activeColors,
     activePalette,
@@ -176,23 +174,6 @@ export default function SettingsScreen() {
             <CustomSwitch
               value={autoRotation}
               onValueChange={setAutoRotation}
-              activeColor={activeColors.tint}
-              inactiveColor={activePalette.ash}
-            />
-          </View>
-
-          <View style={[styles.divider, { backgroundColor: activeColors.borderSubtle }]} />
-
-          <View style={styles.row}>
-            <View style={styles.rowText}>
-              <Text style={[styles.label, { color: activeColors.text }]}>Reduce Animations</Text>
-              <Text style={[styles.sublabel, { color: activeColors.textSecondary }]}>
-                Simplify transitions to save battery
-              </Text>
-            </View>
-            <CustomSwitch
-              value={reduceAnimations}
-              onValueChange={setReduceAnimations}
               activeColor={activeColors.tint}
               inactiveColor={activePalette.ash}
             />

@@ -11,7 +11,7 @@ import {
     ValidatorClusterOverlay,
     ValidatorOverlay,
 } from "@/components/globe";
-import { FontSize, FontWeight, Palette, Radius, Spacing } from "@/constants/theme";
+import { Fonts, FontSize, FontWeight, Radius, Spacing } from "@/constants/theme";
 import { useValidatorLocations } from "@/hooks/use-validator-locations";
 import { useValidators } from "@/hooks/use-validators";
 import { useSettings } from "@/hooks/use-settings";
@@ -21,6 +21,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useValidators();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const { activeColors } = useSettings();
 
   // extract validators — the API route unwraps V2
   const validators = useMemo<ValidatorSummary[]>(() => {
@@ -41,8 +42,6 @@ export default function HomeScreen() {
     if (!data?.apys) return [];
     return Array.isArray(data.apys.apys) ? data.apys.apys : [];
   }, [data]);
-
-  const { activePalette } = useSettings();
 
   useEffect(() => {
     if (data) {
@@ -100,10 +99,10 @@ export default function HomeScreen() {
 
   if (error) {
     return (
-      <View style={[styles.errorContainer, { backgroundColor: activePalette.void }]}>
+      <View style={[styles.errorContainer, { backgroundColor: activeColors.background }]}>
         <Text style={styles.errorIcon}>⚠</Text>
-        <Text style={[styles.errorTitle, { color: activePalette.white }]}>Connection Failed</Text>
-        <Text style={[styles.errorMessage, { color: activePalette.steel }]}>
+        <Text style={[styles.errorTitle, { color: activeColors.text }]}>Connection Failed</Text>
+        <Text style={[styles.errorMessage, { color: activeColors.textSecondary }]}>
           {error.message || "Unable to fetch validator data"}
         </Text>
       </View>
@@ -111,10 +110,10 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: activePalette.void }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: activeColors.background }]}>
       {/* header */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: activePalette.white }]}>OmniSphere</Text>
+        <Text style={[styles.title, { color: activeColors.text }]}>OmniSphere</Text>
       </View>
 
       {/* ── Top half: Globe ──────────────────────────────── */}
@@ -125,9 +124,9 @@ export default function HomeScreen() {
           selectedValidatorIds={selectedIds}
           onSelectValidator={handleSelect}
         />
-        <View style={[styles.overlayBadge, { backgroundColor: activePalette.slate }]}>
-          <View style={styles.badgeDot} />
-          <Text style={[styles.badgeText, { color: activePalette.silver }]}>{validators.length} validators</Text>
+        <View style={[styles.overlayBadge, { backgroundColor: activeColors.surfaceElevated }]}>
+          <View style={[styles.badgeDot, { backgroundColor: activeColors.tint }]} />
+          <Text style={[styles.badgeText, { color: activeColors.textSecondary }]}>{validators.length} validators</Text>
         </View>
       </View>
 
@@ -169,7 +168,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.void,
   },
   header: {
     flexDirection: "row",
@@ -179,7 +177,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   title: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xl,
     fontWeight: FontWeight.extrabold,
     letterSpacing: -0.5,
@@ -207,7 +205,6 @@ const styles = StyleSheet.create({
     right: Spacing.lg,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Palette.slate,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs + 2,
     borderRadius: Radius.full,
@@ -217,10 +214,9 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Palette.blue,
   },
   badgeText: {
-    color: Palette.silver,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xs,
     fontWeight: FontWeight.medium,
   },
@@ -228,7 +224,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Palette.void,
     padding: Spacing["2xl"],
   },
   errorIcon: {
@@ -236,13 +231,13 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
   },
   errorTitle: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.lg,
     fontWeight: FontWeight.semibold,
     marginBottom: Spacing.sm,
   },
   errorMessage: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.base,
     textAlign: "center",
     lineHeight: 22,

@@ -29,7 +29,7 @@ export default function GlobeView({
   const isReadyRef = useRef(false);
   const [webViewKey, setWebViewKey] = useState(0);
 
-  const { autoRotation, reduceAnimations, activePalette } = useSettings();
+  const { autoRotation, activeColors, theme } = useSettings();
 
   const handleCrash = useCallback(() => {
     console.warn("[GlobeView] WebView process terminated. Remounting...");
@@ -51,7 +51,8 @@ export default function GlobeView({
     iframeRef,
     isReadyRef,
     autoRotation,
-    reduceAnimations,
+    theme,
+    activeColors,
   });
 
   // Handle messages coming back from the WebView
@@ -90,11 +91,11 @@ export default function GlobeView({
   // ── Web: iframe renderer ─────────────────────────────────
   if (Platform.OS === "web") {
     return (
-      <View style={[styles.container, { backgroundColor: activePalette.void }]}>
+      <View style={[styles.container, { backgroundColor: activeColors.background }]}>
         <iframe
           ref={iframeRef}
           srcDoc={htmlSource.html}
-          style={{ flex: 1, border: "none", width: "100%", height: "100%", backgroundColor: activePalette.void }}
+          style={{ flex: 1, border: "none", width: "100%", height: "100%", backgroundColor: activeColors.background }}
         />
       </View>
     );
@@ -102,13 +103,13 @@ export default function GlobeView({
 
   // ── Native: WebView renderer ─────────────────────────────
   return (
-    <View style={[styles.container, { backgroundColor: activePalette.void }]}>
+    <View style={[styles.container, { backgroundColor: activeColors.background }]}>
       <WebView
         key={webViewKey}
         ref={webviewRef}
         source={htmlSource}
-        style={[styles.webview, { backgroundColor: activePalette.void }]}
-        containerStyle={{ backgroundColor: activePalette.void }}
+        style={[styles.webview, { backgroundColor: activeColors.background }]}
+        containerStyle={{ backgroundColor: activeColors.background }}
         onMessage={handleNativeMessage}
         onContentProcessDidTerminate={handleCrash}
         onRenderProcessGone={handleCrash}

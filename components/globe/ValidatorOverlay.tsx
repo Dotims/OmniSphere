@@ -1,14 +1,15 @@
 // native overlay card for selected validator info
 // positioned at bottom of screen over the globe WebView
-// Premium soft dark theme — elevated surface, blue glow border, dimmed backdrop
+// Theme-aware — elevated surface, tint glow border, dimmed backdrop
 
 import {
+  Fonts,
   FontSize,
   FontWeight,
-  Palette,
   Radius,
   Spacing,
 } from "@/constants/theme";
+import { useSettings } from "@/hooks/use-settings";
 import type { ValidatorApy, ValidatorSummary } from "@/services/validators";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -46,6 +47,8 @@ export default function ValidatorOverlay({
   onClose,
 }: ValidatorOverlayProps) {
   const insets = useSafeAreaInsets();
+  const { activeColors } = useSettings();
+
   const addr = validator.iotaAddress || "";
   const truncatedAddress =
     addr.length > 14 ? `${addr.slice(0, 8)}...${addr.slice(-6)}` : addr;
@@ -76,46 +79,46 @@ export default function ValidatorOverlay({
         entering={FadeInDown.duration(300).springify()}
         exiting={FadeOutDown.duration(200)}
         style={[styles.container, { paddingBottom: 82 + insets.bottom + Spacing.lg }]}>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated, borderColor: activeColors.border, shadowColor: activeColors.tint }]}>
           {/* Stylistic Top Edge Notch */}
-          <View style={styles.notch} />
+          <View style={[styles.notch, { backgroundColor: activeColors.background, borderColor: activeColors.border }]} />
           
           {/* drag handle */}
-          <View style={styles.handle} />
+          <View style={[styles.handle, { backgroundColor: activeColors.border }]} />
 
           {/* header */}
           <View style={styles.header}>
-            <View style={styles.indicator} />
+            <View style={[styles.indicator, { backgroundColor: activeColors.tint }]} />
             <View style={styles.headerText}>
-              <Text style={styles.name} numberOfLines={1}>
+              <Text style={[styles.name, { color: activeColors.text }]} numberOfLines={1}>
                 {validator.name || "Unknown Validator"}
               </Text>
-              <Text style={styles.address}>{truncatedAddress}</Text>
+              <Text style={[styles.address, { color: activeColors.textSecondary }]}>{truncatedAddress}</Text>
             </View>
-            <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={12}>
-              <Text style={styles.closeBtnText}>✕</Text>
+            <Pressable onPress={onClose} style={[styles.closeBtn, { backgroundColor: activeColors.border }]} hitSlop={12}>
+              <Text style={[styles.closeBtnText, { color: activeColors.textSecondary }]}>✕</Text>
             </Pressable>
           </View>
 
           {/* stats grid */}
           <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Stake</Text>
-              <Text style={styles.statValue}>{stake}</Text>
+            <View style={[styles.statItem, { backgroundColor: activeColors.background }]}>
+              <Text style={[styles.statLabel, { color: activeColors.textSecondary }]}>Stake</Text>
+              <Text style={[styles.statValue, { color: activeColors.text }]}>{stake}</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>APY</Text>
-              <Text style={[styles.statValue, styles.statValueHighlight]}>
+            <View style={[styles.statItem, { backgroundColor: activeColors.background }]}>
+              <Text style={[styles.statLabel, { color: activeColors.textSecondary }]}>APY</Text>
+              <Text style={[styles.statValue, { color: activeColors.tint }]}>
                 {apyPercent}
               </Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Commission</Text>
-              <Text style={styles.statValue}>{commission}</Text>
+            <View style={[styles.statItem, { backgroundColor: activeColors.background }]}>
+              <Text style={[styles.statLabel, { color: activeColors.textSecondary }]}>Commission</Text>
+              <Text style={[styles.statValue, { color: activeColors.text }]}>{commission}</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Voting Power</Text>
-              <Text style={styles.statValue}>{votingPower}</Text>
+            <View style={[styles.statItem, { backgroundColor: activeColors.background }]}>
+              <Text style={[styles.statLabel, { color: activeColors.textSecondary }]}>Voting Power</Text>
+              <Text style={[styles.statValue, { color: activeColors.text }]}>{votingPower}</Text>
             </View>
           </View>
         </View>
@@ -151,36 +154,30 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: 48,
     height: 6,
-    backgroundColor: Palette.void,
     borderBottomLeftRadius: 6,
     borderBottomRightRadius: 6,
     borderBottomWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: "rgba(59, 130, 246, 0.12)",
     zIndex: 10,
   },
-  // Elevated card — #242428 is distinctly lighter than the #1C1C1E dashboard cards
+  // Elevated card
   card: {
-    backgroundColor: "#242428",
     borderRadius: Radius["2xl"],
     padding: Spacing.xl,
     paddingTop: Spacing.base,
-    // Subtle blue outer glow for boundary definition
-    shadowColor: Palette.blue,
+    // Subtle outer glow for boundary definition
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.12,
     shadowRadius: 20,
     elevation: 8,
     // Thin hairline border for additional separation
     borderWidth: 1,
-    borderColor: "rgba(59, 130, 246, 0.12)",
   },
   handle: {
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Palette.ash,
     alignSelf: "center",
     marginBottom: Spacing.md,
   },
@@ -193,33 +190,30 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Palette.blue,
     marginRight: Spacing.sm,
   },
   headerText: {
     flex: 1,
   },
   name: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.md,
     fontWeight: FontWeight.bold,
   },
   address: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xs,
-    fontFamily: "monospace",
     marginTop: 2,
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Palette.ash,
     justifyContent: "center",
     alignItems: "center",
   },
   closeBtnText: {
-    color: Palette.mist,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.sm,
   },
   statsGrid: {
@@ -230,12 +224,11 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     minWidth: "40%" as unknown as number,
-    backgroundColor: Palette.slate, // #1C1C1E — darker than card's #242428
     borderRadius: Radius.md,
     padding: Spacing.md + 4,
   },
   statLabel: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xs,
     fontWeight: FontWeight.medium,
     textTransform: "uppercase",
@@ -243,11 +236,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statValue: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.lg,
     fontWeight: FontWeight.extrabold,
-  },
-  statValueHighlight: {
-    color: Palette.blue,
   },
 });

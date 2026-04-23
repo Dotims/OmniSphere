@@ -1,7 +1,7 @@
 /**
- * NetworkDashboard — Premium soft dark theme.
+ * NetworkDashboard — Premium theme-aware dashboard.
  *
- * True black bg, pastel accent cards, 32px radius, zero borders/shadows,
+ * Dynamic bg/text colors via activeColors context, 32px radius, zero borders/shadows,
  * massive bold values (32px / extrabold), tiny muted labels.
  */
 
@@ -9,12 +9,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import {
+  Fonts,
   FontSize,
   FontWeight,
-  Palette,
   Radius,
   Spacing,
 } from "@/constants/theme";
+import { useSettings } from "@/hooks/use-settings";
 import type { SystemState, ValidatorApy } from "@/services/validators";
 
 interface NetworkDashboardProps {
@@ -102,6 +103,7 @@ export default function NetworkDashboard({
   apys,
 }: NetworkDashboardProps) {
   const { progress, remaining } = useEpochProgress(systemState);
+  const { activeColors } = useSettings();
 
   const avgApy = useMemo(() => {
     if (!apys.length) return "—";
@@ -117,55 +119,55 @@ export default function NetworkDashboard({
 
   return (
     <View style={styles.container}>
-      {/* ── Epoch Card — Mint accent ────────────────────── */}
-      <View style={styles.epochCard}>
+      {/* ── Epoch Card ────────────────────────────────── */}
+      <View style={[styles.epochCard, { backgroundColor: activeColors.surfaceElevated }]}>
         <View style={styles.epochHeader}>
-          <Text style={styles.epochLabel}>EPOCH</Text>
-          <View style={styles.epochBadge}>
-            <Text style={styles.epochBadgeText}>#{systemState.epoch}</Text>
+          <Text style={[styles.epochLabel, { color: activeColors.textSecondary }]}>EPOCH</Text>
+          <View style={[styles.epochBadge, { backgroundColor: activeColors.tint }]}>
+            <Text style={[styles.epochBadgeText, { color: activeColors.background }]}>#{systemState.epoch}</Text>
           </View>
         </View>
 
-        <View style={styles.progressTrack}>
+        <View style={[styles.progressTrack, { backgroundColor: activeColors.border }]}>
           <View
             style={[
               styles.progressFill,
-              { width: `${(progress * 100).toFixed(1)}%` as unknown as number },
+              { backgroundColor: activeColors.tint, width: `${(progress * 100).toFixed(1)}%` as unknown as number },
             ]}
           />
         </View>
 
         <View style={styles.epochFooter}>
-          <Text style={styles.epochProgress}>
+          <Text style={[styles.epochProgress, { color: activeColors.tint }]}>
             {(progress * 100).toFixed(0)}%
           </Text>
-          <Text style={styles.epochRemaining}>{remaining} left</Text>
+          <Text style={[styles.epochRemaining, { color: activeColors.textSecondary }]}>{remaining} left</Text>
         </View>
       </View>
 
       {/* ── Metric Grid ────────────────────────────────── */}
       <View style={styles.grid}>
-        <View style={[styles.card, styles.cardMint]}>
-          <Text style={styles.label}>TOTAL STAKE</Text>
-          <Text style={styles.valueHuge}>{totalStake}</Text>
-          <Text style={styles.unit}>IOTA</Text>
+        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated }]}>
+          <Text style={[styles.label, { color: activeColors.textSecondary }]}>TOTAL STAKE</Text>
+          <Text style={[styles.valueHuge, { color: activeColors.text }]}>{totalStake}</Text>
+          <Text style={[styles.unit, { color: activeColors.textSecondary }]}>IOTA</Text>
         </View>
 
-        <View style={[styles.card, styles.cardPeach]}>
-          <Text style={styles.label}>AVG APY</Text>
-          <Text style={[styles.valueHuge, styles.valuePeach]}>{avgApy}</Text>
+        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated }]}>
+          <Text style={[styles.label, { color: activeColors.textSecondary }]}>AVG APY</Text>
+          <Text style={[styles.valueHuge, { color: activeColors.tint }]}>{avgApy}</Text>
         </View>
 
-        <View style={[styles.card, styles.cardLavender]}>
-          <Text style={styles.label}>VALIDATORS</Text>
-          <Text style={styles.valueHuge}>{validatorCount}</Text>
-          <Text style={styles.unit}>active</Text>
+        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated }]}>
+          <Text style={[styles.label, { color: activeColors.textSecondary }]}>VALIDATORS</Text>
+          <Text style={[styles.valueHuge, { color: activeColors.text }]}>{validatorCount}</Text>
+          <Text style={[styles.unit, { color: activeColors.textSecondary }]}>active</Text>
         </View>
 
-        <View style={[styles.card, styles.cardYellow]}>
-          <Text style={styles.label}>GAS PRICE</Text>
-          <Text style={styles.valueHuge}>{gasPrice}</Text>
-          <Text style={styles.unit}>MIST</Text>
+        <View style={[styles.card, { backgroundColor: activeColors.surfaceElevated }]}>
+          <Text style={[styles.label, { color: activeColors.textSecondary }]}>GAS PRICE</Text>
+          <Text style={[styles.valueHuge, { color: activeColors.text }]}>{gasPrice}</Text>
+          <Text style={[styles.unit, { color: activeColors.textSecondary }]}>MIST</Text>
         </View>
       </View>
     </View>
@@ -184,7 +186,6 @@ const styles = StyleSheet.create({
 
   // ── Epoch card ─────────────────────────────────────────────
   epochCard: {
-    backgroundColor: Palette.slate,
     borderRadius: Radius["2xl"],
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
@@ -196,33 +197,30 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   epochLabel: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: 10,
     fontWeight: FontWeight.semibold,
     letterSpacing: 1.5,
     textTransform: "uppercase",
   },
   epochBadge: {
-    backgroundColor: Palette.blue,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing["2xs"],
   },
   epochBadgeText: {
-    color: Palette.void,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xs,
     fontWeight: FontWeight.bold,
   },
   progressTrack: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: Palette.ash,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
     borderRadius: 3,
-    backgroundColor: Palette.blue,
     minWidth: 2,
   },
   epochFooter: {
@@ -231,12 +229,12 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   epochProgress: {
-    color: Palette.blue,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.bold,
   },
   epochRemaining: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: FontSize.xs,
     fontWeight: FontWeight.medium,
   },
@@ -248,7 +246,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
 
-  // Shared card — no border, no shadow, solid color contrast
+  // Shared card — no border, no shadow
   card: {
     flex: 1,
     minWidth: "46%" as unknown as number,
@@ -257,23 +255,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
   },
 
-  // Pastel card backgrounds
-  cardMint: {
-    backgroundColor: Palette.slate,
-  },
-  cardPeach: {
-    backgroundColor: Palette.slate,
-  },
-  cardLavender: {
-    backgroundColor: Palette.slate,
-  },
-  cardYellow: {
-    backgroundColor: Palette.slate,
-  },
-
   // Labels — tiny, uppercase, muted
   label: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: 10,
     fontWeight: FontWeight.semibold,
     letterSpacing: 1.5,
@@ -281,7 +265,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   unit: {
-    color: Palette.steel,
+    fontFamily: Fonts.sans,
     fontSize: 10,
     marginTop: 2,
     fontWeight: FontWeight.medium,
@@ -289,12 +273,9 @@ const styles = StyleSheet.create({
 
   // Values — extremely large, bold
   valueHuge: {
-    color: Palette.white,
+    fontFamily: Fonts.sans,
     fontSize: 32,
     fontWeight: FontWeight.extrabold,
     letterSpacing: -1,
-  },
-  valuePeach: {
-    color: Palette.blue,
   },
 });

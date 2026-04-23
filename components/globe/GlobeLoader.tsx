@@ -1,7 +1,8 @@
-// dark-themed loading state for the globe view
-// pulsing ring animation with status text — premium soft dark theme
+// theme-aware loading state for the globe view
+// pulsing ring animation with status text
 
-import { FontSize, FontWeight, Palette } from '@/constants/theme';
+import { Fonts, FontSize, FontWeight } from '@/constants/theme';
+import { useSettings } from '@/hooks/use-settings';
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -21,6 +22,7 @@ export default function GlobeLoader({ message = 'Loading validators...' }: Globe
   const scale = useSharedValue(0.8);
   const opacity = useSharedValue(0.3);
   const rotation = useSharedValue(0);
+  const { activeColors } = useSettings();
 
   // animate the globe loader
   useEffect(() => {
@@ -61,15 +63,15 @@ export default function GlobeLoader({ message = 'Loading validators...' }: Globe
   }));
 
   return (
-    <View style={styles.container}>
-      <Animated.View style={[styles.ring, ringStyle]}>
+    <View style={[styles.container, { backgroundColor: activeColors.background }]}>
+      <Animated.View style={[styles.ring, { borderColor: activeColors.tint }, ringStyle]}>
       </Animated.View>
 
       {/* center glow dot */}
-      <Animated.View style={[styles.dot, dotStyle]} />
+      <Animated.View style={[styles.dot, { backgroundColor: activeColors.tint }, dotStyle]} />
 
       {/* status text */}
-      <Animated.Text style={[styles.text, { opacity }]}>
+      <Animated.Text style={[styles.text, { color: activeColors.textSecondary, opacity }]}>
         {message}
       </Animated.Text>
     </View>
@@ -81,14 +83,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Palette.void,
   },
   ring: {
     width: 80,
     height: 80,
     borderRadius: 40,
     borderWidth: 2,
-    borderColor: Palette.blue,
     borderTopColor: 'transparent',
     position: 'absolute',
   },
@@ -96,12 +96,11 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: Palette.blue,
     position: 'absolute',
   },
   text: {
+    fontFamily: Fonts.sans,
     marginTop: 70,
-    color: Palette.silver,
     fontSize: FontSize.sm,
     fontWeight: FontWeight.medium,
     letterSpacing: 1.5,
