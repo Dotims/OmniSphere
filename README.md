@@ -1,50 +1,233 @@
-# Welcome to your Expo app 👋
+# OmniSphere
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+OmniSphere is a cross-platform React Native application for exploring the IOTA validator ecosystem through an interactive 3D globe, live network metrics, validator analytics, and configurable runtime behavior.
 
-## Get started
+Built with Expo + Expo Router, the app runs on iOS, Android, and web from one codebase.
 
-1. Install dependencies
+## Table of contents
 
-   ```bash
-   npm install
-   ```
+- [Overview](#overview)
+- [Core features](#core-features)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Data flow](#data-flow)
+- [Getting started](#getting-started)
+- [Configuration](#configuration)
+- [Available scripts](#available-scripts)
+- [Caching and refresh behavior](#caching-and-refresh-behavior)
+- [Troubleshooting](#troubleshooting)
+- [Development notes](#development-notes)
 
-2. Start the app
+## Overview
 
-   ```bash
-   npx expo start
-   ```
+OmniSphere focuses on operational visibility of the validator network:
 
-In the output, you'll find options to open the app in a
+- A performant 3D globe experience with validator markers and selection overlays.
+- A compact dashboard for epoch and stake health signals.
+- A validators tab for deep sorting, filtering, and metric inspection.
+- An analytics tab for voting power distribution and APY comparisons.
+- A settings system for theme, auto-rotation, refresh interval, and cache management.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Core features
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### 3D globe experience
 
-## Get a fresh project
+- COBE-based globe rendered inside a WebView/iframe bridge.
+- Real-time marker projection with selection support.
+- Single-validator and multi-validator overlay cards.
+- Gesture support: drag, momentum, pinch-to-zoom, tap-to-select.
 
-When you're ready, run:
+### Network dashboard
 
-```bash
-npm run reset-project
+- Epoch progress and remaining time.
+- Total stake, average APY, active validator count, and gas price.
+- Live refresh driven by React Query and user-configurable intervals.
+
+### Validators workspace
+
+- Search by name/address.
+- Sort by stake, voting power, APY, or name.
+- Expandable metric cards per validator.
+
+### Analytics workspace
+
+- Interactive voting power donut visualization.
+- Validator leaderboard cards.
+- APY carousel for high-yield comparison.
+- Pull-to-refresh support.
+
+### Operational settings
+
+- Light and dark themes.
+- Configurable refresh interval (15s / 30s / 60s).
+- Auto-rotation control for the globe.
+- Clear geolocation cache action.
+
+## Tech stack
+
+- React Native 0.81 + React 19
+- Expo SDK 54
+- Expo Router (file-based navigation and API routes)
+- @tanstack/react-query for data fetching and caching
+- react-native-webview for native globe rendering
+- COBE for 3D globe rendering
+- TypeScript (strict mode)
+- ESLint (expo flat config)
+
+## Project structure
+
+```text
+app/
+   _layout.tsx                 # Root providers, navigation stack, boot animation
+   api/validators+api.ts       # Internal API proxy to IOTA RPC
+   (tabs)/
+      _layout.tsx               # Tab navigation and custom tab bar styling
+      index.tsx                 # Home: globe + dashboard
+      validators.tsx            # Validator explorer
+      analytics.tsx             # Network analytics
+      settings.tsx              # Runtime configuration
+
+components/
+   globe/                      # Globe, overlays, WebView bridge, HTML scripts
+   dashboard/                  # Network summary cards
+   social/                     # Optional X feed WebView component
+
+hooks/
+   use-validators.ts           # React Query hook for validator payload
+   use-validator-locations.ts  # Geolocation resolution query
+   use-settings.tsx            # Persistent UI/runtime settings
+
+services/
+   api/client.ts               # Internal API fetch wrapper
+   validators.ts               # Validators service contracts
+   validator-location/         # DNS + GeoIP resolution and cache layer
+
+utils/
+   spherical-hash.ts           # Deterministic fallback coordinates
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Data flow
 
-## Learn more
+1. UI requests validator data through `useValidators`.
+2. Client calls internal route `GET /api/validators`.
+3. API route proxies two RPC methods in parallel:
+   - `iotax_getLatestIotaSystemStateV2`
+   - `iotax_getValidatorsApy`
+4. Geolocation pipeline resolves validator hosts to IPv4 and GeoIP coordinates.
+5. Globe bridge pushes normalized marker payloads to the WebView renderer.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Getting started
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Prerequisites
 
-## Join the community
+- Node.js LTS (18+ recommended)
+- npm (bundled with Node)
+- For simulators/emulators:
+  - Android Studio (Android)
+  - Xcode (iOS, macOS only)
 
-Join our community of developers creating universal apps.
+### Install dependencies
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npm install
+```
+
+### Start the development server
+
+```bash
+npm run start
+```
+
+Then choose one of the Expo targets:
+
+- Android emulator/device
+- iOS simulator/device
+- Web
+
+### Platform-specific shortcuts
+
+```bash
+npm run android
+npm run ios
+npm run web
+```
+
+## Configuration
+
+### IOTA RPC endpoint
+
+The app reads the RPC URL from `app.json`:
+
+```json
+{
+  "expo": {
+    "extra": {
+      "iotaRpcUrl": "https://api.mainnet.iota.cafe"
+    }
+  }
+}
+```
+
+Notes:
+
+- API route enforces secure endpoints (`https://` / `wss://`).
+- If the endpoint is unavailable, the app surfaces a connection error state.
+
+## Available scripts
+
+| Script            | Description                   |
+| ----------------- | ----------------------------- |
+| `npm run start`   | Start Expo development server |
+| `npm run android` | Launch Android target         |
+| `npm run ios`     | Launch iOS target             |
+| `npm run web`     | Launch web target             |
+| `npm run lint`    | Run ESLint checks             |
+
+## Caching and refresh behavior
+
+### React Query
+
+- Validator query refresh interval is user-configurable via Settings.
+- Query retries with exponential backoff on transient failures.
+
+### Geolocation cache
+
+- Domain -> IP and IP -> geo mappings are cached.
+- Web: localStorage-backed cache.
+- Native: file-backed cache (Expo file system).
+- Cache can be cleared from the Settings screen.
+
+## Troubleshooting
+
+### "Connection Failed" on Home/Analytics
+
+- Verify internet access to the configured IOTA RPC endpoint.
+- Ensure endpoint is HTTPS/WSS.
+- Confirm the API route returns valid JSON.
+
+### Validators are missing geolocation
+
+- Some validators may not expose resolvable host data.
+- In unresolved cases, deterministic fallback coordinates may be used.
+- Use "Clear Location Cache" in Settings to force a fresh resolution cycle.
+
+### X feed shows rate limit
+
+- The embedded X timeline can return temporary 429/rate-limit responses.
+- Use the fallback action in the UI to open the feed directly on X.
+
+## Development notes
+
+- TypeScript strict mode is enabled.
+- Alias `@/*` maps to the repository root.
+- Expo Router typed routes are enabled.
+- New architecture is enabled in Expo config.
+
+---
+
+If you are onboarding to the project, start with:
+
+1. `app/_layout.tsx`
+2. `app/(tabs)/index.tsx`
+3. `components/globe/`
+4. `app/api/validators+api.ts`
